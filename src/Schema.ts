@@ -1,36 +1,38 @@
-import { SchemaAttribute, SchemaAttributeInterface } from '@/SchemaAttribute';
-import { SchemaJSONInterface } from '@/SchemaJSON';
+import { SchemaAttribute, SchemaAttributeInterface } from './SchemaAttribute';
+import { SchemaJSONInterface } from './SchemaJSON';
+import { readFile } from 'fs/promises';
 
 export interface SchemaInterface {
   maxFileSizeInKb: SchemaAttributeInterface;
   minFileSizeInKb: SchemaAttributeInterface;
   loaded: boolean;
   getAttributes: () => SchemaAttributeInterface[];
+  loadFromFileInput(file: File): Promise<void>;
+  loadFromFileSystem(filepath: string): Promise<void>;
 }
 
 export class Schema implements SchemaInterface {
-  maxFileSizeInKb = new SchemaAttribute('Max file size');
-  minFileSizeInKb = new SchemaAttribute('Min file size');
+  maxFileSizeInKb = new SchemaAttribute('Max file size in Kb');
+  minFileSizeInKb = new SchemaAttribute('Min file size in Kb');
   loaded = false;
 
   getAttributes() {
     return [this.maxFileSizeInKb, this.minFileSizeInKb];
   }
 
-  public async loadFromFile(file: File): Promise<void> {
+  private loadFromSchemaObject(obj: SchemaJSONInterface) {
+    this.maxFileSizeInKb.loadAttribute(obj.fileSizeInKb.max);
+    this.minFileSizeInKb.loadAttribute(obj.fileSizeInKb.min);
+    this.loaded = true;
+  }
+
+  // This version is for the browser and the file comes from an <input type='file'> element
+  public async loadFromFileInput(file: File): Promise<void> {
     const loader = new Promise((resolve, reject) => {
-      const fileReader = new FileReader();
+      const fileReader = new FileReader(); // FileReader is not available in node.js
       fileReader.onload = async function () {
         const schemaText = fileReader.result as string;
         const schemaData = JSON.parse(schemaText) as SchemaJSONInterface;
-        // no access to this here
-        console.log(
-          'File size should be in the range of ' +
-            schemaData.fileSizeInKb.min +
-            ' to ' +
-            schemaData.fileSizeInKb.max +
-            'Kb',
-        );
         // FileReader is not async be default, so this wrapper is needed.
         resolve(schemaData);
       };
@@ -41,8 +43,13 @@ export class Schema implements SchemaInterface {
     });
 
     const schemaObj = (await loader) as SchemaJSONInterface;
-    this.maxFileSizeInKb.loadAttribute(schemaObj.fileSizeInKb.max);
-    this.minFileSizeInKb.loadAttribute(schemaObj.fileSizeInKb.min);
-    this.loaded = true;
+    this.loadFromSchemaObject(schemaObj);
+  }
+
+  // This version is for node.js and the file comes from the file system
+  public async loadFromFileSystem(filepath: string): Promise<void> {
+    const schemaText = await readFile(filepath, 'utf-8');
+    const schemaObj = JSON.parse(schemaText) as SchemaJSONInterface;
+    this.loadFromSchemaObject(schemaObj);
   }
 }

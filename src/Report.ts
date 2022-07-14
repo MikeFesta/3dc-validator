@@ -1,4 +1,4 @@
-import { ReportItem, ReportItemInterface } from '@/ReportItem';
+import { ReportItem, ReportItemInterface } from './ReportItem';
 
 export interface ReportInterface {
   fileSize: ReportItemInterface;

@@ -1,6 +1,6 @@
-import { Model, ModelInterface } from '@/Model';
-import { Report, ReportInterface } from '@/Report';
-import { Schema, SchemaInterface } from '@/Schema';
+import { Model, ModelInterface } from './Model';
+import { Report, ReportInterface } from './Report';
+import { Schema, SchemaInterface } from './Schema';
 
 export interface ValidatorInterface {
   model: ModelInterface;
@@ -23,7 +23,8 @@ export class Validator implements ValidatorInterface {
       throw new Error('Unable to generate report. No schema loaded.');
     }
     this.report.fileSize.test(
-      (this.model.fileSizeInKb.value as number) < (this.schema.maxFileSizeInKb.value as number),
+      (this.model.fileSizeInKb.value as number) > (this.schema.minFileSizeInKb.value as number) &&
+        (this.model.fileSizeInKb.value as number) < (this.schema.maxFileSizeInKb.value as number),
     );
     this.reportReady = true;
   }
