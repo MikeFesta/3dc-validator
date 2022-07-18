@@ -3,6 +3,7 @@ import { stat } from 'fs/promises';
 
 export interface ModelInterface {
   fileSizeInKb: ModelAttributeInterface;
+  triangleCount: ModelAttributeInterface;
   loaded: boolean;
   getAttributes: () => ModelAttributeInterface[];
   loadFromFileInput(file: File): Promise<void>;
@@ -11,6 +12,7 @@ export interface ModelInterface {
 
 export class Model implements ModelInterface {
   fileSizeInKb = new ModelAttribute('File size in Kb');
+  triangleCount = new ModelAttribute('Triangle Count');
   loaded = false;
 
   getAttributes() {
@@ -31,6 +33,10 @@ export class Model implements ModelInterface {
   public async loadFromFileSystem(filepath: string): Promise<void> {
     const fileStats = await stat(filepath);
     this.fileSizeInKb.loadValue((fileStats.size / 1024).toFixed(0));
+    this.triangleCount.loadValue(11111); // just for testing
     this.loaded = true;
   }
+
+  // For parsing the file
+  // https://threejs.org/docs/#examples/en/loaders/GLTFLoader
 }

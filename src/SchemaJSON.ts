@@ -3,4 +3,5 @@ export interface SchemaJSONInterface {
     min: number;
     max: number;
   };
+  maxTriangleCount: number;
 }

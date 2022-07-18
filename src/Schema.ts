@@ -5,6 +5,7 @@ import { readFile } from 'fs/promises';
 export interface SchemaInterface {
   maxFileSizeInKb: SchemaAttributeInterface;
   minFileSizeInKb: SchemaAttributeInterface;
+  maxTriangleCount: SchemaAttributeInterface;
   loaded: boolean;
   getAttributes: () => SchemaAttributeInterface[];
   loadFromFileInput(file: File): Promise<void>;
@@ -14,6 +15,7 @@ export interface SchemaInterface {
 export class Schema implements SchemaInterface {
   maxFileSizeInKb = new SchemaAttribute('Max file size in Kb');
   minFileSizeInKb = new SchemaAttribute('Min file size in Kb');
+  maxTriangleCount = new SchemaAttribute('Max Triangle Count');
   loaded = false;
 
   getAttributes() {
@@ -23,6 +25,7 @@ export class Schema implements SchemaInterface {
   private loadFromSchemaObject(obj: SchemaJSONInterface) {
     this.maxFileSizeInKb.loadAttribute(obj.fileSizeInKb.max);
     this.minFileSizeInKb.loadAttribute(obj.fileSizeInKb.min);
+    this.maxTriangleCount.loadAttribute(obj.maxTriangleCount);
     this.loaded = true;
   }
 

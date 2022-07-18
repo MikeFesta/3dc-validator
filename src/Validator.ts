@@ -26,6 +26,9 @@ export class Validator implements ValidatorInterface {
       (this.model.fileSizeInKb.value as number) > (this.schema.minFileSizeInKb.value as number) &&
         (this.model.fileSizeInKb.value as number) < (this.schema.maxFileSizeInKb.value as number),
     );
+    this.report.triangleCount.test(
+      (this.model.triangleCount.value as number) < (this.schema.maxTriangleCount.value as number),
+    );
     this.reportReady = true;
   }
 }
