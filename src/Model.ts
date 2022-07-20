@@ -6,6 +6,7 @@ import { validateBytes } from 'gltf-validator';
 export interface ModelInterface {
   fileSizeInKb: ModelAttributeInterface;
   triangleCount: ModelAttributeInterface;
+  materialCount: ModelAttributeInterface;
   loaded: boolean;
   getAttributes: () => ModelAttributeInterface[];
   loadFromFileInput(file: File): Promise<void>;
@@ -15,6 +16,7 @@ export interface ModelInterface {
 export class Model implements ModelInterface {
   fileSizeInKb = new ModelAttribute('File size in Kb');
   triangleCount = new ModelAttribute('Triangle Count');
+  materialCount = new ModelAttribute('Material Count');
   loaded = false;
 
   getAttributes() {
@@ -67,7 +69,8 @@ export class Model implements ModelInterface {
       validateBytes(binaryData)
         .then((report: any) => {
           this.triangleCount.loadValue(report.info.totalTriangleCount);
-          // Additional attributes can be pulled from the validator report
+          this.materialCount.loadValue(report.info.materialCount);
+          // May want to pass the results from the validator report
           resolve();
         })
         .catch((error: any) => {

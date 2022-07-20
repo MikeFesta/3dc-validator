@@ -7,6 +7,7 @@ export interface ValidatorInterface {
   report: ReportInterface;
   reportReady: boolean;
   schema: SchemaInterface;
+  version: string;
 }
 
 export class Validator implements ValidatorInterface {
@@ -14,6 +15,7 @@ export class Validator implements ValidatorInterface {
   report = new Report();
   reportReady = false;
   schema = new Schema();
+  version = '1.0.0-alpha.3';
 
   public generateReport() {
     if (!this.model.loaded) {
@@ -22,13 +24,51 @@ export class Validator implements ValidatorInterface {
     if (!this.schema.loaded) {
       throw new Error('Unable to generate report. No schema loaded.');
     }
-    this.report.fileSize.test(
-      (this.model.fileSizeInKb.value as number) > (this.schema.minFileSizeInKb.value as number) &&
-        (this.model.fileSizeInKb.value as number) < (this.schema.maxFileSizeInKb.value as number),
-    );
-    this.report.triangleCount.test(
-      (this.model.triangleCount.value as number) < (this.schema.maxTriangleCount.value as number),
-    );
+
+    // File Size
+    const filesizeOK =
+      // Greater than Min
+      (this.model.fileSizeInKb.value as number) >= (this.schema.minFileSizeInKb.value as number) &&
+      // Less than Max
+      (this.model.fileSizeInKb.value as number) <= (this.schema.maxFileSizeInKb.value as number);
+    let filesizeMessage =
+      this.schema.minFileSizeInKb.value +
+      'kb <= ' +
+      this.model.fileSizeInKb.value +
+      'kb <= ' +
+      this.schema.maxFileSizeInKb.value +
+      'kb';
+    if (!filesizeOK) {
+      if ((this.model.fileSizeInKb.value as number) < (this.schema.minFileSizeInKb.value as number)) {
+        filesizeMessage =
+          'File too small: ' + this.model.fileSizeInKb.value + 'kb < ' + this.schema.minFileSizeInKb.value + 'kb';
+      } else if ((this.model.fileSizeInKb.value as number) > (this.schema.maxFileSizeInKb.value as number)) {
+        filesizeMessage =
+          'File too large: ' + this.model.fileSizeInKb.value + 'kb > ' + this.schema.maxFileSizeInKb.value + 'kb';
+      }
+    }
+    this.report.fileSize.test(filesizeOK, filesizeMessage);
+
+    // Triangle Count
+    const triangleCountOK =
+      (this.model.triangleCount.value as number) <= (this.schema.maxTriangleCount.value as number);
+    let triangleCountMessage = this.model.triangleCount.value + ' =< ' + this.schema.maxTriangleCount.value;
+    if (!triangleCountOK) {
+      triangleCountMessage =
+        'Too many triangles: ' + this.model.triangleCount.value + ' > ' + this.schema.maxTriangleCount.value;
+    }
+    this.report.triangleCount.test(triangleCountOK, triangleCountMessage);
+
+    // Material Count
+    const materialCountOK =
+      (this.model.materialCount.value as number) <= (this.schema.maxMaterialCount.value as number);
+    let materialCountMessage = this.model.materialCount.value + ' <= ' + this.schema.maxMaterialCount.value;
+    if (!materialCountOK) {
+      materialCountMessage =
+        'Too Many Materials: ' + this.model.materialCount.value + ' > ' + this.schema.maxMaterialCount.value;
+    }
+    this.report.materialCount.test(materialCountOK, materialCountMessage);
+
     this.reportReady = true;
   }
 }

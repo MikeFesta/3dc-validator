@@ -1,4 +1,5 @@
 export interface ReportItemInterface {
+  message: string;
   name: string;
   pass: boolean;
   tested: boolean;
@@ -6,6 +7,7 @@ export interface ReportItemInterface {
 }
 
 export class ReportItem implements ReportItemInterface {
+  message = '';
   name = '';
   pass = false;
   tested = false;
@@ -14,7 +16,8 @@ export class ReportItem implements ReportItemInterface {
     this.name = name;
   }
 
-  public test(passCondition: boolean) {
+  public test(passCondition: boolean, message?: string) {
+    this.message = message ?? '';
     this.pass = passCondition;
     this.tested = true;
   }

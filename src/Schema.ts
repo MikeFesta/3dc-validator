@@ -6,6 +6,7 @@ export interface SchemaInterface {
   maxFileSizeInKb: SchemaAttributeInterface;
   minFileSizeInKb: SchemaAttributeInterface;
   maxTriangleCount: SchemaAttributeInterface;
+  maxMaterialCount: SchemaAttributeInterface;
   loaded: boolean;
   getAttributes: () => SchemaAttributeInterface[];
   loadFromFileInput(file: File): Promise<void>;
@@ -16,6 +17,7 @@ export class Schema implements SchemaInterface {
   maxFileSizeInKb = new SchemaAttribute('Max file size in Kb');
   minFileSizeInKb = new SchemaAttribute('Min file size in Kb');
   maxTriangleCount = new SchemaAttribute('Max Triangle Count');
+  maxMaterialCount = new SchemaAttribute('Max Material Count');
   loaded = false;
 
   getAttributes() {
@@ -26,6 +28,7 @@ export class Schema implements SchemaInterface {
     this.maxFileSizeInKb.loadAttribute(obj.fileSizeInKb.max);
     this.minFileSizeInKb.loadAttribute(obj.fileSizeInKb.min);
     this.maxTriangleCount.loadAttribute(obj.maxTriangleCount);
+    this.maxMaterialCount.loadAttribute(obj.maxMaterialCount);
     this.loaded = true;
   }
 

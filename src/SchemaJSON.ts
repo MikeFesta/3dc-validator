@@ -4,4 +4,5 @@ export interface SchemaJSONInterface {
     max: number;
   };
   maxTriangleCount: number;
+  maxMaterialCount: number;
 }
