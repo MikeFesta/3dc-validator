@@ -1,5 +1,7 @@
 import { ModelAttribute, ModelAttributeInterface } from './ModelAttribute';
-import { stat } from 'fs/promises';
+import { readFile, stat } from 'fs/promises';
+//@ts-ignore
+import { validateBytes } from 'gltf-validator';
 
 export interface ModelInterface {
   fileSizeInKb: ModelAttributeInterface;
@@ -19,10 +21,31 @@ export class Model implements ModelInterface {
     return [this.fileSizeInKb];
   }
 
+  public async getBufferFromFileInput(file: File): Promise<Uint8Array> {
+    return new Promise<Uint8Array>((resolve, reject) => {
+      try {
+        const reader = new FileReader();
+        reader.onload = function () {
+          if (reader.result) {
+            const buffer = new Uint8Array(reader.result as ArrayBuffer);
+            resolve(buffer);
+          } else {
+            reject();
+          }
+        };
+        reader.readAsArrayBuffer(file);
+      } catch (err) {
+        reject();
+      }
+    });
+  }
+
   // This version is for the browser and the file comes from an <input type='file'> element
   public async loadFromFileInput(file: File): Promise<void> {
     try {
       this.fileSizeInKb.loadValue(Math.round(file.size / 1024)); // bytes to Kb
+      const buffer = await this.getBufferFromFileInput(file);
+      await this.loadFromGlb(buffer);
       this.loaded = true;
     } catch (err) {
       throw new Error('Unable to load file');
@@ -33,8 +56,25 @@ export class Model implements ModelInterface {
   public async loadFromFileSystem(filepath: string): Promise<void> {
     const fileStats = await stat(filepath);
     this.fileSizeInKb.loadValue((fileStats.size / 1024).toFixed(0));
-    this.triangleCount.loadValue(11111); // just for testing
+    const fileData = await readFile(filepath);
+    await this.loadFromGlb(new Uint8Array(fileData));
     this.loaded = true;
+  }
+
+  private async loadFromGlb(binaryData: Uint8Array) {
+    return new Promise<void>((resolve, reject) => {
+      // Use the GLTF Validator to get the triangle count
+      validateBytes(binaryData)
+        .then((report: any) => {
+          this.triangleCount.loadValue(report.info.totalTriangleCount);
+          // Additional attributes can be pulled from the validator report
+          resolve();
+        })
+        .catch((error: any) => {
+          console.error('Validation failed: ', error);
+          reject();
+        });
+    });
   }
 
   // For parsing the file

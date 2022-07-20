@@ -8,12 +8,15 @@ This is a typescript package that contains classes for checking a 3D file, curre
 
 This package is used for both a command line interface, as well as a front-end web interface, published seperately.
 
+## Dependancies
+https://github.com/KhronosGroup/glTF-Validator
+
 #### Checks currently available
 * File Size (min/max)
+* Triangle Count (max)
 
 #### Checks to be added
 * Dimensions
-* Triangle Count
 * Transparent Geometry Separated
 * Material Count
 * 0-1 UV Texture Space

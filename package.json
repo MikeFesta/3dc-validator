@@ -1,12 +1,12 @@
 {
-  "name": "@mikefesta/khronos-3d-commerce-validator",
-  "version": "1.0.0-alpha.1",
+  "name": "@mikefesta/3dc-validator",
+  "version": "1.0.0-alpha.2",
   "author": "Mike Festa",
   "description": "Package for checking a 3D model file against a 3D Commerce use case schema to provide PASS/FAIL validation",
   "license": "SPDX-License-Identifier: Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/MikeFesta/khronos-3d-commerce-validator"
+    "url": "https://github.com/MikeFesta/3dc-validator"
   },
   "main": "dist/Validator.js",
   "type": "commonjs",
@@ -21,6 +21,9 @@
   ],
   "scripts": {
     "build": "tsc"
+  },
+  "dependencies": {
+    "gltf-validator": "^2.0.0-dev.3.9"
   },
   "devDependencies": {
     "@types/node": "^18.0.4",
