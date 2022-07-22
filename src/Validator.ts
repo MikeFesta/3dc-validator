@@ -15,7 +15,7 @@ export class Validator implements ValidatorInterface {
   report = new Report();
   reportReady = false;
   schema = new Schema();
-  version = '1.0.0-alpha.3';
+  version = '1.0.0-alpha.4';
 
   public generateReport() {
     if (!this.model.loaded) {
