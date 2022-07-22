@@ -57,7 +57,7 @@ export class Model implements ModelInterface {
   // This version is for node.js and the file comes from the file system
   public async loadFromFileSystem(filepath: string): Promise<void> {
     const fileStats = await stat(filepath);
-    this.fileSizeInKb.loadValue((fileStats.size / 1024).toFixed(0));
+    this.fileSizeInKb.loadValue(Number((fileStats.size / 1024).toFixed(0)));
     const fileData = await readFile(filepath);
     await this.loadFromGlb(new Uint8Array(fileData));
     this.loaded = true;

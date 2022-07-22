@@ -1,0 +1,8 @@
+{
+  "fileSizeInKb": {
+    "min": 100,
+    "max": 1024
+  },
+  "maxTriangleCount": 6,
+  "maxMaterialCount": 0
+}
