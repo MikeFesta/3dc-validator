@@ -6,7 +6,7 @@ describe('Validator', function () {
 
   describe('Version', function () {
     it('should match the current version', function () {
-      expect(v.version).to.equal('1.0.0-alpha.4');
+      expect(v.version).to.equal('1.0.0-alpha.5');
     });
   });
 });

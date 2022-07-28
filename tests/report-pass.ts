@@ -40,4 +40,10 @@ describe('Report Passing', function () {
       expect(v.report.materialCount.pass).to.be.true;
     });
   });
+  describe('Texture Dimensions are Powers of 2', function () {
+    it('should pass for pass.schema and blender-default-cube', function () {
+      expect(v.report.texturesPowerOfTwo.tested).to.be.true;
+      expect(v.report.texturesPowerOfTwo.pass).to.be.true;
+    });
+  });
 });

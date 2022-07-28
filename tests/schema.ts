@@ -36,4 +36,9 @@ describe('Schema', function () {
       expect(v.schema.maxMaterialCount.value as number).to.equal(2);
     });
   });
+  describe('Require Texture Dimensions be Powers of 2', function () {
+    it('should be set to true', function () {
+      expect(v.schema.requireTextureDimensionsBePowersOfTwo.value as boolean).to.be.true;
+    });
+  });
 });

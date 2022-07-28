@@ -15,7 +15,7 @@ export class Validator implements ValidatorInterface {
   report = new Report();
   reportReady = false;
   schema = new Schema();
-  version = '1.0.0-alpha.4';
+  version = '1.0.0-alpha.5';
 
   public generateReport() {
     if (!this.model.loaded) {
@@ -68,6 +68,16 @@ export class Validator implements ValidatorInterface {
         'Too Many Materials: ' + this.model.materialCount.value + ' > ' + this.schema.maxMaterialCount.value;
     }
     this.report.materialCount.test(materialCountOK, materialCountMessage);
+
+    // Texture Size Power of 2
+    const po2WouldHave = (this.model.texturesPowerOfTwo.value as boolean) ? 'passed' : 'failed';
+    const po2message = this.schema.requireTextureDimensionsBePowersOfTwo.value
+      ? 'Required by schema'
+      : 'Not Required by schema, but would have ' + po2WouldHave;
+    this.report.texturesPowerOfTwo.test(
+      !this.schema.requireTextureDimensionsBePowersOfTwo.value || (this.model.texturesPowerOfTwo.value as boolean),
+      po2message,
+    );
 
     this.reportReady = true;
   }

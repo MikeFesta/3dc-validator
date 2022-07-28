@@ -4,5 +4,6 @@
     "max": 5120
   },
   "maxTriangleCount": 30000,
-  "maxMaterialCount": 2
+  "maxMaterialCount": 2,
+  "requireTextureDimensionsBePowersOfTwo": true
 }

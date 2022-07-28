@@ -5,4 +5,5 @@ export interface SchemaJSONInterface {
   };
   maxTriangleCount: number;
   maxMaterialCount: number;
+  requireTextureDimensionsBePowersOfTwo: boolean;
 }

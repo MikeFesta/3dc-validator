@@ -7,6 +7,7 @@ export interface SchemaInterface {
   minFileSizeInKb: SchemaAttributeInterface;
   maxTriangleCount: SchemaAttributeInterface;
   maxMaterialCount: SchemaAttributeInterface;
+  requireTextureDimensionsBePowersOfTwo: SchemaAttributeInterface;
   loaded: boolean;
   getAttributes: () => SchemaAttributeInterface[];
   loadFromFileInput(file: File): Promise<void>;
@@ -18,10 +19,11 @@ export class Schema implements SchemaInterface {
   minFileSizeInKb = new SchemaAttribute('Min file size in Kb');
   maxTriangleCount = new SchemaAttribute('Max Triangle Count');
   maxMaterialCount = new SchemaAttribute('Max Material Count');
+  requireTextureDimensionsBePowersOfTwo = new SchemaAttribute('Require Texture Dimensions be Powers of 2');
   loaded = false;
 
   getAttributes() {
-    return [this.maxFileSizeInKb, this.minFileSizeInKb];
+    return [this.maxFileSizeInKb, this.minFileSizeInKb, this.maxTriangleCount, this.maxMaterialCount];
   }
 
   private loadFromSchemaObject(obj: SchemaJSONInterface) {
@@ -29,6 +31,7 @@ export class Schema implements SchemaInterface {
     this.minFileSizeInKb.loadAttribute(obj.fileSizeInKb.min);
     this.maxTriangleCount.loadAttribute(obj.maxTriangleCount);
     this.maxMaterialCount.loadAttribute(obj.maxMaterialCount);
+    this.requireTextureDimensionsBePowersOfTwo.loadAttribute(obj.requireTextureDimensionsBePowersOfTwo);
     this.loaded = true;
   }
 
