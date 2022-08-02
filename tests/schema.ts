@@ -88,8 +88,8 @@ describe('Schema Failing', function () {
     });
   });
   describe('Max Material Count', function () {
-    it('should match the fail.schema max material count of 2', function () {
-      expect(v.schema.maxMaterialCount.value as number).to.equal(0);
+    it('should match the fail.schema max material count of 1', function () {
+      expect(v.schema.maxMaterialCount.value as number).to.equal(1);
     });
   });
   describe('Require Texture Dimensions be Powers of 2', function () {
@@ -98,10 +98,10 @@ describe('Schema Failing', function () {
     });
   });
   describe('Minimum Dimensions', function () {
-    it('should be 0.1 for height, width, and depth', function () {
-      expect(v.schema.dimensionsMinDepth.value as number).to.equal(0.1);
-      expect(v.schema.dimensionsMinHeight.value as number).to.equal(0.1);
-      expect(v.schema.dimensionsMinWidth.value as number).to.equal(0.1);
+    it('should be 1 for height, width, and depth', function () {
+      expect(v.schema.dimensionsMinDepth.value as number).to.equal(1);
+      expect(v.schema.dimensionsMinHeight.value as number).to.equal(1);
+      expect(v.schema.dimensionsMinWidth.value as number).to.equal(1);
     });
   });
   describe('Maximum Dimensions', function () {

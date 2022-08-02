@@ -68,4 +68,29 @@ describe('Model Failing', function () {
       expect(v.model.texturesPowerOfTwo.value as boolean).to.be.false;
     });
   });
+  describe('Triangle Count', function () {
+    it('should match the blender-default-cube-failing triangle count of 12', function () {
+      expect(v.model.triangleCount.value as number).to.equal(12);
+    });
+  });
+  describe('Material Count', function () {
+    it('should match the blender-default-cube-failing material count of 3', function () {
+      expect(v.model.materialCount.value as number).to.equal(3);
+    });
+  });
+  describe('Width', function () {
+    it('should match the blender-default-cube-failing width of 12m', function () {
+      expect(v.model.width.value as number).to.equal(12);
+    });
+  });
+  describe('Height', function () {
+    it('should match the blender-default-cube-failing height of 0.2m', function () {
+      expect(v.model.height.value as number).to.equal(0.2);
+    });
+  });
+  describe('Depth', function () {
+    it('should match the blender-default-cube-failing depth of 12m', function () {
+      expect(v.model.depth.value as number).to.equal(12);
+    });
+  });
 });

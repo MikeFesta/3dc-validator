@@ -4,18 +4,18 @@
     "max": 1024
   },
   "maxTriangleCount": 6,
-  "maxMaterialCount": 0,
+  "maxMaterialCount": 1,
   "requireTextureDimensionsBePowersOfTwo": true,
   "dimensions": {
     "maximum": {
-      "width": 10.0,
-      "height": 10.0,
-      "depth": 10.0
+      "width": 10,
+      "height": 10,
+      "depth": 10
     },
     "minimum": {
-      "width": 0.1,
-      "height": 0.1,
-      "depth": 0.1
+      "width": 1,
+      "height": 1,
+      "depth": 1
     },
     "percentTolerance": {
       "width": 2,

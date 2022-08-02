@@ -105,4 +105,16 @@ describe('Report Failing', function () {
       expect(v.report.materialCount.pass).to.be.false;
     });
   });
+  describe('Max Dimensions', function () {
+    it('should fail for being larger than 10m width and depth', function () {
+      expect(v.report.dimensionsMax.tested).to.be.true;
+      expect(v.report.dimensionsMax.pass).to.be.false;
+    });
+  });
+  describe('Min Dimensions', function () {
+    it('should fail for height smaller than 1m', function () {
+      expect(v.report.dimensionsMin.tested).to.be.true;
+      expect(v.report.dimensionsMin.pass).to.be.false;
+    });
+  });
 });

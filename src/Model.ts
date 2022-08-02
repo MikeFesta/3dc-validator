@@ -105,10 +105,11 @@ export class Model implements ModelInterface {
     await BABYLON.SceneLoader.AppendAsync('', data, scene);
 
     // Dimensions - from the root node, get bounds of all child meshes
+    // Note: uses toFixed to round the number up to 6 decimal places
     const { min, max } = scene.meshes[0].getHierarchyBoundingVectors();
-    this.width.loadValue(max.x - min.x);
-    this.height.loadValue(max.y - min.y);
-    this.depth.loadValue(max.z - min.z);
+    this.width.loadValue(+(max.x - min.x).toFixed(6) as number);
+    this.height.loadValue(+(max.y - min.y).toFixed(6) as number);
+    this.depth.loadValue(+(max.z - min.z).toFixed(6) as number);
   }
 
   private async loadWithGltfValidator(data: ArrayBuffer) {
