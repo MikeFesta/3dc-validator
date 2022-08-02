@@ -35,13 +35,13 @@ export class Model implements ModelInterface {
     return [this.fileSizeInKb];
   }
 
-  public async getBufferFromFileInput(file: File): Promise<Uint8Array> {
-    return new Promise<Uint8Array>((resolve, reject) => {
+  public async getBufferFromFileInput(file: File): Promise<ArrayBuffer> {
+    return new Promise<ArrayBuffer>((resolve, reject) => {
       try {
         const reader = new FileReader();
         reader.onload = function () {
           if (reader.result) {
-            const buffer = new Uint8Array(reader.result as ArrayBuffer);
+            const buffer = reader.result as ArrayBuffer;
             resolve(buffer);
           } else {
             reject();
@@ -58,8 +58,9 @@ export class Model implements ModelInterface {
   public async loadFromFileInput(file: File): Promise<void> {
     try {
       this.fileSizeInKb.loadValue(Math.round(file.size / 1024)); // bytes to Kb
-      const buffer = await this.getBufferFromFileInput(file);
-      await this.loadWithGltfValidator(buffer);
+      const fileDataBuffer = await this.getBufferFromFileInput(file);
+      await this.loadWithGltfValidator(fileDataBuffer);
+      await this.loadWithBabylon(file);
       this.loaded = true;
     } catch (err) {
       throw new Error('Unable to load file');
@@ -70,9 +71,10 @@ export class Model implements ModelInterface {
   public async loadFromFileSystem(filepath: string): Promise<void> {
     const fileStats = await stat(filepath);
     this.fileSizeInKb.loadValue(Number((fileStats.size / 1024).toFixed(0)));
-    const fileData = await readFile(filepath);
-    await this.loadWithGltfValidator(new Uint8Array(fileData));
-    await this.loadWithBabylon(fileData);
+    const fileDataBuffer = await readFile(filepath);
+    await this.loadWithGltfValidator(fileDataBuffer);
+    const data = 'data:;base64,' + EncodeArrayBufferToBase64(fileDataBuffer);
+    await this.loadWithBabylon(data);
     this.loaded = true;
   }
 
@@ -95,14 +97,12 @@ export class Model implements ModelInterface {
     return !nonPowerOfTwoTextureFound;
   }
 
-  private async loadWithBabylon(fileData: Buffer) {
+  private async loadWithBabylon(data: string | File) {
     const engine = new BABYLON.NullEngine();
     const scene = new BABYLON.Scene(engine);
     const loader = new GLTFFileLoader(); // need this to make glb loading available to SceneLoader
 
-    const b64 = 'data:;base64,' + EncodeArrayBufferToBase64(fileData);
-
-    await BABYLON.SceneLoader.AppendAsync('', b64, scene);
+    await BABYLON.SceneLoader.AppendAsync('', data, scene);
 
     // Dimensions - from the root node, get bounds of all child meshes
     const { min, max } = scene.meshes[0].getHierarchyBoundingVectors();
@@ -111,8 +111,9 @@ export class Model implements ModelInterface {
     this.depth.loadValue(max.z - min.z);
   }
 
-  private async loadWithGltfValidator(binaryData: Uint8Array) {
+  private async loadWithGltfValidator(data: ArrayBuffer) {
     return new Promise<void>((resolve, reject) => {
+      const binaryData = new Uint8Array(data);
       // Use the GLTF Validator to get the triangle count
       validateBytes(binaryData)
         .then((report: any) => {
