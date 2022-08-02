@@ -16,9 +16,10 @@ https://github.com/KhronosGroup/glTF-Validator
 * Triangle Count (max)
 * Material Count (max)
 * Texture Map Resolution Power of 2
+* Dimensions (min/max)
 
 #### Checks to be added
-* Dimensions (min/max)
+* Dimensions (product within tolerance)
 * Transparent Geometry Separated
 * 0-1 UV Texture Space
 * Mesh Count

@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { Validator } from '../dist/Validator';
 
-describe('Schema', function () {
+describe('Schema Passing', function () {
   const v = new Validator();
 
   before('Load Schema', async function () {
@@ -39,6 +39,76 @@ describe('Schema', function () {
   describe('Require Texture Dimensions be Powers of 2', function () {
     it('should be set to true', function () {
       expect(v.schema.requireTextureDimensionsBePowersOfTwo.value as boolean).to.be.true;
+    });
+  });
+  describe('Minimum Dimensions', function () {
+    it('should be 0.01 for height, width, and depth', function () {
+      expect(v.schema.dimensionsMinDepth.value as number).to.equal(0.01);
+      expect(v.schema.dimensionsMinHeight.value as number).to.equal(0.01);
+      expect(v.schema.dimensionsMinWidth.value as number).to.equal(0.01);
+    });
+  });
+  describe('Maximum Dimensions', function () {
+    it('should be 100 for height, width, and depth', function () {
+      expect(v.schema.dimensionsMaxDepth.value as number).to.equal(100);
+      expect(v.schema.dimensionsMaxHeight.value as number).to.equal(100);
+      expect(v.schema.dimensionsMaxWidth.value as number).to.equal(100);
+    });
+  });
+});
+
+describe('Schema Failing', function () {
+  const v = new Validator();
+
+  before('Load Schema', async function () {
+    try {
+      await v.schema.loadFromFileSystem('tests/fail.schema');
+    } catch (err) {
+      throw new Error('Unable to load fail schema');
+    }
+  });
+  describe('Loaded', function () {
+    it('should load the fail schema', function () {
+      expect(v.schema.loaded).to.be.true;
+    });
+  });
+  describe('Min File Size', function () {
+    it('should match the fail.schema min file size of 100kb', function () {
+      expect(v.schema.minFileSizeInKb.value as number).to.equal(100);
+    });
+  });
+  describe('Max File Size', function () {
+    it('should match the fail.schema max file size of 1024kb', function () {
+      expect(v.schema.maxFileSizeInKb.value as number).to.equal(1024);
+    });
+  });
+  describe('Max Triangle Count', function () {
+    it('should match the fail.schema max triangle count of 6', function () {
+      expect(v.schema.maxTriangleCount.value as number).to.equal(6);
+    });
+  });
+  describe('Max Material Count', function () {
+    it('should match the fail.schema max material count of 2', function () {
+      expect(v.schema.maxMaterialCount.value as number).to.equal(0);
+    });
+  });
+  describe('Require Texture Dimensions be Powers of 2', function () {
+    it('should be set to true', function () {
+      expect(v.schema.requireTextureDimensionsBePowersOfTwo.value as boolean).to.be.true;
+    });
+  });
+  describe('Minimum Dimensions', function () {
+    it('should be 0.1 for height, width, and depth', function () {
+      expect(v.schema.dimensionsMinDepth.value as number).to.equal(0.1);
+      expect(v.schema.dimensionsMinHeight.value as number).to.equal(0.1);
+      expect(v.schema.dimensionsMinWidth.value as number).to.equal(0.1);
+    });
+  });
+  describe('Maximum Dimensions', function () {
+    it('should be 10 for height, width, and depth', function () {
+      expect(v.schema.dimensionsMaxDepth.value as number).to.equal(10);
+      expect(v.schema.dimensionsMaxHeight.value as number).to.equal(10);
+      expect(v.schema.dimensionsMaxWidth.value as number).to.equal(10);
     });
   });
 });

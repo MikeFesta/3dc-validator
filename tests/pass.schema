@@ -5,5 +5,22 @@
   },
   "maxTriangleCount": 30000,
   "maxMaterialCount": 2,
-  "requireTextureDimensionsBePowersOfTwo": true
+  "requireTextureDimensionsBePowersOfTwo": true,
+  "dimensions": {
+    "maximum": {
+      "width": 100.0,
+      "height": 100.0,
+      "depth": 100.0
+    },
+    "minimum": {
+      "width": 0.01,
+      "height": 0.01,
+      "depth": 0.01
+    },
+    "percentTolerance": {
+      "width": 2,
+      "height": 2,
+      "depth": 2
+    }
+  }
 }

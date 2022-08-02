@@ -15,7 +15,7 @@ export class Validator implements ValidatorInterface {
   report = new Report();
   reportReady = false;
   schema = new Schema();
-  version = '1.0.0-alpha.5';
+  version = '1.0.0-alpha.6';
 
   public generateReport() {
     if (!this.model.loaded) {
@@ -77,6 +77,48 @@ export class Validator implements ValidatorInterface {
     this.report.texturesPowerOfTwo.test(
       !this.schema.requireTextureDimensionsBePowersOfTwo.value || (this.model.texturesPowerOfTwo.value as boolean),
       po2message,
+    );
+
+    // Dimensions (Max)
+    let dimensionsMaxMessage =
+      'Width: ' +
+      this.model.width.value +
+      (this.model.width.value <= this.schema.dimensionsMaxWidth.value ? ' <= ' : ' > ') +
+      this.schema.dimensionsMaxWidth.value +
+      '; Height: ' +
+      this.model.height.value +
+      (this.model.height.value <= this.schema.dimensionsMaxHeight.value ? ' <= ' : ' > ') +
+      this.schema.dimensionsMaxHeight.value +
+      '; Depth: ' +
+      this.model.depth.value +
+      (this.model.depth.value <= this.schema.dimensionsMaxDepth.value ? ' <= ' : ' > ') +
+      this.schema.dimensionsMaxDepth.value;
+    this.report.dimensionsMax.test(
+      this.model.depth.value <= this.schema.dimensionsMaxDepth.value &&
+        this.model.height.value <= this.schema.dimensionsMaxHeight.value &&
+        this.model.width.value <= this.schema.dimensionsMaxWidth.value,
+      dimensionsMaxMessage,
+    );
+
+    // Dimensions (Min)
+    let dimensionsMinMessage =
+      'Width: ' +
+      this.model.width.value +
+      (this.model.width.value >= this.schema.dimensionsMinWidth.value ? ' >= ' : ' < ') +
+      this.schema.dimensionsMinWidth.value +
+      '; Height: ' +
+      this.model.height.value +
+      (this.model.height.value >= this.schema.dimensionsMinHeight.value ? ' >= ' : ' < ') +
+      this.schema.dimensionsMinHeight.value +
+      '; Depth: ' +
+      this.model.depth.value +
+      (this.model.depth.value >= this.schema.dimensionsMinDepth.value ? ' >= ' : ' < ') +
+      this.schema.dimensionsMinDepth.value;
+    this.report.dimensionsMin.test(
+      this.model.depth.value >= this.schema.dimensionsMinDepth.value &&
+        this.model.height.value >= this.schema.dimensionsMinHeight.value &&
+        this.model.width.value >= this.schema.dimensionsMinWidth.value,
+      dimensionsMinMessage,
     );
 
     this.reportReady = true;

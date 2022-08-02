@@ -12,6 +12,12 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "sourceMap": true,
+    "types": [
+      "babylonjs",
+      "babylonjs-loaders",
+      "mocha",
+      "node",
+    ],
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]

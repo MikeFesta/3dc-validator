@@ -1,6 +1,6 @@
 {
   "name": "@mikefesta/3dc-validator",
-  "version": "1.0.0-alpha.5",
+  "version": "1.0.0-alpha.6",
   "author": "Mike Festa",
   "description": "Package for checking a 3D model file against a 3D Commerce use case schema to provide PASS/FAIL validation",
   "license": "SPDX-License-Identifier: Apache-2.0",
@@ -24,6 +24,8 @@
     "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha -r ts-node/register 'tests/**/*.ts'"
   },
   "dependencies": {
+    "babylonjs": "^5.17.1",
+    "babylonjs-loaders": "^5.17.1",
     "gltf-validator": "^2.0.0-dev.3.9"
   },
   "devDependencies": {
@@ -33,6 +35,7 @@
     "chai": "^4.3.6",
     "mocha": "^10.0.0",
     "ts-node": "^10.9.1",
+    "tslib": "^2.4.0",
     "typescript": "^4.7.4"
   }
 }
