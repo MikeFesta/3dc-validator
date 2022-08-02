@@ -1,4 +1,4 @@
-import { ModelAttribute, ModelAttributeInterface } from './ModelAttribute';
+import { LoadableAttribute, LoadableAttributeInterface } from './LoadableAttribute';
 import { readFile, stat } from 'fs/promises';
 //@ts-ignore
 import { validateBytes } from 'gltf-validator';
@@ -7,27 +7,27 @@ import { GLTFFileLoader } from 'babylonjs-loaders';
 import { EncodeArrayBufferToBase64 } from 'babylonjs';
 
 export interface ModelInterface {
-  fileSizeInKb: ModelAttributeInterface;
-  triangleCount: ModelAttributeInterface;
-  materialCount: ModelAttributeInterface;
-  texturesPowerOfTwo: ModelAttributeInterface;
-  width: ModelAttributeInterface;
-  height: ModelAttributeInterface;
-  depth: ModelAttributeInterface;
+  fileSizeInKb: LoadableAttributeInterface;
+  triangleCount: LoadableAttributeInterface;
+  materialCount: LoadableAttributeInterface;
+  texturesPowerOfTwo: LoadableAttributeInterface;
+  width: LoadableAttributeInterface;
+  height: LoadableAttributeInterface;
+  depth: LoadableAttributeInterface;
   loaded: boolean;
-  getAttributes: () => ModelAttributeInterface[];
+  getAttributes: () => LoadableAttributeInterface[];
   loadFromFileInput(file: File): Promise<void>;
   loadFromFileSystem(filepath: string): Promise<void>;
 }
 
 export class Model implements ModelInterface {
-  fileSizeInKb = new ModelAttribute('File size in Kb');
-  triangleCount = new ModelAttribute('Triangle Count');
-  materialCount = new ModelAttribute('Material Count');
-  texturesPowerOfTwo = new ModelAttribute('Texture Dimensions are Powers of 2');
-  width = new ModelAttribute('Width in Meters');
-  height = new ModelAttribute('Height in Meters');
-  depth = new ModelAttribute('Depth in Meters');
+  fileSizeInKb = new LoadableAttribute('File size in Kb');
+  triangleCount = new LoadableAttribute('Triangle Count');
+  materialCount = new LoadableAttribute('Material Count');
+  texturesPowerOfTwo = new LoadableAttribute('Texture Dimensions are Powers of 2');
+  width = new LoadableAttribute('Width in Meters');
+  height = new LoadableAttribute('Height in Meters');
+  depth = new LoadableAttribute('Depth in Meters');
 
   loaded = false;
 

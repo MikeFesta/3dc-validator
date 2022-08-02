@@ -1,43 +1,43 @@
-import { SchemaAttribute, SchemaAttributeInterface } from './SchemaAttribute';
+import { LoadableAttribute, LoadableAttributeInterface } from './LoadableAttribute';
 import { SchemaJSONInterface } from './SchemaJSON';
 import { readFile } from 'fs/promises';
 
 export interface SchemaInterface {
-  maxFileSizeInKb: SchemaAttributeInterface;
-  minFileSizeInKb: SchemaAttributeInterface;
-  maxTriangleCount: SchemaAttributeInterface;
-  maxMaterialCount: SchemaAttributeInterface;
-  requireTextureDimensionsBePowersOfTwo: SchemaAttributeInterface;
-  dimensionsMaxWidth: SchemaAttributeInterface;
-  dimensionsMaxHeight: SchemaAttributeInterface;
-  dimensionsMaxDepth: SchemaAttributeInterface;
-  dimensionsMinWidth: SchemaAttributeInterface;
-  dimensionsMinHeight: SchemaAttributeInterface;
-  dimensionsMinDepth: SchemaAttributeInterface;
-  dimensionsPercentToleranceWidth: SchemaAttributeInterface;
-  dimensionsPercentToleranceHeight: SchemaAttributeInterface;
-  dimensionsPercentToleranceDepth: SchemaAttributeInterface;
+  maxFileSizeInKb: LoadableAttributeInterface;
+  minFileSizeInKb: LoadableAttributeInterface;
+  maxTriangleCount: LoadableAttributeInterface;
+  maxMaterialCount: LoadableAttributeInterface;
+  requireTextureDimensionsBePowersOfTwo: LoadableAttributeInterface;
+  dimensionsMaxWidth: LoadableAttributeInterface;
+  dimensionsMaxHeight: LoadableAttributeInterface;
+  dimensionsMaxDepth: LoadableAttributeInterface;
+  dimensionsMinWidth: LoadableAttributeInterface;
+  dimensionsMinHeight: LoadableAttributeInterface;
+  dimensionsMinDepth: LoadableAttributeInterface;
+  dimensionsPercentToleranceWidth: LoadableAttributeInterface;
+  dimensionsPercentToleranceHeight: LoadableAttributeInterface;
+  dimensionsPercentToleranceDepth: LoadableAttributeInterface;
   loaded: boolean;
-  getAttributes: () => SchemaAttributeInterface[];
+  getAttributes: () => LoadableAttributeInterface[];
   loadFromFileInput(file: File): Promise<void>;
   loadFromFileSystem(filepath: string): Promise<void>;
 }
 
 export class Schema implements SchemaInterface {
-  maxFileSizeInKb = new SchemaAttribute('Max file size in Kb');
-  minFileSizeInKb = new SchemaAttribute('Min file size in Kb');
-  maxTriangleCount = new SchemaAttribute('Max Triangle Count');
-  maxMaterialCount = new SchemaAttribute('Max Material Count');
-  requireTextureDimensionsBePowersOfTwo = new SchemaAttribute('Require Texture Dimensions be Powers of 2');
-  dimensionsMaxWidth = new SchemaAttribute('Max Width (x)');
-  dimensionsMaxHeight = new SchemaAttribute('Max Height (z)');
-  dimensionsMaxDepth = new SchemaAttribute('Max Depth (y)');
-  dimensionsMinWidth = new SchemaAttribute('Min Width (x)');
-  dimensionsMinHeight = new SchemaAttribute('Min Height (z)');
-  dimensionsMinDepth = new SchemaAttribute('Min Depth (y)');
-  dimensionsPercentToleranceWidth = new SchemaAttribute('Percent Tolerance Width (x)');
-  dimensionsPercentToleranceHeight = new SchemaAttribute('Percent Tolerance Height (z)');
-  dimensionsPercentToleranceDepth = new SchemaAttribute('Percent Tolerance Depth (y)');
+  maxFileSizeInKb = new LoadableAttribute('Max file size in Kb');
+  minFileSizeInKb = new LoadableAttribute('Min file size in Kb');
+  maxTriangleCount = new LoadableAttribute('Max Triangle Count');
+  maxMaterialCount = new LoadableAttribute('Max Material Count');
+  requireTextureDimensionsBePowersOfTwo = new LoadableAttribute('Require Texture Dimensions be Powers of 2');
+  dimensionsMaxWidth = new LoadableAttribute('Max Width (x)');
+  dimensionsMaxHeight = new LoadableAttribute('Max Height (z)');
+  dimensionsMaxDepth = new LoadableAttribute('Max Depth (y)');
+  dimensionsMinWidth = new LoadableAttribute('Min Width (x)');
+  dimensionsMinHeight = new LoadableAttribute('Min Height (z)');
+  dimensionsMinDepth = new LoadableAttribute('Min Depth (y)');
+  dimensionsPercentToleranceWidth = new LoadableAttribute('Percent Tolerance Width (x)');
+  dimensionsPercentToleranceHeight = new LoadableAttribute('Percent Tolerance Height (z)');
+  dimensionsPercentToleranceDepth = new LoadableAttribute('Percent Tolerance Depth (y)');
 
   loaded = false;
 
@@ -46,20 +46,20 @@ export class Schema implements SchemaInterface {
   }
 
   private loadFromSchemaObject(obj: SchemaJSONInterface) {
-    this.maxFileSizeInKb.loadAttribute(obj.fileSizeInKb.max);
-    this.minFileSizeInKb.loadAttribute(obj.fileSizeInKb.min);
-    this.maxTriangleCount.loadAttribute(obj.maxTriangleCount);
-    this.maxMaterialCount.loadAttribute(obj.maxMaterialCount);
-    this.requireTextureDimensionsBePowersOfTwo.loadAttribute(obj.requireTextureDimensionsBePowersOfTwo);
-    this.dimensionsMaxWidth.loadAttribute(obj.dimensions.maximum.width);
-    this.dimensionsMaxHeight.loadAttribute(obj.dimensions.maximum.height);
-    this.dimensionsMaxDepth.loadAttribute(obj.dimensions.maximum.depth);
-    this.dimensionsMinWidth.loadAttribute(obj.dimensions.minimum.width);
-    this.dimensionsMinHeight.loadAttribute(obj.dimensions.minimum.height);
-    this.dimensionsMinDepth.loadAttribute(obj.dimensions.minimum.depth);
-    this.dimensionsPercentToleranceWidth.loadAttribute(obj.dimensions.percentTolerance.width);
-    this.dimensionsPercentToleranceHeight.loadAttribute(obj.dimensions.percentTolerance.height);
-    this.dimensionsPercentToleranceDepth.loadAttribute(obj.dimensions.percentTolerance.depth);
+    this.maxFileSizeInKb.loadValue(obj.fileSizeInKb.max);
+    this.minFileSizeInKb.loadValue(obj.fileSizeInKb.min);
+    this.maxTriangleCount.loadValue(obj.maxTriangleCount);
+    this.maxMaterialCount.loadValue(obj.maxMaterialCount);
+    this.requireTextureDimensionsBePowersOfTwo.loadValue(obj.requireTextureDimensionsBePowersOfTwo);
+    this.dimensionsMaxWidth.loadValue(obj.dimensions.maximum.width);
+    this.dimensionsMaxHeight.loadValue(obj.dimensions.maximum.height);
+    this.dimensionsMaxDepth.loadValue(obj.dimensions.maximum.depth);
+    this.dimensionsMinWidth.loadValue(obj.dimensions.minimum.width);
+    this.dimensionsMinHeight.loadValue(obj.dimensions.minimum.height);
+    this.dimensionsMinDepth.loadValue(obj.dimensions.minimum.depth);
+    this.dimensionsPercentToleranceWidth.loadValue(obj.dimensions.percentTolerance.width);
+    this.dimensionsPercentToleranceHeight.loadValue(obj.dimensions.percentTolerance.height);
+    this.dimensionsPercentToleranceDepth.loadValue(obj.dimensions.percentTolerance.depth);
     this.loaded = true;
   }
 

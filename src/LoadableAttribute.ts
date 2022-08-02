@@ -1,11 +1,11 @@
-export interface ModelAttributeInterface {
+export interface LoadableAttributeInterface {
   loaded: boolean;
   name: string;
   value: boolean | number | string;
   loadValue: (value: boolean | number | string) => void;
 }
 
-export class ModelAttribute implements ModelAttributeInterface {
+export class LoadableAttribute implements LoadableAttributeInterface {
   loaded = false;
   name = '';
   value = undefined as unknown as boolean | number | string;
