@@ -84,140 +84,170 @@ export class Validator implements ValidatorInterface {
 
     // Dimensions (Max)
     let dimensionsMaxMessage =
-      'Width: ' +
+      '(L:' +
+      this.model.length.value +
+      ' x W:' +
       this.model.width.value +
-      (this.model.width.value <= this.schema.dimensionsMaxWidth.value ? ' <= ' : ' > ') +
-      this.schema.dimensionsMaxWidth.value +
-      '; Height: ' +
+      ' x H:' +
       this.model.height.value +
-      (this.model.height.value <= this.schema.dimensionsMaxHeight.value ? ' <= ' : ' > ') +
-      this.schema.dimensionsMaxHeight.value +
-      '; Depth: ' +
-      this.model.depth.value +
-      (this.model.depth.value <= this.schema.dimensionsMaxDepth.value ? ' <= ' : ' > ') +
-      this.schema.dimensionsMaxDepth.value;
+      ') vs (L:' +
+      this.schema.maxLength.value +
+      ' x W:' +
+      this.schema.maxWidth.value +
+      ' x H:' +
+      this.schema.maxHeight.value +
+      ') Max';
     this.report.dimensionsMax.test(
-      this.model.depth.value <= this.schema.dimensionsMaxDepth.value &&
-        this.model.height.value <= this.schema.dimensionsMaxHeight.value &&
-        this.model.width.value <= this.schema.dimensionsMaxWidth.value,
+      this.model.height.value <= this.schema.maxHeight.value &&
+        this.model.length.value <= this.schema.maxLength.value &&
+        this.model.width.value <= this.schema.maxWidth.value,
       dimensionsMaxMessage,
     );
 
     // Dimensions (Min)
     let dimensionsMinMessage =
-      'Width: ' +
+      '(L:' +
+      this.model.length.value +
+      ' x W:' +
       this.model.width.value +
-      (this.model.width.value >= this.schema.dimensionsMinWidth.value ? ' >= ' : ' < ') +
-      this.schema.dimensionsMinWidth.value +
-      '; Height: ' +
+      ' x H:' +
       this.model.height.value +
-      (this.model.height.value >= this.schema.dimensionsMinHeight.value ? ' >= ' : ' < ') +
-      this.schema.dimensionsMinHeight.value +
-      '; Depth: ' +
-      this.model.depth.value +
-      (this.model.depth.value >= this.schema.dimensionsMinDepth.value ? ' >= ' : ' < ') +
-      this.schema.dimensionsMinDepth.value;
+      ') vs (L:' +
+      this.schema.minLength.value +
+      ' x W:' +
+      this.schema.minWidth.value +
+      ' x H:' +
+      this.schema.minHeight.value +
+      ') Min';
     this.report.dimensionsMin.test(
-      this.model.depth.value >= this.schema.dimensionsMinDepth.value &&
-        this.model.height.value >= this.schema.dimensionsMinHeight.value &&
-        this.model.width.value >= this.schema.dimensionsMinWidth.value,
+      this.model.height.value >= this.schema.minHeight.value &&
+        this.model.length.value >= this.schema.minLength.value &&
+        this.model.width.value >= this.schema.minWidth.value,
       dimensionsMinMessage,
     );
 
     // Additional checks that require product information to be made available
     if (this.productInfo.loaded) {
-      // Product Dimensions within tolerance (assume true for any missing product dimensions)
-      let widthWithinTolerance = true;
+      // Product Dimensions meet tolerance (assume true for any missing product dimensions)
       let heightWithinTolerance = true;
-      let depthWithinTolerance = true;
+      let lengthWithinTolerance = true;
+      let widthWithinTolerance = true;
       let productToleranceMessage = '';
 
-      if (this.productInfo.dimensionsDepth.loaded) {
-        // check product tolerances
-        const depthMarginOfError =
-          ((this.schema.dimensionsPercentToleranceDepth.value as number) / 100) *
-          (this.productInfo.dimensionsDepth.value as number);
+      if (this.productInfo.height.loaded) {
         const heightMarginOfError =
-          ((this.schema.dimensionsPercentToleranceHeight.value as number) / 100) *
-          (this.productInfo.dimensionsHeight.value as number);
-        const widthMarginOfError =
-          ((this.schema.dimensionsPercentToleranceWidth.value as number) / 100) *
-          (this.productInfo.dimensionsWidth.value as number);
-
-        const depthTooSmall =
-          this.model.depth.value < (this.productInfo.dimensionsDepth.value as number) - depthMarginOfError;
-        const depthTooLarge =
-          this.model.depth.value > (this.productInfo.dimensionsDepth.value as number) + depthMarginOfError;
+          ((this.schema.percentToleranceHeight.value as number) / 100) * (this.productInfo.height.value as number);
         const heightTooSmall =
-          this.model.height.value < (this.productInfo.dimensionsHeight.value as number) - heightMarginOfError;
+          this.model.height.value < (this.productInfo.height.value as number) - heightMarginOfError;
         const heightTooLarge =
-          this.model.height.value > (this.productInfo.dimensionsHeight.value as number) + heightMarginOfError;
-        const widthTooSmall =
-          this.model.width.value < (this.productInfo.dimensionsWidth.value as number) - widthMarginOfError;
-        const widthTooLarge =
-          this.model.width.value > (this.productInfo.dimensionsWidth.value as number) + widthMarginOfError;
-
-        depthWithinTolerance = !depthTooSmall && !depthTooLarge;
+          this.model.height.value > (this.productInfo.height.value as number) + heightMarginOfError;
         heightWithinTolerance = !heightTooSmall && !heightTooLarge;
+        if (heightTooSmall) {
+          productToleranceMessage +=
+            'Height too small: ' +
+            this.model.height.value +
+            ' < (' +
+            this.productInfo.height.value +
+            ' - ' +
+            heightMarginOfError +
+            '); ';
+        }
+        if (heightTooLarge) {
+          productToleranceMessage +=
+            'Height too large: ' +
+            this.model.height.value +
+            ' > (' +
+            this.productInfo.height.value +
+            ' + ' +
+            heightMarginOfError +
+            '); ';
+        }
+      }
+      if (this.productInfo.length.loaded) {
+        const lengthMarginOfError =
+          ((this.schema.percentToleranceLength.value as number) / 100) * (this.productInfo.length.value as number);
+        const lengthTooSmall =
+          this.model.length.value < (this.productInfo.length.value as number) - lengthMarginOfError;
+        const lengthTooLarge =
+          this.model.length.value > (this.productInfo.length.value as number) + lengthMarginOfError;
+        lengthWithinTolerance = !lengthTooSmall && !lengthTooLarge;
+        if (lengthTooSmall) {
+          productToleranceMessage +=
+            'Length too small: ' +
+            this.model.length.value +
+            ' < (' +
+            this.productInfo.length.value +
+            ' - ' +
+            lengthMarginOfError +
+            '); ';
+        }
+        if (lengthTooLarge) {
+          productToleranceMessage +=
+            'Length too large: ' +
+            this.model.length.value +
+            ' > (' +
+            this.productInfo.length.value +
+            ' + ' +
+            lengthMarginOfError +
+            '); ';
+        }
+      }
+      if (this.productInfo.width.loaded) {
+        const widthMarginOfError =
+          ((this.schema.percentToleranceWidth.value as number) / 100) * (this.productInfo.width.value as number);
+        const widthTooSmall = this.model.width.value < (this.productInfo.width.value as number) - widthMarginOfError;
+        const widthTooLarge = this.model.width.value > (this.productInfo.width.value as number) + widthMarginOfError;
         widthWithinTolerance = !widthTooSmall && !widthTooLarge;
+        if (widthTooSmall) {
+          productToleranceMessage +=
+            'Width too small: ' +
+            this.model.width.value +
+            ' < (' +
+            this.productInfo.width.value +
+            ' - ' +
+            widthMarginOfError +
+            '); ';
+        }
+        if (widthTooLarge) {
+          productToleranceMessage +=
+            'Width too large: ' +
+            this.model.width.value +
+            ' > (' +
+            this.productInfo.width.value +
+            ' + ' +
+            widthMarginOfError +
+            '); ';
+        }
+      }
 
-        if (!depthWithinTolerance) {
-          if (depthTooSmall) {
-            productToleranceMessage =
-              'Depth too small: ' +
-              this.model.depth.value +
-              ' < ' +
-              ((this.productInfo.dimensionsDepth.value as number) - depthMarginOfError);
-          } else {
-            productToleranceMessage =
-              'Depth too large: ' +
-              this.model.depth.value +
-              ' > ' +
-              ((this.productInfo.dimensionsDepth.value as number) + depthMarginOfError);
-          }
-          if (!heightWithinTolerance || !widthWithinTolerance) {
-            productToleranceMessage += '; ';
-          }
+      if (!productToleranceMessage) {
+        productToleranceMessage =
+          'Product Dimensions: (L: ' +
+          this.productInfo.length.value +
+          ' x W: ' +
+          this.productInfo.width.value +
+          ' x H: ' +
+          this.productInfo.height.value +
+          ') +/- ';
+        if (
+          this.schema.percentToleranceLength.value == this.schema.percentToleranceWidth.value &&
+          this.schema.percentToleranceLength.value == this.schema.percentToleranceHeight.value
+        ) {
+          productToleranceMessage += this.schema.percentToleranceLength.value + '%';
+        } else {
+          productToleranceMessage +=
+            '(L: ' +
+            this.schema.percentToleranceLength.value +
+            '% x W: ' +
+            this.schema.percentToleranceWidth.value +
+            '% x H: ' +
+            this.schema.percentToleranceHeight.value +
+            '%)';
         }
-        if (!heightWithinTolerance) {
-          if (heightTooSmall) {
-            productToleranceMessage +=
-              'Height too small: ' +
-              this.model.height.value +
-              ' < ' +
-              ((this.productInfo.dimensionsHeight.value as number) - heightMarginOfError);
-          } else {
-            productToleranceMessage +=
-              'Height too large: ' +
-              this.model.height.value +
-              ' > ' +
-              ((this.productInfo.dimensionsHeight.value as number) + heightMarginOfError);
-          }
-          if (!widthWithinTolerance) {
-            productToleranceMessage += '; ';
-          }
-        }
-        if (!widthWithinTolerance) {
-          if (widthTooSmall) {
-            productToleranceMessage +=
-              'Width too small: ' +
-              this.model.width.value +
-              ' < ' +
-              ((this.productInfo.dimensionsWidth.value as number) - widthMarginOfError);
-          } else {
-            productToleranceMessage +=
-              'Width too large: ' +
-              this.model.width.value +
-              ' > ' +
-              ((this.productInfo.dimensionsWidth.value as number) + widthMarginOfError);
-          }
-        }
-      } else {
-        console.log('no product info loaded');
       }
 
       this.report.productDimensionsWithinTolerance.test(
-        widthWithinTolerance && heightWithinTolerance && depthWithinTolerance,
+        widthWithinTolerance && heightWithinTolerance && lengthWithinTolerance,
         productToleranceMessage,
       );
     }

@@ -42,17 +42,17 @@ describe('Schema Passing', function () {
     });
   });
   describe('Minimum Dimensions', function () {
-    it('should be 0.01 for height, width, and depth', function () {
-      expect(v.schema.dimensionsMinDepth.value as number).to.equal(0.01);
-      expect(v.schema.dimensionsMinHeight.value as number).to.equal(0.01);
-      expect(v.schema.dimensionsMinWidth.value as number).to.equal(0.01);
+    it('should be (L:0.01 x W:0.01 x H:0.01)', function () {
+      expect(v.schema.minLength.value as number).to.equal(0.01);
+      expect(v.schema.minWidth.value as number).to.equal(0.01);
+      expect(v.schema.minHeight.value as number).to.equal(0.01);
     });
   });
   describe('Maximum Dimensions', function () {
-    it('should be 100 for height, width, and depth', function () {
-      expect(v.schema.dimensionsMaxDepth.value as number).to.equal(100);
-      expect(v.schema.dimensionsMaxHeight.value as number).to.equal(100);
-      expect(v.schema.dimensionsMaxWidth.value as number).to.equal(100);
+    it('should be (L:100 x W:100 x H:100)', function () {
+      expect(v.schema.maxLength.value as number).to.equal(100);
+      expect(v.schema.maxWidth.value as number).to.equal(100);
+      expect(v.schema.maxHeight.value as number).to.equal(100);
     });
   });
 });
@@ -98,17 +98,17 @@ describe('Schema Failing', function () {
     });
   });
   describe('Minimum Dimensions', function () {
-    it('should be 1 for height, width, and depth', function () {
-      expect(v.schema.dimensionsMinDepth.value as number).to.equal(1);
-      expect(v.schema.dimensionsMinHeight.value as number).to.equal(1);
-      expect(v.schema.dimensionsMinWidth.value as number).to.equal(1);
+    it('should be (L:1 x W:1 x H:1)', function () {
+      expect(v.schema.minLength.value as number).to.equal(1);
+      expect(v.schema.minWidth.value as number).to.equal(1);
+      expect(v.schema.minHeight.value as number).to.equal(1);
     });
   });
   describe('Maximum Dimensions', function () {
-    it('should be 10 for height, width, and depth', function () {
-      expect(v.schema.dimensionsMaxDepth.value as number).to.equal(10);
-      expect(v.schema.dimensionsMaxHeight.value as number).to.equal(10);
-      expect(v.schema.dimensionsMaxWidth.value as number).to.equal(10);
+    it('should be (L:10 x W:10 x H:10)', function () {
+      expect(v.schema.maxLength.value as number).to.equal(10);
+      expect(v.schema.maxWidth.value as number).to.equal(10);
+      expect(v.schema.maxHeight.value as number).to.equal(10);
     });
   });
 });

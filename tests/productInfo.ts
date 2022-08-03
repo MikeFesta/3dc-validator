@@ -17,10 +17,10 @@ describe('Product Info Passing', function () {
     });
   });
   describe('Dimensions', function () {
-    it('should be 1.99 for height, 2.01 for width, and 2.02 for depth', function () {
-      expect(v.productInfo.dimensionsDepth.value as number).to.equal(2.02);
-      expect(v.productInfo.dimensionsHeight.value as number).to.equal(1.99);
-      expect(v.productInfo.dimensionsWidth.value as number).to.equal(2.01);
+    it('should be (L:2.02 x W:2.01 x H:1.99)', function () {
+      expect(v.productInfo.length.value as number).to.equal(2.02);
+      expect(v.productInfo.width.value as number).to.equal(2.01);
+      expect(v.productInfo.height.value as number).to.equal(1.99);
     });
   });
 });

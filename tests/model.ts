@@ -31,6 +31,11 @@ describe('Model Passing', function () {
       expect(v.model.materialCount.value as number).to.equal(1);
     });
   });
+  describe('Length', function () {
+    it('should match the blender-default-cube-passing length of 2m', function () {
+      expect(v.model.length.value as number).to.equal(2);
+    });
+  });
   describe('Width', function () {
     it('should match the blender-default-cube-passing width of 2m', function () {
       expect(v.model.width.value as number).to.equal(2);
@@ -39,11 +44,6 @@ describe('Model Passing', function () {
   describe('Height', function () {
     it('should match the blender-default-cube-passing height of 2m', function () {
       expect(v.model.height.value as number).to.equal(2);
-    });
-  });
-  describe('Depth', function () {
-    it('should match the blender-default-cube-passing depth of 2m', function () {
-      expect(v.model.depth.value as number).to.equal(2);
     });
   });
 });
@@ -78,6 +78,11 @@ describe('Model Failing', function () {
       expect(v.model.materialCount.value as number).to.equal(3);
     });
   });
+  describe('Length', function () {
+    it('should match the blender-default-cube-failing length of 12m', function () {
+      expect(v.model.length.value as number).to.equal(12);
+    });
+  });
   describe('Width', function () {
     it('should match the blender-default-cube-failing width of 12m', function () {
       expect(v.model.width.value as number).to.equal(12);
@@ -86,11 +91,6 @@ describe('Model Failing', function () {
   describe('Height', function () {
     it('should match the blender-default-cube-failing height of 0.2m', function () {
       expect(v.model.height.value as number).to.equal(0.2);
-    });
-  });
-  describe('Depth', function () {
-    it('should match the blender-default-cube-failing depth of 12m', function () {
-      expect(v.model.depth.value as number).to.equal(12);
     });
   });
 });

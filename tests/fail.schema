@@ -8,19 +8,19 @@
   "requireTextureDimensionsBePowersOfTwo": true,
   "dimensions": {
     "maximum": {
+      "length": 10,
       "width": 10,
-      "height": 10,
-      "depth": 10
+      "height": 10
     },
     "minimum": {
+      "length": 1,
       "width": 1,
-      "height": 1,
-      "depth": 1
+      "height": 1
     },
     "percentTolerance": {
+      "length": 2,
       "width": 2,
-      "height": 2,
-      "depth": 2
+      "height": 2
     }
   }
 }

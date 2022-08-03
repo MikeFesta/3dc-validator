@@ -3,9 +3,9 @@ import { ProductInfoJSONInterface } from './ProductInfoJSON';
 import { readFile } from 'fs/promises';
 
 export interface ProductInfoInterface {
-  dimensionsDepth: LoadableAttributeInterface;
-  dimensionsHeight: LoadableAttributeInterface;
-  dimensionsWidth: LoadableAttributeInterface;
+  height: LoadableAttributeInterface;
+  length: LoadableAttributeInterface;
+  width: LoadableAttributeInterface;
   loaded: boolean;
   getAttributes: () => LoadableAttributeInterface[];
   loadFromFileInput(file: File): Promise<void>;
@@ -13,20 +13,20 @@ export interface ProductInfoInterface {
 }
 
 export class ProductInfo implements ProductInfoInterface {
-  dimensionsDepth = new LoadableAttribute('Product Depth (y)');
-  dimensionsHeight = new LoadableAttribute('Product Height (z)');
-  dimensionsWidth = new LoadableAttribute('Product Width (x)');
+  height = new LoadableAttribute('Product Height');
+  length = new LoadableAttribute('Product Length');
+  width = new LoadableAttribute('Product Width');
 
   loaded = false;
 
   getAttributes() {
-    return [this.dimensionsDepth, this.dimensionsHeight, this.dimensionsWidth];
+    return [this.length, this.height, this.width];
   }
 
   private loadFromProductInfoObject(obj: ProductInfoJSONInterface) {
-    this.dimensionsWidth.loadValue(obj.dimensions.width);
-    this.dimensionsHeight.loadValue(obj.dimensions.height);
-    this.dimensionsDepth.loadValue(obj.dimensions.depth);
+    this.height.loadValue(obj.dimensions.height);
+    this.length.loadValue(obj.dimensions.length);
+    this.width.loadValue(obj.dimensions.width);
     this.loaded = true;
   }
 

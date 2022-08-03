@@ -8,13 +8,13 @@ import { EncodeArrayBufferToBase64 } from 'babylonjs';
 
 export interface ModelInterface {
   fileSizeInKb: LoadableAttributeInterface;
-  triangleCount: LoadableAttributeInterface;
+  height: LoadableAttributeInterface;
+  length: LoadableAttributeInterface;
+  loaded: boolean;
   materialCount: LoadableAttributeInterface;
   texturesPowerOfTwo: LoadableAttributeInterface;
+  triangleCount: LoadableAttributeInterface;
   width: LoadableAttributeInterface;
-  height: LoadableAttributeInterface;
-  depth: LoadableAttributeInterface;
-  loaded: boolean;
   getAttributes: () => LoadableAttributeInterface[];
   loadFromFileInput(file: File): Promise<void>;
   loadFromFileSystem(filepath: string): Promise<void>;
@@ -22,17 +22,24 @@ export interface ModelInterface {
 
 export class Model implements ModelInterface {
   fileSizeInKb = new LoadableAttribute('File size in Kb');
-  triangleCount = new LoadableAttribute('Triangle Count');
+  height = new LoadableAttribute('Height in Meters');
+  length = new LoadableAttribute('Length in Meters');
+  loaded = false;
   materialCount = new LoadableAttribute('Material Count');
   texturesPowerOfTwo = new LoadableAttribute('Texture Dimensions are Powers of 2');
+  triangleCount = new LoadableAttribute('Triangle Count');
   width = new LoadableAttribute('Width in Meters');
-  height = new LoadableAttribute('Height in Meters');
-  depth = new LoadableAttribute('Depth in Meters');
-
-  loaded = false;
 
   getAttributes() {
-    return [this.fileSizeInKb];
+    return [
+      this.fileSizeInKb,
+      this.triangleCount,
+      this.materialCount,
+      this.texturesPowerOfTwo,
+      this.length,
+      this.width,
+      this.height,
+    ];
   }
 
   public async getBufferFromFileInput(file: File): Promise<ArrayBuffer> {
@@ -107,9 +114,9 @@ export class Model implements ModelInterface {
     // Dimensions - from the root node, get bounds of all child meshes
     // Note: uses toFixed to round the number up to 6 decimal places
     const { min, max } = scene.meshes[0].getHierarchyBoundingVectors();
-    this.width.loadValue(+(max.x - min.x).toFixed(6) as number);
     this.height.loadValue(+(max.y - min.y).toFixed(6) as number);
-    this.depth.loadValue(+(max.z - min.z).toFixed(6) as number);
+    this.length.loadValue(+(max.x - min.x).toFixed(6) as number);
+    this.width.loadValue(+(max.z - min.z).toFixed(6) as number);
   }
 
   private async loadWithGltfValidator(data: ArrayBuffer) {

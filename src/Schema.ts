@@ -3,79 +3,79 @@ import { SchemaJSONInterface } from './SchemaJSON';
 import { readFile } from 'fs/promises';
 
 export interface SchemaInterface {
-  maxFileSizeInKb: LoadableAttributeInterface;
-  minFileSizeInKb: LoadableAttributeInterface;
-  maxTriangleCount: LoadableAttributeInterface;
-  maxMaterialCount: LoadableAttributeInterface;
-  requireTextureDimensionsBePowersOfTwo: LoadableAttributeInterface;
-  dimensionsMaxWidth: LoadableAttributeInterface;
-  dimensionsMaxHeight: LoadableAttributeInterface;
-  dimensionsMaxDepth: LoadableAttributeInterface;
-  dimensionsMinWidth: LoadableAttributeInterface;
-  dimensionsMinHeight: LoadableAttributeInterface;
-  dimensionsMinDepth: LoadableAttributeInterface;
-  dimensionsPercentToleranceWidth: LoadableAttributeInterface;
-  dimensionsPercentToleranceHeight: LoadableAttributeInterface;
-  dimensionsPercentToleranceDepth: LoadableAttributeInterface;
   loaded: boolean;
+  maxFileSizeInKb: LoadableAttributeInterface;
+  maxHeight: LoadableAttributeInterface;
+  maxLength: LoadableAttributeInterface;
+  maxMaterialCount: LoadableAttributeInterface;
+  maxTriangleCount: LoadableAttributeInterface;
+  maxWidth: LoadableAttributeInterface;
+  minFileSizeInKb: LoadableAttributeInterface;
+  minHeight: LoadableAttributeInterface;
+  minLength: LoadableAttributeInterface;
+  minWidth: LoadableAttributeInterface;
+  percentToleranceHeight: LoadableAttributeInterface;
+  percentToleranceLength: LoadableAttributeInterface;
+  percentToleranceWidth: LoadableAttributeInterface;
+  requireTextureDimensionsBePowersOfTwo: LoadableAttributeInterface;
+
   getAttributes: () => LoadableAttributeInterface[];
   loadFromFileInput(file: File): Promise<void>;
   loadFromFileSystem(filepath: string): Promise<void>;
 }
 
 export class Schema implements SchemaInterface {
-  maxFileSizeInKb = new LoadableAttribute('Max file size in Kb');
-  minFileSizeInKb = new LoadableAttribute('Min file size in Kb');
-  maxTriangleCount = new LoadableAttribute('Max Triangle Count');
-  maxMaterialCount = new LoadableAttribute('Max Material Count');
-  requireTextureDimensionsBePowersOfTwo = new LoadableAttribute('Require Texture Dimensions be Powers of 2');
-  dimensionsMaxWidth = new LoadableAttribute('Max Width (x)');
-  dimensionsMaxHeight = new LoadableAttribute('Max Height (z)');
-  dimensionsMaxDepth = new LoadableAttribute('Max Depth (y)');
-  dimensionsMinWidth = new LoadableAttribute('Min Width (x)');
-  dimensionsMinHeight = new LoadableAttribute('Min Height (z)');
-  dimensionsMinDepth = new LoadableAttribute('Min Depth (y)');
-  dimensionsPercentToleranceWidth = new LoadableAttribute('Percent Tolerance Width (x)');
-  dimensionsPercentToleranceHeight = new LoadableAttribute('Percent Tolerance Height (z)');
-  dimensionsPercentToleranceDepth = new LoadableAttribute('Percent Tolerance Depth (y)');
-
   loaded = false;
+  maxFileSizeInKb = new LoadableAttribute('Max file size in Kb');
+  maxHeight = new LoadableAttribute('Max Height (z)');
+  maxLength = new LoadableAttribute('Max Length (y)');
+  maxMaterialCount = new LoadableAttribute('Max Material Count');
+  maxTriangleCount = new LoadableAttribute('Max Triangle Count');
+  maxWidth = new LoadableAttribute('Max Width (x)');
+  minFileSizeInKb = new LoadableAttribute('Min file size in Kb');
+  minHeight = new LoadableAttribute('Min Height (z)');
+  minLength = new LoadableAttribute('Min Length (y)');
+  minWidth = new LoadableAttribute('Min Width (x)');
+  percentToleranceHeight = new LoadableAttribute('Percent Tolerance Height (z)');
+  percentToleranceLength = new LoadableAttribute('Percent Tolerance Length (y)');
+  percentToleranceWidth = new LoadableAttribute('Percent Tolerance Width (x)');
+  requireTextureDimensionsBePowersOfTwo = new LoadableAttribute('Require Texture Dimensions be Powers of 2');
 
   getAttributes() {
     return [
-      this.maxFileSizeInKb,
       this.minFileSizeInKb,
+      this.maxFileSizeInKb,
       this.maxTriangleCount,
       this.maxMaterialCount,
       this.requireTextureDimensionsBePowersOfTwo,
-      this.dimensionsMaxWidth,
-      this.dimensionsMaxHeight,
-      this.dimensionsMaxDepth,
-      this.dimensionsMinWidth,
-      this.dimensionsMinHeight,
-      this.dimensionsMinDepth,
-      this.dimensionsPercentToleranceWidth,
-      this.dimensionsPercentToleranceHeight,
-      this.dimensionsPercentToleranceDepth,
+      this.minLength,
+      this.maxLength,
+      this.minWidth,
+      this.maxWidth,
+      this.minHeight,
+      this.maxHeight,
+      this.percentToleranceLength,
+      this.percentToleranceWidth,
+      this.percentToleranceHeight,
     ];
   }
 
   private loadFromSchemaObject(obj: SchemaJSONInterface) {
-    this.maxFileSizeInKb.loadValue(obj.fileSizeInKb.max);
-    this.minFileSizeInKb.loadValue(obj.fileSizeInKb.min);
-    this.maxTriangleCount.loadValue(obj.maxTriangleCount);
-    this.maxMaterialCount.loadValue(obj.maxMaterialCount);
-    this.requireTextureDimensionsBePowersOfTwo.loadValue(obj.requireTextureDimensionsBePowersOfTwo);
-    this.dimensionsMaxWidth.loadValue(obj.dimensions.maximum.width);
-    this.dimensionsMaxHeight.loadValue(obj.dimensions.maximum.height);
-    this.dimensionsMaxDepth.loadValue(obj.dimensions.maximum.depth);
-    this.dimensionsMinWidth.loadValue(obj.dimensions.minimum.width);
-    this.dimensionsMinHeight.loadValue(obj.dimensions.minimum.height);
-    this.dimensionsMinDepth.loadValue(obj.dimensions.minimum.depth);
-    this.dimensionsPercentToleranceWidth.loadValue(obj.dimensions.percentTolerance.width);
-    this.dimensionsPercentToleranceHeight.loadValue(obj.dimensions.percentTolerance.height);
-    this.dimensionsPercentToleranceDepth.loadValue(obj.dimensions.percentTolerance.depth);
     this.loaded = true;
+    this.maxFileSizeInKb.loadValue(obj.fileSizeInKb.max);
+    this.maxHeight.loadValue(obj.dimensions.maximum.height);
+    this.maxLength.loadValue(obj.dimensions.maximum.length);
+    this.maxMaterialCount.loadValue(obj.maxMaterialCount);
+    this.maxTriangleCount.loadValue(obj.maxTriangleCount);
+    this.maxWidth.loadValue(obj.dimensions.maximum.width);
+    this.minFileSizeInKb.loadValue(obj.fileSizeInKb.min);
+    this.minHeight.loadValue(obj.dimensions.minimum.height);
+    this.minLength.loadValue(obj.dimensions.minimum.length);
+    this.minWidth.loadValue(obj.dimensions.minimum.width);
+    this.percentToleranceHeight.loadValue(obj.dimensions.percentTolerance.height);
+    this.percentToleranceLength.loadValue(obj.dimensions.percentTolerance.length);
+    this.percentToleranceWidth.loadValue(obj.dimensions.percentTolerance.width);
+    this.requireTextureDimensionsBePowersOfTwo.loadValue(obj.requireTextureDimensionsBePowersOfTwo);
   }
 
   // This version is for the browser and the file comes from an <input type='file'> element

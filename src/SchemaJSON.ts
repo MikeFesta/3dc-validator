@@ -8,19 +8,19 @@ export interface SchemaJSONInterface {
   requireTextureDimensionsBePowersOfTwo: boolean;
   dimensions: {
     maximum: {
+      length: number;
       width: number;
       height: number;
-      depth: number;
     };
     minimum: {
+      length: number;
       width: number;
       height: number;
-      depth: number;
     };
     percentTolerance: {
+      length: number;
       width: number;
       height: number;
-      depth: number;
     };
   };
 }
