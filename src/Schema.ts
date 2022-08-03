@@ -42,7 +42,22 @@ export class Schema implements SchemaInterface {
   loaded = false;
 
   getAttributes() {
-    return [this.maxFileSizeInKb, this.minFileSizeInKb, this.maxTriangleCount, this.maxMaterialCount];
+    return [
+      this.maxFileSizeInKb,
+      this.minFileSizeInKb,
+      this.maxTriangleCount,
+      this.maxMaterialCount,
+      this.requireTextureDimensionsBePowersOfTwo,
+      this.dimensionsMaxWidth,
+      this.dimensionsMaxHeight,
+      this.dimensionsMaxDepth,
+      this.dimensionsMinWidth,
+      this.dimensionsMinHeight,
+      this.dimensionsMinDepth,
+      this.dimensionsPercentToleranceWidth,
+      this.dimensionsPercentToleranceHeight,
+      this.dimensionsPercentToleranceDepth,
+    ];
   }
 
   private loadFromSchemaObject(obj: SchemaJSONInterface) {
