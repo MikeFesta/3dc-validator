@@ -1,7 +1,7 @@
-import { Model, ModelInterface } from './Model';
-import { ProductInfo, ProductInfoInterface } from './ProductInfo';
-import { Report, ReportInterface } from './Report';
-import { Schema, SchemaInterface } from './Schema';
+import { Model, ModelInterface } from './Model.js';
+import { ProductInfo, ProductInfoInterface } from './ProductInfo.js';
+import { Report, ReportInterface } from './Report.js';
+import { Schema, SchemaInterface } from './Schema.js';
 
 export interface ValidatorInterface {
   model: ModelInterface;
@@ -18,7 +18,7 @@ export class Validator implements ValidatorInterface {
   report = new Report();
   reportReady = false;
   schema = new Schema();
-  version = '1.0.0-alpha.6';
+  version = '1.0.0-alpha.7';
 
   public generateReport() {
     if (!this.model.loaded) {

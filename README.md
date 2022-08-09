@@ -8,9 +8,9 @@ This is a typescript package that contains classes for checking a 3D file, curre
 
 This package is used for both a command line interface, as well as a front-end web interface, published seperately.
 
-## Dependancies
-https://www.babylonjs.com/
-https://github.com/KhronosGroup/glTF-Validator
+## Dependencies
+* https://www.babylonjs.com/
+* https://github.com/KhronosGroup/glTF-Validator
 
 #### Checks currently available
 * File Size (min/max)

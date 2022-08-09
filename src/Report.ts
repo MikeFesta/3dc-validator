@@ -1,4 +1,4 @@
-import { ReportItem, ReportItemInterface } from './ReportItem';
+import { ReportItem, ReportItemInterface } from './ReportItem.js';
 
 export interface ReportInterface {
   fileSize: ReportItemInterface;

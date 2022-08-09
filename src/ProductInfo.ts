@@ -1,5 +1,5 @@
-import { LoadableAttribute, LoadableAttributeInterface } from './LoadableAttribute';
-import { ProductInfoJSONInterface } from './ProductInfoJSON';
+import { LoadableAttribute, LoadableAttributeInterface } from './LoadableAttribute.js';
+import { ProductInfoJSONInterface } from './ProductInfoJSON.js';
 import { readFile } from 'fs/promises';
 
 export interface ProductInfoInterface {

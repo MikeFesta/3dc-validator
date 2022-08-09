@@ -3,7 +3,7 @@
     "declaration": true,
     "outDir": "dist",
     "target": "es2021",
-    "module": "commonjs",
+    "module": "ESNext",
     "strict": true,
     "importHelpers": true,
     "moduleResolution": "node",
@@ -13,8 +13,6 @@
     "allowSyntheticDefaultImports": true,
     "sourceMap": true,
     "types": [
-      "babylonjs",
-      "babylonjs-loaders",
       "mocha",
       "node",
     ],

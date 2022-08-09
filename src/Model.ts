@@ -1,10 +1,12 @@
-import { LoadableAttribute, LoadableAttributeInterface } from './LoadableAttribute';
+import { LoadableAttribute, LoadableAttributeInterface } from './LoadableAttribute.js';
 import { readFile, stat } from 'fs/promises';
 //@ts-ignore
 import { validateBytes } from 'gltf-validator';
-import * as BABYLON from 'babylonjs';
-import { GLTFFileLoader } from 'babylonjs-loaders';
-import { EncodeArrayBufferToBase64 } from 'babylonjs';
+import { NullEngine } from '@babylonjs/core/Engines/nullEngine.js';
+import { SceneLoader } from '@babylonjs/core/Loading/sceneLoader.js';
+import { EncodeArrayBufferToBase64 } from '@babylonjs/core/Misc/stringTools.js';
+import { Scene } from '@babylonjs/core/scene.js';
+import '@babylonjs/loaders/glTF/2.0/glTFLoader.js';
 
 export interface ModelInterface {
   fileSizeInKb: LoadableAttributeInterface;
@@ -105,11 +107,10 @@ export class Model implements ModelInterface {
   }
 
   private async loadWithBabylon(data: string | File) {
-    const engine = new BABYLON.NullEngine();
-    const scene = new BABYLON.Scene(engine);
-    const loader = new GLTFFileLoader(); // need this to make glb loading available to SceneLoader
+    const engine = new NullEngine();
+    const scene = new Scene(engine);
 
-    await BABYLON.SceneLoader.AppendAsync('', data, scene);
+    await SceneLoader.AppendAsync('', data, scene);
 
     // Dimensions - from the root node, get bounds of all child meshes
     // Note: uses toFixed to round the number up to 6 decimal places

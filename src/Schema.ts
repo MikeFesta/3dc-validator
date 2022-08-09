@@ -1,5 +1,5 @@
-import { LoadableAttribute, LoadableAttributeInterface } from './LoadableAttribute';
-import { SchemaJSONInterface } from './SchemaJSON';
+import { LoadableAttribute, LoadableAttributeInterface } from './LoadableAttribute.js';
+import { SchemaJSONInterface } from './SchemaJSON.js';
 import { readFile } from 'fs/promises';
 
 export interface SchemaInterface {

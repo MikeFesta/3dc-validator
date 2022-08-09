@@ -1,6 +1,6 @@
 {
   "name": "@mikefesta/3dc-validator",
-  "version": "1.0.0-alpha.6",
+  "version": "1.0.0-alpha.7",
   "author": "Mike Festa",
   "description": "Package for checking a 3D model file against a 3D Commerce use case schema to provide PASS/FAIL validation",
   "license": "SPDX-License-Identifier: Apache-2.0",
@@ -8,8 +8,11 @@
     "type": "git",
     "url": "https://github.com/MikeFesta/3dc-validator"
   },
+  "exports": {
+    ".": "./dist/Validator.js"
+  },
   "main": "dist/Validator.js",
-  "type": "commonjs",
+  "type": "module",
   "keywords": [
     "3d",
     "asset",
@@ -21,11 +24,11 @@
   ],
   "scripts": {
     "build": "tsc",
-    "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha -r ts-node/register 'tests/**/*.ts'"
+    "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"module\" }' mocha -r ts-node/register 'tests/**/*.ts'"
   },
   "dependencies": {
-    "babylonjs": "^5.17.1",
-    "babylonjs-loaders": "^5.17.1",
+    "@babylonjs/core": "^5.18.0",
+    "@babylonjs/loaders": "^5.18.0",
     "gltf-validator": "^2.0.0-dev.3.9"
   },
   "devDependencies": {
