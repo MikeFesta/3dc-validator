@@ -13,9 +13,9 @@ export interface ProductInfoInterface {
 }
 
 export class ProductInfo implements ProductInfoInterface {
-  height = new LoadableAttribute('Product Height');
-  length = new LoadableAttribute('Product Length');
-  width = new LoadableAttribute('Product Width');
+  height = new LoadableAttribute('Product Height', -1); // -1 indicates not to test (default)
+  length = new LoadableAttribute('Product Length', -1); // -1 indicates not to test (default)
+  width = new LoadableAttribute('Product Width', -1); // -1 indicates not to test (default)
 
   loaded = false;
 

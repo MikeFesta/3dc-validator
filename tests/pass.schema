@@ -1,11 +1,11 @@
 {
+  "version": "1.0.0-alpha.7",
   "fileSizeInKb": {
     "min": 1,
     "max": 5120
   },
   "maxTriangleCount": 30000,
   "maxMaterialCount": 2,
-  "requireTextureDimensionsBePowersOfTwo": true,
   "dimensions": {
     "maximum": {
       "length": 100.0,
@@ -22,5 +22,17 @@
       "width": 2,
       "height": 3
     }
+  },
+  "textures": {
+    "maximum": {
+      "width": 2048,
+      "height": 2048
+    },
+    "minimum": {
+      "width": 512,
+      "height": 512
+    },
+    "requireDimensionsBePowersOfTwo": true,
+    "requireDimensionsBeQuadratic": true
   }
 }

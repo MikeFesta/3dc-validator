@@ -1,11 +1,11 @@
 export interface SchemaJSONInterface {
+  version: string;
   fileSizeInKb: {
     min: number;
     max: number;
   };
   maxTriangleCount: number;
   maxMaterialCount: number;
-  requireTextureDimensionsBePowersOfTwo: boolean;
   dimensions: {
     maximum: {
       length: number;
@@ -22,5 +22,17 @@ export interface SchemaJSONInterface {
       width: number;
       height: number;
     };
+  };
+  textures: {
+    maximum: {
+      width: number;
+      height: number;
+    };
+    minimum: {
+      width: number;
+      height: number;
+    };
+    requireDimensionsBePowersOfTwo: boolean;
+    requireDimensionsBeQuadratic: boolean;
   };
 }

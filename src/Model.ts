@@ -23,14 +23,15 @@ export interface ModelInterface {
 }
 
 export class Model implements ModelInterface {
-  fileSizeInKb = new LoadableAttribute('File size in Kb');
-  height = new LoadableAttribute('Height in Meters');
-  length = new LoadableAttribute('Length in Meters');
+  fileSizeInKb = new LoadableAttribute('File size in Kb', 0);
+  height = new LoadableAttribute('Height in Meters', 0);
+  length = new LoadableAttribute('Length in Meters', 0);
   loaded = false;
-  materialCount = new LoadableAttribute('Material Count');
-  texturesPowerOfTwo = new LoadableAttribute('Texture Dimensions are Powers of 2');
-  triangleCount = new LoadableAttribute('Triangle Count');
-  width = new LoadableAttribute('Width in Meters');
+  materialCount = new LoadableAttribute('Material Count', 0);
+  texturesPowerOfTwo = new LoadableAttribute('Texture Dimensions are Powers of 2', false);
+  // TODO: textures quadratic
+  triangleCount = new LoadableAttribute('Triangle Count', 0);
+  width = new LoadableAttribute('Width in Meters', 0);
 
   getAttributes() {
     return [

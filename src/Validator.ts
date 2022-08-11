@@ -29,6 +29,7 @@ export class Validator implements ValidatorInterface {
     }
 
     // File Size
+    // TODO: Omit if value is -1
     const filesizeOK =
       // Greater than Min
       (this.model.fileSizeInKb.value as number) >= (this.schema.minFileSizeInKb.value as number) &&
@@ -60,9 +61,11 @@ export class Validator implements ValidatorInterface {
       triangleCountMessage =
         'Too many triangles: ' + this.model.triangleCount.value + ' > ' + this.schema.maxTriangleCount.value;
     }
+    // TODO: if not tested, just show the triangle count
     this.report.triangleCount.test(triangleCountOK, triangleCountMessage);
 
     // Material Count
+    // TODO: test if this includes khr_materials_variants
     const materialCountOK =
       (this.model.materialCount.value as number) <= (this.schema.maxMaterialCount.value as number);
     let materialCountMessage = this.model.materialCount.value + ' <= ' + this.schema.maxMaterialCount.value;

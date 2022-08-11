@@ -10,8 +10,9 @@ export class LoadableAttribute implements LoadableAttributeInterface {
   name = '';
   value = undefined as unknown as boolean | number | string;
 
-  constructor(name: string) {
+  constructor(name: string, defaultValue: boolean | number | string) {
     this.name = name;
+    this.value = defaultValue;
   }
 
   loadValue(value: boolean | number | string) {

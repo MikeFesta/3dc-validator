@@ -1,9 +1,10 @@
 import { ReportItem, ReportItemInterface } from './ReportItem.js';
 
 export interface ReportInterface {
+  // TODO: gltfValidatorReport
   fileSize: ReportItemInterface;
   triangleCount: ReportItemInterface;
-  materialCount: ReportItemInterface;
+  materialCount: ReportItemInterface; // TODO: confirm that khr_materials_variants are included in the count
   texturesPowerOfTwo: ReportItemInterface;
   dimensionsMax: ReportItemInterface;
   dimensionsMin: ReportItemInterface;
