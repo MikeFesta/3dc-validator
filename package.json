@@ -24,7 +24,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"module\" }' mocha -r ts-node/register 'tests/**/*.ts'"
+    "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"esnext\" }' mocha -n loader=ts-node/esm --extension ts -r ts-node/register 'tests/**/*.ts'"
   },
   "dependencies": {
     "@babylonjs/core": "^5.18.0",

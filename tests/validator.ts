@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { Validator } from '../dist/Validator';
+import { Validator } from '../dist/Validator.js';
 
 describe('Validator', function () {
   const v = new Validator();
