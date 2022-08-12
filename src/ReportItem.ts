@@ -21,4 +21,9 @@ export class ReportItem implements ReportItemInterface {
     this.pass = passCondition;
     this.tested = true;
   }
+
+  public skipTestWithMessage(message: string) {
+    this.message = message;
+    this.tested = false;
+  }
 }

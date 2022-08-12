@@ -28,30 +28,7 @@ export class Validator implements ValidatorInterface {
       throw new Error('Unable to generate report. No schema loaded.');
     }
 
-    // File Size
-    // TODO: Omit if value is -1
-    const filesizeOK =
-      // Greater than Min
-      (this.model.fileSizeInKb.value as number) >= (this.schema.minFileSizeInKb.value as number) &&
-      // Less than Max
-      (this.model.fileSizeInKb.value as number) <= (this.schema.maxFileSizeInKb.value as number);
-    let filesizeMessage =
-      this.schema.minFileSizeInKb.value +
-      'kb <= ' +
-      this.model.fileSizeInKb.value +
-      'kb <= ' +
-      this.schema.maxFileSizeInKb.value +
-      'kb';
-    if (!filesizeOK) {
-      if ((this.model.fileSizeInKb.value as number) < (this.schema.minFileSizeInKb.value as number)) {
-        filesizeMessage =
-          'File too small: ' + this.model.fileSizeInKb.value + 'kb < ' + this.schema.minFileSizeInKb.value + 'kb';
-      } else if ((this.model.fileSizeInKb.value as number) > (this.schema.maxFileSizeInKb.value as number)) {
-        filesizeMessage =
-          'File too large: ' + this.model.fileSizeInKb.value + 'kb > ' + this.schema.maxFileSizeInKb.value + 'kb';
-      }
-    }
-    this.report.fileSize.test(filesizeOK, filesizeMessage);
+    this.testFileSize();
 
     // Triangle Count
     const triangleCountOK =
@@ -256,5 +233,51 @@ export class Validator implements ValidatorInterface {
     }
 
     this.reportReady = true;
+  }
+
+  // The filesize should be within the specified range. Min and/or Max size can be ignored with a value of -1
+  private testFileSize() {
+    if (this.schema.maxFileSizeInKb.value === -1 && this.schema.minFileSizeInKb.value === -1) {
+      // Skip test, but still report the file size
+      this.report.fileSize.skipTestWithMessage('File size: ' + this.model.fileSizeInKb.value + 'kb');
+    } else if (this.schema.maxFileSizeInKb.value === -1) {
+      // Check only the min filesize
+      const filesizeOK = (this.model.fileSizeInKb.value as number) >= (this.schema.minFileSizeInKb.value as number);
+      let filesizeMessage = filesizeOK
+        ? this.model.fileSizeInKb.value + 'kb >= ' + this.schema.minFileSizeInKb.value + 'kb'
+        : 'File too small: ' + this.model.fileSizeInKb.value + 'kb < ' + this.schema.minFileSizeInKb.value + 'kb';
+      this.report.fileSize.test(filesizeOK, filesizeMessage);
+    } else if (this.schema.minFileSizeInKb.value === -1) {
+      // Check only the max filesize
+      const filesizeOK = (this.model.fileSizeInKb.value as number) <= (this.schema.maxFileSizeInKb.value as number);
+      let filesizeMessage = filesizeOK
+        ? this.model.fileSizeInKb.value + 'kb <= ' + this.schema.maxFileSizeInKb.value + 'kb'
+        : 'File too large: ' + this.model.fileSizeInKb.value + 'kb > ' + this.schema.maxFileSizeInKb.value + 'kb';
+      this.report.fileSize.test(filesizeOK, filesizeMessage);
+    } else {
+      // Check that filesize is within range (min-max)
+      const filesizeOK =
+        // Greater than Min
+        (this.model.fileSizeInKb.value as number) >= (this.schema.minFileSizeInKb.value as number) &&
+        // Less than Max
+        (this.model.fileSizeInKb.value as number) <= (this.schema.maxFileSizeInKb.value as number);
+      let filesizeMessage =
+        this.schema.minFileSizeInKb.value +
+        'kb <= ' +
+        this.model.fileSizeInKb.value +
+        'kb <= ' +
+        this.schema.maxFileSizeInKb.value +
+        'kb';
+      if (!filesizeOK) {
+        if ((this.model.fileSizeInKb.value as number) < (this.schema.minFileSizeInKb.value as number)) {
+          filesizeMessage =
+            'File too small: ' + this.model.fileSizeInKb.value + 'kb < ' + this.schema.minFileSizeInKb.value + 'kb';
+        } else if ((this.model.fileSizeInKb.value as number) > (this.schema.maxFileSizeInKb.value as number)) {
+          filesizeMessage =
+            'File too large: ' + this.model.fileSizeInKb.value + 'kb > ' + this.schema.maxFileSizeInKb.value + 'kb';
+        }
+      }
+      this.report.fileSize.test(filesizeOK, filesizeMessage);
+    }
   }
 }
