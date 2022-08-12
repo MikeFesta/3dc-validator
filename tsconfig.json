@@ -13,7 +13,6 @@
     "allowSyntheticDefaultImports": true,
     "sourceMap": true,
     "types": [
-      "mocha",
       "node",
     ],
     "baseUrl": ".",
