@@ -30,17 +30,7 @@ export class Validator implements ValidatorInterface {
 
     this.testFileSize();
     this.testTriangleCount();
-
-    // Material Count
-    // TODO: test if this includes khr_materials_variants
-    const materialCountOK =
-      (this.model.materialCount.value as number) <= (this.schema.maxMaterialCount.value as number);
-    let materialCountMessage = this.model.materialCount.value + ' <= ' + this.schema.maxMaterialCount.value;
-    if (!materialCountOK) {
-      materialCountMessage =
-        'Too Many Materials: ' + this.model.materialCount.value + ' > ' + this.schema.maxMaterialCount.value;
-    }
-    this.report.materialCount.test(materialCountOK, materialCountMessage);
+    this.testMaterialCount();
 
     // Texture Size Power of 2
     const po2WouldHave = (this.model.texturesPowerOfTwo.value as boolean) ? 'passed' : 'failed';
@@ -271,7 +261,23 @@ export class Validator implements ValidatorInterface {
     }
   }
 
-  // The number of triangles should be less than the max, unless the max is -1
+  // The number of materials should be less than or equal to the max, unless the max is -1
+  private testMaterialCount() {
+    if (this.schema.maxMaterialCount.value === -1) {
+      this.report.materialCount.skipTestWithMessage(
+        this.model.materialCount.value + ' material' + (this.model.materialCount.value == 1 ? '' : 's'),
+      );
+    } else {
+      const materialCountOK =
+        (this.model.materialCount.value as number) <= (this.schema.maxMaterialCount.value as number);
+      const materialCountMessage = materialCountOK
+        ? this.model.materialCount.value + ' <= ' + this.schema.maxMaterialCount.value
+        : 'Too many materials: ' + this.model.materialCount.value + ' > ' + this.schema.maxMaterialCount.value;
+      this.report.materialCount.test(materialCountOK, materialCountMessage);
+    }
+  }
+
+  // The number of triangles should be less than or equal to the max, unless the max is -1
   private testTriangleCount() {
     if (this.schema.maxTriangleCount.value === -1) {
       this.report.triangleCount.skipTestWithMessage('Triangle count: ' + this.model.triangleCount.value);
