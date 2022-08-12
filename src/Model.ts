@@ -3,6 +3,7 @@ import { readFile, stat } from 'fs/promises';
 //@ts-ignore
 import { validateBytes } from 'gltf-validator';
 import { NullEngine } from '@babylonjs/core/Engines/nullEngine.js';
+import { Logger } from '@babylonjs/core/Misc/logger.js';
 import { SceneLoader } from '@babylonjs/core/Loading/sceneLoader.js';
 import { EncodeArrayBufferToBase64 } from '@babylonjs/core/Misc/stringTools.js';
 import { Scene } from '@babylonjs/core/scene.js';
@@ -108,6 +109,7 @@ export class Model implements ModelInterface {
   }
 
   private async loadWithBabylon(data: string | File) {
+    Logger.LogLevels = Logger.WarningLogLevel; // supress NullEngine welcome message in CLI / unit tests
     const engine = new NullEngine();
     const scene = new Scene(engine);
 
