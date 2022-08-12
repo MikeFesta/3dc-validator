@@ -29,17 +29,7 @@ export class Validator implements ValidatorInterface {
     }
 
     this.testFileSize();
-
-    // Triangle Count
-    const triangleCountOK =
-      (this.model.triangleCount.value as number) <= (this.schema.maxTriangleCount.value as number);
-    let triangleCountMessage = this.model.triangleCount.value + ' =< ' + this.schema.maxTriangleCount.value;
-    if (!triangleCountOK) {
-      triangleCountMessage =
-        'Too many triangles: ' + this.model.triangleCount.value + ' > ' + this.schema.maxTriangleCount.value;
-    }
-    // TODO: if not tested, just show the triangle count
-    this.report.triangleCount.test(triangleCountOK, triangleCountMessage);
+    this.testTriangleCount();
 
     // Material Count
     // TODO: test if this includes khr_materials_variants
@@ -278,6 +268,20 @@ export class Validator implements ValidatorInterface {
         }
       }
       this.report.fileSize.test(filesizeOK, filesizeMessage);
+    }
+  }
+
+  // The number of triangles should be less than the max, unless the max is -1
+  private testTriangleCount() {
+    if (this.schema.maxTriangleCount.value === -1) {
+      this.report.triangleCount.skipTestWithMessage('Triangle count: ' + this.model.triangleCount.value);
+    } else {
+      const triangleCountOK =
+        (this.model.triangleCount.value as number) <= (this.schema.maxTriangleCount.value as number);
+      const triangleCountMessage = triangleCountOK
+        ? this.model.triangleCount.value + ' <= ' + this.schema.maxTriangleCount.value
+        : 'Too many triangles: ' + this.model.triangleCount.value + ' > ' + this.schema.maxTriangleCount.value;
+      this.report.triangleCount.test(triangleCountOK, triangleCountMessage);
     }
   }
 }
