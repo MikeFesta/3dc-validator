@@ -81,27 +81,55 @@ export class Schema implements SchemaInterface {
   }
 
   private loadFromSchemaObject(obj: SchemaJSONInterface) {
-    this.loaded = true;
-    this.maxFileSizeInKb.loadValue(obj.fileSizeInKb.max);
-    this.maxHeight.loadValue(obj.dimensions.maximum.height);
-    this.maxLength.loadValue(obj.dimensions.maximum.length);
-    this.maxMaterialCount.loadValue(obj.maxMaterialCount);
-    this.maxTextureHeight.loadValue(obj.textures.maximum.height);
-    this.maxTextureWidth.loadValue(obj.textures.maximum.width);
-    this.maxTriangleCount.loadValue(obj.maxTriangleCount);
-    this.maxWidth.loadValue(obj.dimensions.maximum.width);
-    this.minFileSizeInKb.loadValue(obj.fileSizeInKb.min);
-    this.minHeight.loadValue(obj.dimensions.minimum.height);
-    this.minLength.loadValue(obj.dimensions.minimum.length);
-    this.minTextureHeight.loadValue(obj.textures.minimum.height);
-    this.minTextureWidth.loadValue(obj.textures.minimum.width);
-    this.minWidth.loadValue(obj.dimensions.minimum.width);
-    this.percentToleranceHeight.loadValue(obj.dimensions.percentTolerance.height);
-    this.percentToleranceLength.loadValue(obj.dimensions.percentTolerance.length);
-    this.percentToleranceWidth.loadValue(obj.dimensions.percentTolerance.width);
-    this.requireTextureDimensionsBePowersOfTwo.loadValue(obj.textures.requireDimensionsBePowersOfTwo);
-    this.requireTextureDimensionsBeQuadratic.loadValue(obj.textures.requireDimensionsBeQuadratic);
+    // Required Attributes
     this.version.loadValue(obj.version);
+
+    // Optional Attributes (default values will be used if not provided)
+    if (obj.fileSizeInKb) {
+      this.minFileSizeInKb.loadValue(obj.fileSizeInKb.min);
+      this.maxFileSizeInKb.loadValue(obj.fileSizeInKb.max);
+    }
+    if (obj.maxTriangleCount) {
+      this.maxTriangleCount.loadValue(obj.maxTriangleCount);
+    }
+    if (obj.maxMaterialCount) {
+      this.maxMaterialCount.loadValue(obj.maxMaterialCount);
+    }
+    if (obj.dimensions) {
+      if (obj.dimensions.maximum) {
+        this.maxLength.loadValue(obj.dimensions.maximum.length);
+        this.maxWidth.loadValue(obj.dimensions.maximum.width);
+        this.maxHeight.loadValue(obj.dimensions.maximum.height);
+      }
+      if (obj.dimensions.minimum) {
+        this.minLength.loadValue(obj.dimensions.minimum.length);
+        this.minWidth.loadValue(obj.dimensions.minimum.width);
+        this.minHeight.loadValue(obj.dimensions.minimum.height);
+      }
+      if (obj.dimensions.percentTolerance) {
+        this.percentToleranceLength.loadValue(obj.dimensions.percentTolerance.length);
+        this.percentToleranceWidth.loadValue(obj.dimensions.percentTolerance.width);
+        this.percentToleranceHeight.loadValue(obj.dimensions.percentTolerance.height);
+      }
+    }
+    if (obj.textures) {
+      if (obj.textures.maximum) {
+        this.maxTextureWidth.loadValue(obj.textures.maximum.width);
+        this.maxTextureHeight.loadValue(obj.textures.maximum.height);
+      }
+      if (obj.textures.minimum) {
+        this.minTextureWidth.loadValue(obj.textures.minimum.width);
+        this.minTextureHeight.loadValue(obj.textures.minimum.height);
+      }
+      if (obj.textures.requireDimensionsBePowersOfTwo) {
+        this.requireTextureDimensionsBePowersOfTwo.loadValue(obj.textures.requireDimensionsBePowersOfTwo);
+      }
+      if (obj.textures.requireDimensionsBeQuadratic) {
+        this.requireTextureDimensionsBeQuadratic.loadValue(obj.textures.requireDimensionsBeQuadratic);
+      }
+    }
+
+    this.loaded = true;
   }
 
   // This version is for the browser and the file comes from an <input type='file'> element

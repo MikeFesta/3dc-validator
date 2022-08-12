@@ -1,38 +1,38 @@
 export interface SchemaJSONInterface {
   version: string;
-  fileSizeInKb: {
+  fileSizeInKb?: {
     min: number;
     max: number;
   };
-  maxTriangleCount: number;
-  maxMaterialCount: number;
-  dimensions: {
-    maximum: {
+  maxTriangleCount?: number;
+  maxMaterialCount?: number;
+  dimensions?: {
+    maximum?: {
       length: number;
       width: number;
       height: number;
     };
-    minimum: {
+    minimum?: {
       length: number;
       width: number;
       height: number;
     };
-    percentTolerance: {
+    percentTolerance?: {
       length: number;
       width: number;
       height: number;
     };
   };
-  textures: {
-    maximum: {
+  textures?: {
+    maximum?: {
       width: number;
       height: number;
     };
-    minimum: {
+    minimum?: {
       width: number;
       height: number;
     };
-    requireDimensionsBePowersOfTwo: boolean;
-    requireDimensionsBeQuadratic: boolean;
+    requireDimensionsBePowersOfTwo?: boolean;
+    requireDimensionsBeQuadratic?: boolean;
   };
 }
