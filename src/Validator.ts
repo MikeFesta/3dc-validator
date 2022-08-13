@@ -31,16 +31,7 @@ export class Validator implements ValidatorInterface {
     this.testFileSize();
     this.testTriangleCount();
     this.testMaterialCount();
-
-    // Texture Size Power of 2
-    const po2WouldHave = (this.model.texturesPowerOfTwo.value as boolean) ? 'passed' : 'failed';
-    const po2message = this.schema.requireTextureDimensionsBePowersOfTwo.value
-      ? 'Required by schema'
-      : 'Not Required by schema, but would have ' + po2WouldHave;
-    this.report.texturesPowerOfTwo.test(
-      !this.schema.requireTextureDimensionsBePowersOfTwo.value || (this.model.texturesPowerOfTwo.value as boolean),
-      po2message,
-    );
+    this.testTextures();
 
     // Dimensions (Max)
     let dimensionsMaxMessage =
@@ -289,5 +280,30 @@ export class Validator implements ValidatorInterface {
         : 'Too many triangles: ' + this.model.triangleCount.value + ' > ' + this.schema.maxTriangleCount.value;
       this.report.triangleCount.test(triangleCountOK, triangleCountMessage);
     }
+  }
+
+  // Texture dimensions should be within range, powers of 2, and (optionally) quadratic
+  private testTextures() {
+    // Texture Size Power of 2
+    const po2WouldHave = (this.model.texturesPowerOfTwo.value as boolean) ? 'passed' : 'failed';
+    // TODO: report which textures failed (if any)
+    const po2Message = this.schema.requireTextureDimensionsBePowersOfTwo.value
+      ? 'Required by schema'
+      : 'Not Required by schema, but would have ' + po2WouldHave;
+    this.report.texturesPowerOfTwo.test(
+      !this.schema.requireTextureDimensionsBePowersOfTwo.value || (this.model.texturesPowerOfTwo.value as boolean),
+      po2Message,
+    );
+
+    // Quadratic (width=height)
+    const quadraticWouldHave = (this.model.texturesQuadratic.value as boolean) ? 'passed' : 'failed';
+    // TODO: report which textures failed (if any)
+    const quadraticMessage = this.schema.requireTextureDimensionsBeQuadratic.value
+      ? 'Required by schema'
+      : 'Not Required by schema, but would have ' + quadraticWouldHave;
+    this.report.texturesQuadratic.test(
+      !this.schema.requireTextureDimensionsBeQuadratic.value || (this.model.texturesQuadratic.value as boolean),
+      quadraticMessage,
+    );
   }
 }

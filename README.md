@@ -16,17 +16,18 @@ This package is used for both a command line interface, as well as a front-end w
 * File Size (min/max)
 * Triangle Count (max)
 * Material Count (max)
-* Texture Map Resolution Power of 2
 * Dimensions (min/max)
 * Dimensions (product within tolerance)
+* Texture Map Resolution Power of 2
+* Texture Map Resolution Quadratic
 
 #### Checks to be added
+* Texture Map Resolution (min/max)
 * Transparent Geometry Separated
 * 0-1 UV Texture Space
 * Mesh Count
 * Node Count
 * Primitive Count
-* Texture Map Resolution (min/max by type)
 * Texture Density
 * Hard Edges
 * PBR Safe Colors

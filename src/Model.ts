@@ -10,12 +10,18 @@ import { Scene } from '@babylonjs/core/scene.js';
 import '@babylonjs/loaders/glTF/2.0/glTFLoader.js';
 
 export interface ModelInterface {
+  // TODO: group these into a sub-objects to match schema structure
   fileSizeInKb: LoadableAttributeInterface;
   height: LoadableAttributeInterface;
   length: LoadableAttributeInterface;
   loaded: boolean;
   materialCount: LoadableAttributeInterface;
+  texturesMaxHeight: LoadableAttributeInterface;
+  texturesMaxWidth: LoadableAttributeInterface;
+  texturesMinHeight: LoadableAttributeInterface;
+  texturesMinWidth: LoadableAttributeInterface;
   texturesPowerOfTwo: LoadableAttributeInterface;
+  texturesQuadratic: LoadableAttributeInterface;
   triangleCount: LoadableAttributeInterface;
   width: LoadableAttributeInterface;
   getAttributes: () => LoadableAttributeInterface[];
@@ -29,8 +35,12 @@ export class Model implements ModelInterface {
   length = new LoadableAttribute('Length in Meters', 0);
   loaded = false;
   materialCount = new LoadableAttribute('Material Count', 0);
+  texturesMaxHeight = new LoadableAttribute('Max Texture Height', 0);
+  texturesMaxWidth = new LoadableAttribute('Max Texture Width', 0);
+  texturesMinHeight = new LoadableAttribute('Min Texture Height', 0);
+  texturesMinWidth = new LoadableAttribute('Min Texture Width', 0);
   texturesPowerOfTwo = new LoadableAttribute('Texture Dimensions are Powers of 2', false);
-  // TODO: textures quadratic
+  texturesQuadratic = new LoadableAttribute('Textures Have the Same Width and Height', false);
   triangleCount = new LoadableAttribute('Triangle Count', 0);
   width = new LoadableAttribute('Width in Meters', 0);
 
@@ -39,7 +49,12 @@ export class Model implements ModelInterface {
       this.fileSizeInKb,
       this.triangleCount,
       this.materialCount,
+      this.texturesMaxHeight,
+      this.texturesMinHeight,
+      this.texturesMaxWidth,
+      this.texturesMinWidth,
       this.texturesPowerOfTwo,
+      this.texturesQuadratic,
       this.length,
       this.width,
       this.height,
@@ -97,7 +112,6 @@ export class Model implements ModelInterface {
 
   private allTexturesArePowersOfTwo(reportInfo: any) {
     let nonPowerOfTwoTextureFound = false;
-    // TODO: create a type definition for reportInfo
     reportInfo.resources.forEach((resource: any) => {
       if (resource.image) {
         if (!this.numberIsPowerOfTwo(resource.image.height) || !this.numberIsPowerOfTwo(resource.image.width)) {
@@ -106,6 +120,18 @@ export class Model implements ModelInterface {
       }
     });
     return !nonPowerOfTwoTextureFound;
+  }
+
+  private allTexturesAreQuadratic(reportInfo: any) {
+    let nonQuadraticTextureFound = false;
+    reportInfo.resources.forEach((resource: any) => {
+      if (resource.image) {
+        if (!resource.image.height != resource.image.width) {
+          nonQuadraticTextureFound = true;
+        }
+      }
+    });
+    return !nonQuadraticTextureFound;
   }
 
   private async loadWithBabylon(data: string | File) {
@@ -133,7 +159,8 @@ export class Model implements ModelInterface {
           this.triangleCount.loadValue(report.info.totalTriangleCount);
           this.materialCount.loadValue(report.info.materialCount);
           this.texturesPowerOfTwo.loadValue(this.allTexturesArePowersOfTwo(report.info));
-          // TODO: only use the validator to get the report
+          this.texturesQuadratic.loadValue(this.allTexturesAreQuadratic(report.info));
+          // TODO: Load min/max textures
           resolve();
         })
         .catch((error: any) => {
