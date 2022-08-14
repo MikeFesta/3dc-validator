@@ -33,7 +33,18 @@ export class Validator implements ValidatorInterface {
     this.testTriangleCount();
     this.testMaterialCount();
     this.testTextures();
+    this.testDimensions();
 
+    if (this.productInfo.loaded) {
+      // Additional checks that require product information to be made available
+      this.testProductDimensions();
+    }
+
+    this.reportReady = true;
+  }
+
+  // Check that the model fits within viewer/application min/max dimensions
+  private testDimensions() {
     // Dimensions (Max)
     let dimensionsMaxMessage =
       '(L:' +
@@ -77,134 +88,6 @@ export class Validator implements ValidatorInterface {
         this.model.width.value >= this.schema.minWidth.value,
       dimensionsMinMessage,
     );
-
-    // Additional checks that require product information to be made available
-    if (this.productInfo.loaded) {
-      // Product Dimensions meet tolerance (assume true for any missing product dimensions)
-      let heightWithinTolerance = true;
-      let lengthWithinTolerance = true;
-      let widthWithinTolerance = true;
-      let productToleranceMessage = '';
-
-      if (this.productInfo.height.loaded) {
-        const heightMarginOfError =
-          ((this.schema.percentToleranceHeight.value as number) / 100) * (this.productInfo.height.value as number);
-        const heightTooSmall =
-          this.model.height.value < (this.productInfo.height.value as number) - heightMarginOfError;
-        const heightTooLarge =
-          this.model.height.value > (this.productInfo.height.value as number) + heightMarginOfError;
-        heightWithinTolerance = !heightTooSmall && !heightTooLarge;
-        if (heightTooSmall) {
-          productToleranceMessage +=
-            'Height too small: ' +
-            this.model.height.value +
-            ' < (' +
-            this.productInfo.height.value +
-            ' - ' +
-            heightMarginOfError +
-            '); ';
-        }
-        if (heightTooLarge) {
-          productToleranceMessage +=
-            'Height too large: ' +
-            this.model.height.value +
-            ' > (' +
-            this.productInfo.height.value +
-            ' + ' +
-            heightMarginOfError +
-            '); ';
-        }
-      }
-      if (this.productInfo.length.loaded) {
-        const lengthMarginOfError =
-          ((this.schema.percentToleranceLength.value as number) / 100) * (this.productInfo.length.value as number);
-        const lengthTooSmall =
-          this.model.length.value < (this.productInfo.length.value as number) - lengthMarginOfError;
-        const lengthTooLarge =
-          this.model.length.value > (this.productInfo.length.value as number) + lengthMarginOfError;
-        lengthWithinTolerance = !lengthTooSmall && !lengthTooLarge;
-        if (lengthTooSmall) {
-          productToleranceMessage +=
-            'Length too small: ' +
-            this.model.length.value +
-            ' < (' +
-            this.productInfo.length.value +
-            ' - ' +
-            lengthMarginOfError +
-            '); ';
-        }
-        if (lengthTooLarge) {
-          productToleranceMessage +=
-            'Length too large: ' +
-            this.model.length.value +
-            ' > (' +
-            this.productInfo.length.value +
-            ' + ' +
-            lengthMarginOfError +
-            '); ';
-        }
-      }
-      if (this.productInfo.width.loaded) {
-        const widthMarginOfError =
-          ((this.schema.percentToleranceWidth.value as number) / 100) * (this.productInfo.width.value as number);
-        const widthTooSmall = this.model.width.value < (this.productInfo.width.value as number) - widthMarginOfError;
-        const widthTooLarge = this.model.width.value > (this.productInfo.width.value as number) + widthMarginOfError;
-        widthWithinTolerance = !widthTooSmall && !widthTooLarge;
-        if (widthTooSmall) {
-          productToleranceMessage +=
-            'Width too small: ' +
-            this.model.width.value +
-            ' < (' +
-            this.productInfo.width.value +
-            ' - ' +
-            widthMarginOfError +
-            '); ';
-        }
-        if (widthTooLarge) {
-          productToleranceMessage +=
-            'Width too large: ' +
-            this.model.width.value +
-            ' > (' +
-            this.productInfo.width.value +
-            ' + ' +
-            widthMarginOfError +
-            '); ';
-        }
-      }
-
-      if (!productToleranceMessage) {
-        productToleranceMessage =
-          'Product Dimensions: (L: ' +
-          this.productInfo.length.value +
-          ' x W: ' +
-          this.productInfo.width.value +
-          ' x H: ' +
-          this.productInfo.height.value +
-          ') +/- ';
-        if (
-          this.schema.percentToleranceLength.value == this.schema.percentToleranceWidth.value &&
-          this.schema.percentToleranceLength.value == this.schema.percentToleranceHeight.value
-        ) {
-          productToleranceMessage += this.schema.percentToleranceLength.value + '%';
-        } else {
-          productToleranceMessage +=
-            '(L: ' +
-            this.schema.percentToleranceLength.value +
-            '% x W: ' +
-            this.schema.percentToleranceWidth.value +
-            '% x H: ' +
-            this.schema.percentToleranceHeight.value +
-            '%)';
-        }
-      }
-
-      this.report.productDimensionsWithinTolerance.test(
-        widthWithinTolerance && heightWithinTolerance && lengthWithinTolerance,
-        productToleranceMessage,
-      );
-    }
-
-    this.reportReady = true;
   }
 
   // The filesize should be within the specified range. Min and/or Max size can be ignored with a value of -1
@@ -306,6 +189,128 @@ export class Validator implements ValidatorInterface {
         : 'Too many materials: ' + this.model.materialCount.value + ' > ' + this.schema.maxMaterialCount.value;
       this.report.materialCount.test(materialCountOK, materialCountMessage);
     }
+  }
+
+  // If product info is available, check that dimensions are within the specified tolerance
+  private testProductDimensions() {
+    // Product Dimensions meet tolerance (assume true for any missing product dimensions)
+    let heightWithinTolerance = true;
+    let lengthWithinTolerance = true;
+    let widthWithinTolerance = true;
+    let productToleranceMessage = '';
+
+    if (this.productInfo.height.loaded) {
+      const heightMarginOfError =
+        ((this.schema.percentToleranceHeight.value as number) / 100) * (this.productInfo.height.value as number);
+      const heightTooSmall = this.model.height.value < (this.productInfo.height.value as number) - heightMarginOfError;
+      const heightTooLarge = this.model.height.value > (this.productInfo.height.value as number) + heightMarginOfError;
+      heightWithinTolerance = !heightTooSmall && !heightTooLarge;
+      if (heightTooSmall) {
+        productToleranceMessage +=
+          'Height too small: ' +
+          this.model.height.value +
+          ' < (' +
+          this.productInfo.height.value +
+          ' - ' +
+          heightMarginOfError +
+          '); ';
+      }
+      if (heightTooLarge) {
+        productToleranceMessage +=
+          'Height too large: ' +
+          this.model.height.value +
+          ' > (' +
+          this.productInfo.height.value +
+          ' + ' +
+          heightMarginOfError +
+          '); ';
+      }
+    }
+    if (this.productInfo.length.loaded) {
+      const lengthMarginOfError =
+        ((this.schema.percentToleranceLength.value as number) / 100) * (this.productInfo.length.value as number);
+      const lengthTooSmall = this.model.length.value < (this.productInfo.length.value as number) - lengthMarginOfError;
+      const lengthTooLarge = this.model.length.value > (this.productInfo.length.value as number) + lengthMarginOfError;
+      lengthWithinTolerance = !lengthTooSmall && !lengthTooLarge;
+      if (lengthTooSmall) {
+        productToleranceMessage +=
+          'Length too small: ' +
+          this.model.length.value +
+          ' < (' +
+          this.productInfo.length.value +
+          ' - ' +
+          lengthMarginOfError +
+          '); ';
+      }
+      if (lengthTooLarge) {
+        productToleranceMessage +=
+          'Length too large: ' +
+          this.model.length.value +
+          ' > (' +
+          this.productInfo.length.value +
+          ' + ' +
+          lengthMarginOfError +
+          '); ';
+      }
+    }
+    if (this.productInfo.width.loaded) {
+      const widthMarginOfError =
+        ((this.schema.percentToleranceWidth.value as number) / 100) * (this.productInfo.width.value as number);
+      const widthTooSmall = this.model.width.value < (this.productInfo.width.value as number) - widthMarginOfError;
+      const widthTooLarge = this.model.width.value > (this.productInfo.width.value as number) + widthMarginOfError;
+      widthWithinTolerance = !widthTooSmall && !widthTooLarge;
+      if (widthTooSmall) {
+        productToleranceMessage +=
+          'Width too small: ' +
+          this.model.width.value +
+          ' < (' +
+          this.productInfo.width.value +
+          ' - ' +
+          widthMarginOfError +
+          '); ';
+      }
+      if (widthTooLarge) {
+        productToleranceMessage +=
+          'Width too large: ' +
+          this.model.width.value +
+          ' > (' +
+          this.productInfo.width.value +
+          ' + ' +
+          widthMarginOfError +
+          '); ';
+      }
+    }
+
+    if (!productToleranceMessage) {
+      productToleranceMessage =
+        'Product Dimensions: (L: ' +
+        this.productInfo.length.value +
+        ' x W: ' +
+        this.productInfo.width.value +
+        ' x H: ' +
+        this.productInfo.height.value +
+        ') +/- ';
+      if (
+        this.schema.percentToleranceLength.value == this.schema.percentToleranceWidth.value &&
+        this.schema.percentToleranceLength.value == this.schema.percentToleranceHeight.value
+      ) {
+        productToleranceMessage += this.schema.percentToleranceLength.value + '%';
+      } else {
+        productToleranceMessage +=
+          '(L: ' +
+          this.schema.percentToleranceLength.value +
+          '% x W: ' +
+          this.schema.percentToleranceWidth.value +
+          '% x H: ' +
+          this.schema.percentToleranceHeight.value +
+          '%)';
+      }
+    }
+
+    this.report.productDimensionsWithinTolerance.test(
+      widthWithinTolerance && heightWithinTolerance && lengthWithinTolerance,
+      productToleranceMessage,
+    );
   }
 
   // The number of triangles should be less than or equal to the max, unless the max is -1
