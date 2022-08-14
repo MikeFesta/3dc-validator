@@ -8,6 +8,10 @@ export interface ReportInterface {
   materialCount: ReportItemInterface;
   texturesPowerOfTwo: ReportItemInterface;
   texturesQuadratic: ReportItemInterface;
+  textureDimensionsMaxHeight: ReportItemInterface;
+  textureDimensionsMinHeight: ReportItemInterface;
+  textureDimensionsMaxWidth: ReportItemInterface;
+  textureDimensionsMinWidth: ReportItemInterface;
   dimensionsMax: ReportItemInterface;
   dimensionsMin: ReportItemInterface;
   productDimensionsWithinTolerance: ReportItemInterface;
@@ -20,6 +24,10 @@ export class Report implements ReportInterface {
   materialCount = new ReportItem('Material Count');
   texturesPowerOfTwo = new ReportItem('Texture Dimensions are Powers of 2');
   texturesQuadratic = new ReportItem('Texture Dimensions are Quadratic (width=height)');
+  textureDimensionsMaxHeight = new ReportItem('Texture Height <= Max');
+  textureDimensionsMinHeight = new ReportItem('Texture Height >= Min');
+  textureDimensionsMaxWidth = new ReportItem('Texture Width <= Max');
+  textureDimensionsMinWidth = new ReportItem('Texture Width >= Min');
   dimensionsMax = new ReportItem('Dimensions Not Too Big');
   dimensionsMin = new ReportItem('Dimensions Not Too Small');
   productDimensionsWithinTolerance = new ReportItem('Dimensions Match Product');
@@ -30,6 +38,10 @@ export class Report implements ReportInterface {
       this.materialCount,
       this.texturesPowerOfTwo,
       this.texturesQuadratic,
+      this.textureDimensionsMaxHeight,
+      this.textureDimensionsMinHeight,
+      this.textureDimensionsMaxWidth,
+      this.textureDimensionsMinWidth,
       this.dimensionsMax,
       this.dimensionsMin,
       this.productDimensionsWithinTolerance,

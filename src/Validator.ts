@@ -284,26 +284,96 @@ export class Validator implements ValidatorInterface {
 
   // Texture dimensions should be within range, powers of 2, and (optionally) quadratic
   private testTextures() {
-    // Texture Size Power of 2
-    const po2WouldHave = (this.model.texturesPowerOfTwo.value as boolean) ? 'passed' : 'failed';
-    // TODO: report which textures failed (if any)
-    const po2Message = this.schema.requireTextureDimensionsBePowersOfTwo.value
-      ? 'Required by schema'
-      : 'Not Required by schema, but would have ' + po2WouldHave;
-    this.report.texturesPowerOfTwo.test(
-      !this.schema.requireTextureDimensionsBePowersOfTwo.value || (this.model.texturesPowerOfTwo.value as boolean),
-      po2Message,
-    );
+    // Texture Size - Height (max)
+    if (this.schema.maxTextureHeight.value === -1) {
+      this.report.textureDimensionsMaxHeight.skipTestWithMessage(
+        (this.model.texturesMaxHeight.value as number).toFixed(0),
+      );
+    } else {
+      const maxHeightPasses = this.model.texturesMaxHeight.value <= this.schema.maxTextureHeight.value;
+      this.report.textureDimensionsMaxHeight.test(
+        maxHeightPasses,
+        this.model.texturesMaxHeight.value +
+          ' ' +
+          (maxHeightPasses ? '<=' : '>') +
+          ' ' +
+          this.schema.maxTextureHeight.value,
+      );
+    }
 
-    // Quadratic (width=height)
-    const quadraticWouldHave = (this.model.texturesQuadratic.value as boolean) ? 'passed' : 'failed';
-    // TODO: report which textures failed (if any)
-    const quadraticMessage = this.schema.requireTextureDimensionsBeQuadratic.value
-      ? 'Required by schema'
-      : 'Not Required by schema, but would have ' + quadraticWouldHave;
-    this.report.texturesQuadratic.test(
-      !this.schema.requireTextureDimensionsBeQuadratic.value || (this.model.texturesQuadratic.value as boolean),
-      quadraticMessage,
-    );
+    // Texture Size - Height (min)
+    if (this.schema.minTextureHeight.value === -1) {
+      this.report.textureDimensionsMinHeight.skipTestWithMessage(
+        (this.model.texturesMinHeight.value as number).toFixed(0),
+      );
+    } else {
+      const minHeightPasses = this.model.texturesMinHeight.value >= this.schema.minTextureHeight.value;
+      this.report.textureDimensionsMinHeight.test(
+        minHeightPasses,
+        this.model.texturesMinHeight.value +
+          ' ' +
+          (minHeightPasses ? '>=' : '<') +
+          ' ' +
+          this.schema.minTextureHeight.value,
+      );
+    }
+
+    // Texture Size - Width (max)
+    if (this.schema.maxTextureWidth.value === -1) {
+      this.report.textureDimensionsMaxWidth.skipTestWithMessage(
+        (this.model.texturesMaxWidth.value as number).toFixed(0),
+      );
+    } else {
+      const maxWidthPasses = this.model.texturesMaxWidth.value <= this.schema.maxTextureWidth.value;
+      this.report.textureDimensionsMaxWidth.test(
+        maxWidthPasses,
+        this.model.texturesMaxWidth.value +
+          ' ' +
+          (maxWidthPasses ? '<=' : '>') +
+          ' ' +
+          this.schema.maxTextureWidth.value,
+      );
+    }
+
+    // Texture Size - Width (min)
+    if (this.schema.minTextureWidth.value === -1) {
+      this.report.textureDimensionsMinWidth.skipTestWithMessage(
+        (this.model.texturesMinWidth.value as number).toFixed(0),
+      );
+    } else {
+      const minWidthPasses = this.model.texturesMinWidth.value >= this.schema.minTextureWidth.value;
+      this.report.textureDimensionsMinWidth.test(
+        minWidthPasses,
+        this.model.texturesMinWidth.value +
+          ' ' +
+          (minWidthPasses ? '>=' : '<') +
+          ' ' +
+          this.schema.minTextureWidth.value,
+      );
+    }
+
+    // Texture Size - Power of 2
+    if (this.schema.requireTextureDimensionsBePowersOfTwo.value === false) {
+      this.report.texturesPowerOfTwo.skipTestWithMessage(
+        'Not Required, but would have ' + ((this.model.texturesPowerOfTwo.value as boolean) ? 'passed' : 'failed'),
+      );
+    } else {
+      this.report.texturesPowerOfTwo.test(
+        this.model.texturesPowerOfTwo.value as boolean,
+        '', // TODO: report which textures failed (if any)
+      );
+    }
+
+    // Texture Size - Quadratic (width=height)
+    if (this.schema.requireTextureDimensionsBeQuadratic.value === false) {
+      this.report.texturesQuadratic.skipTestWithMessage(
+        'Not Required, but would have ' + ((this.model.texturesQuadratic.value as boolean) ? 'passed' : 'failed'),
+      );
+    } else {
+      this.report.texturesQuadratic.test(
+        this.model.texturesQuadratic.value as boolean,
+        '', // TODO: report which textures failed (if any)
+      );
+    }
   }
 }

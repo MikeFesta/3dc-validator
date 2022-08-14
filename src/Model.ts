@@ -122,6 +122,31 @@ export class Model implements ModelInterface {
     return !nonPowerOfTwoTextureFound;
   }
 
+  private getTextureSizes(reportInfo: any) {
+    let maxHeight = 0;
+    let minHeight = 0;
+    let maxWidth = 0;
+    let minWidth = 0;
+
+    reportInfo.resources.forEach((resource: any) => {
+      if (resource.image) {
+        if (resource.image.height > maxHeight) {
+          maxHeight = resource.image.height;
+        }
+        if (minHeight === 0 || resource.image.height < minHeight) {
+          minHeight = resource.image.height;
+        }
+        if (resource.image.width > maxWidth) {
+          maxWidth = resource.image.width;
+        }
+        if (minWidth === 0 || resource.image.width < minWidth) {
+          minWidth = resource.image.width;
+        }
+      }
+    });
+    return { maxHeight, minHeight, maxWidth, minWidth };
+  }
+
   private allTexturesAreQuadratic(reportInfo: any) {
     let nonQuadraticTextureFound = false;
     reportInfo.resources.forEach((resource: any) => {
@@ -160,7 +185,12 @@ export class Model implements ModelInterface {
           this.materialCount.loadValue(report.info.materialCount);
           this.texturesPowerOfTwo.loadValue(this.allTexturesArePowersOfTwo(report.info));
           this.texturesQuadratic.loadValue(this.allTexturesAreQuadratic(report.info));
-          // TODO: Load min/max textures
+          const textureSizes = this.getTextureSizes(report.info);
+          this.texturesMaxHeight.loadValue(textureSizes.maxHeight);
+          this.texturesMaxWidth.loadValue(textureSizes.maxWidth);
+          this.texturesMinHeight.loadValue(textureSizes.minHeight);
+          this.texturesMinWidth.loadValue(textureSizes.minWidth);
+          this.texturesQuadratic.loadValue(this.allTexturesAreQuadratic(report.info));
           resolve();
         })
         .catch((error: any) => {

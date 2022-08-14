@@ -18,11 +18,11 @@ This package is used for both a command line interface, as well as a front-end w
 * Material Count (max)
 * Dimensions (min/max)
 * Dimensions (product within tolerance)
+* Texture Map Resolution (min/max)
 * Texture Map Resolution Power of 2
 * Texture Map Resolution Quadratic
 
 #### Checks to be added
-* Texture Map Resolution (min/max)
 * Transparent Geometry Separated
 * 0-1 UV Texture Space
 * Mesh Count
