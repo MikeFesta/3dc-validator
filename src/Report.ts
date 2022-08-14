@@ -19,19 +19,55 @@ export interface ReportInterface {
 }
 
 export class Report implements ReportInterface {
-  gltfValidator = new ReportItem('glTF Validator');
-  fileSize = new ReportItem('File Size');
-  triangleCount = new ReportItem('Triangle Count');
-  materialCount = new ReportItem('Material Count');
-  texturesPowerOfTwo = new ReportItem('Texture Dimensions are Powers of 2');
-  texturesQuadratic = new ReportItem('Texture Dimensions are Quadratic (width=height)');
-  textureDimensionsMaxHeight = new ReportItem('Texture Height <= Max');
-  textureDimensionsMinHeight = new ReportItem('Texture Height >= Min');
-  textureDimensionsMaxWidth = new ReportItem('Texture Width <= Max');
-  textureDimensionsMinWidth = new ReportItem('Texture Width >= Min');
-  dimensionsMax = new ReportItem('Dimensions Not Too Big');
-  dimensionsMin = new ReportItem('Dimensions Not Too Small');
-  productDimensionsWithinTolerance = new ReportItem('Dimensions Match Product');
+  gltfValidator = new ReportItem('glTF Validator', 'https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html');
+  fileSize = new ReportItem(
+    'File Size',
+    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec01_FileFormatsAndAssetStructure/FileFormatsAndAssetStructure.md',
+  );
+  triangleCount = new ReportItem(
+    'Triangle Count',
+    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec03_Geometry/Geometry.md#polygonal-count',
+  );
+  materialCount = new ReportItem(
+    'Material Count',
+    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec05_MaterialsAndTextures/MaterialsAndTextures.md#multiple-materials-per-model',
+  );
+  texturesPowerOfTwo = new ReportItem(
+    'Texture Dimensions are Powers of 2',
+    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec05_MaterialsAndTextures/MaterialsAndTextures.md#powers-of-two',
+  );
+  texturesQuadratic = new ReportItem(
+    'Texture Dimensions are Square (width=height)',
+    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec05_MaterialsAndTextures/MaterialsAndTextures.md#texture-dimensions-square-vs-rectangular',
+  );
+  textureDimensionsMaxHeight = new ReportItem(
+    'Texture Height <= Max',
+    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec99_PublishingTargets/PublishingTargets.md#3d-commerce-publishing-guidelines-v10',
+  );
+  textureDimensionsMinHeight = new ReportItem(
+    'Texture Height >= Min',
+    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec99_PublishingTargets/PublishingTargets.md#3d-commerce-publishing-guidelines-v10',
+  );
+  textureDimensionsMaxWidth = new ReportItem(
+    'Texture Width <= Max',
+    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec99_PublishingTargets/PublishingTargets.md#3d-commerce-publishing-guidelines-v10',
+  );
+  textureDimensionsMinWidth = new ReportItem(
+    'Texture Width >= Min',
+    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec99_PublishingTargets/PublishingTargets.md#3d-commerce-publishing-guidelines-v10',
+  );
+  dimensionsMax = new ReportItem(
+    'Dimensions Not Too Big',
+    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec02_CoordinateSystemAndScaleUnit/CoordinateSystemAndScaleUnit.md',
+  );
+  dimensionsMin = new ReportItem(
+    'Dimensions Not Too Small',
+    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec02_CoordinateSystemAndScaleUnit/CoordinateSystemAndScaleUnit.md',
+  );
+  productDimensionsWithinTolerance = new ReportItem(
+    'Dimensions Match Product',
+    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec02_CoordinateSystemAndScaleUnit/CoordinateSystemAndScaleUnit.md',
+  );
   getItems() {
     return [
       this.gltfValidator,

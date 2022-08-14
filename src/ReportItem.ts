@@ -1,4 +1,5 @@
 export interface ReportItemInterface {
+  guidelinesUrl: string;
   message: string;
   name: string;
   pass: boolean;
@@ -7,12 +8,16 @@ export interface ReportItemInterface {
 }
 
 export class ReportItem implements ReportItemInterface {
+  guidelinesUrl = '';
   message = '';
   name = '';
   pass = false;
   tested = false;
 
-  constructor(name: string) {
+  constructor(name: string, guidelinesUrl?: string) {
+    this.guidelinesUrl =
+      guidelinesUrl ??
+      'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/RealtimeAssetCreationGuidelines.md';
     this.name = name;
   }
 
