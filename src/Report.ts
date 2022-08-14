@@ -1,8 +1,8 @@
 import { ReportItem, ReportItemInterface } from './ReportItem.js';
 
 export interface ReportInterface {
-  // TODO: gltfValidatorReport
   // TODO: group these into a sub-objects to match schema structure
+  gltfValidator: ReportItemInterface;
   fileSize: ReportItemInterface;
   triangleCount: ReportItemInterface;
   materialCount: ReportItemInterface;
@@ -19,6 +19,7 @@ export interface ReportInterface {
 }
 
 export class Report implements ReportInterface {
+  gltfValidator = new ReportItem('glTF Validator');
   fileSize = new ReportItem('File Size');
   triangleCount = new ReportItem('Triangle Count');
   materialCount = new ReportItem('Material Count');
@@ -33,6 +34,7 @@ export class Report implements ReportInterface {
   productDimensionsWithinTolerance = new ReportItem('Dimensions Match Product');
   getItems() {
     return [
+      this.gltfValidator,
       this.fileSize,
       this.triangleCount,
       this.materialCount,

@@ -1,4 +1,9 @@
 import { LoadableAttribute, LoadableAttributeInterface } from './LoadableAttribute.js';
+import {
+  GltfValidatorReportInterface,
+  GltfValidatorReportInfoInterface,
+  GltfValidatorReportInfoResourceInterface,
+} from './GltfValidatorReport.js';
 import { readFile, stat } from 'fs/promises';
 //@ts-ignore
 import { validateBytes } from 'gltf-validator';
@@ -11,6 +16,7 @@ import '@babylonjs/loaders/glTF/2.0/glTFLoader.js';
 
 export interface ModelInterface {
   // TODO: group these into a sub-objects to match schema structure
+  gltfValidatorReport: GltfValidatorReportInterface;
   fileSizeInKb: LoadableAttributeInterface;
   height: LoadableAttributeInterface;
   length: LoadableAttributeInterface;
@@ -30,6 +36,7 @@ export interface ModelInterface {
 }
 
 export class Model implements ModelInterface {
+  gltfValidatorReport = null as unknown as GltfValidatorReportInterface;
   fileSizeInKb = new LoadableAttribute('File size in Kb', 0);
   height = new LoadableAttribute('Height in Meters', 0);
   length = new LoadableAttribute('Length in Meters', 0);
@@ -110,9 +117,9 @@ export class Model implements ModelInterface {
     return n > 0 && (n & (n - 1)) === 0;
   }
 
-  private allTexturesArePowersOfTwo(reportInfo: any) {
+  private allTexturesArePowersOfTwo(reportInfo: GltfValidatorReportInfoInterface) {
     let nonPowerOfTwoTextureFound = false;
-    reportInfo.resources.forEach((resource: any) => {
+    reportInfo.resources.forEach((resource: GltfValidatorReportInfoResourceInterface) => {
       if (resource.image) {
         if (!this.numberIsPowerOfTwo(resource.image.height) || !this.numberIsPowerOfTwo(resource.image.width)) {
           nonPowerOfTwoTextureFound = true;
@@ -122,13 +129,13 @@ export class Model implements ModelInterface {
     return !nonPowerOfTwoTextureFound;
   }
 
-  private getTextureSizes(reportInfo: any) {
+  private getTextureSizes(reportInfo: GltfValidatorReportInfoInterface) {
     let maxHeight = 0;
     let minHeight = 0;
     let maxWidth = 0;
     let minWidth = 0;
 
-    reportInfo.resources.forEach((resource: any) => {
+    reportInfo.resources.forEach((resource: GltfValidatorReportInfoResourceInterface) => {
       if (resource.image) {
         if (resource.image.height > maxHeight) {
           maxHeight = resource.image.height;
@@ -147,11 +154,11 @@ export class Model implements ModelInterface {
     return { maxHeight, minHeight, maxWidth, minWidth };
   }
 
-  private allTexturesAreQuadratic(reportInfo: any) {
+  private allTexturesAreQuadratic(reportInfo: GltfValidatorReportInfoInterface) {
     let nonQuadraticTextureFound = false;
-    reportInfo.resources.forEach((resource: any) => {
+    reportInfo.resources.forEach((resource: GltfValidatorReportInfoResourceInterface) => {
       if (resource.image) {
-        if (!resource.image.height != resource.image.width) {
+        if (resource.image.height != resource.image.width) {
           nonQuadraticTextureFound = true;
         }
       }
@@ -177,9 +184,9 @@ export class Model implements ModelInterface {
   private async loadWithGltfValidator(data: ArrayBuffer) {
     return new Promise<void>((resolve, reject) => {
       const binaryData = new Uint8Array(data);
-      // Use the GLTF Validator to get the triangle count
       validateBytes(binaryData)
-        .then((report: any) => {
+        .then((report: GltfValidatorReportInterface) => {
+          this.gltfValidatorReport = report;
           // TODO: Get these from Babylon instead
           this.triangleCount.loadValue(report.info.totalTriangleCount);
           this.materialCount.loadValue(report.info.materialCount);

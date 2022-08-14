@@ -28,6 +28,7 @@ export class Validator implements ValidatorInterface {
       throw new Error('Unable to generate report. No schema loaded.');
     }
 
+    this.testGltfValidator();
     this.testFileSize();
     this.testTriangleCount();
     this.testMaterialCount();
@@ -210,20 +211,34 @@ export class Validator implements ValidatorInterface {
   private testFileSize() {
     if (this.schema.maxFileSizeInKb.value === -1 && this.schema.minFileSizeInKb.value === -1) {
       // Skip test, but still report the file size
-      this.report.fileSize.skipTestWithMessage('File size: ' + this.model.fileSizeInKb.value + 'kb');
+      this.report.fileSize.skipTestWithMessage('File size: ' + this.model.fileSizeInKb.value.toLocaleString() + 'kb');
     } else if (this.schema.maxFileSizeInKb.value === -1) {
       // Check only the min filesize
       const filesizeOK = (this.model.fileSizeInKb.value as number) >= (this.schema.minFileSizeInKb.value as number);
       let filesizeMessage = filesizeOK
-        ? this.model.fileSizeInKb.value + 'kb >= ' + this.schema.minFileSizeInKb.value + 'kb'
-        : 'File too small: ' + this.model.fileSizeInKb.value + 'kb < ' + this.schema.minFileSizeInKb.value + 'kb';
+        ? this.model.fileSizeInKb.value.toLocaleString() +
+          'kb >= ' +
+          this.schema.minFileSizeInKb.value.toLocaleString() +
+          'kb'
+        : 'File too small: ' +
+          this.model.fileSizeInKb.value.toLocaleString() +
+          'kb < ' +
+          this.schema.minFileSizeInKb.value.toLocaleString() +
+          'kb';
       this.report.fileSize.test(filesizeOK, filesizeMessage);
     } else if (this.schema.minFileSizeInKb.value === -1) {
       // Check only the max filesize
       const filesizeOK = (this.model.fileSizeInKb.value as number) <= (this.schema.maxFileSizeInKb.value as number);
       let filesizeMessage = filesizeOK
-        ? this.model.fileSizeInKb.value + 'kb <= ' + this.schema.maxFileSizeInKb.value + 'kb'
-        : 'File too large: ' + this.model.fileSizeInKb.value + 'kb > ' + this.schema.maxFileSizeInKb.value + 'kb';
+        ? this.model.fileSizeInKb.value.toLocaleString() +
+          'kb <= ' +
+          this.schema.maxFileSizeInKb.value.toLocaleString() +
+          'kb'
+        : 'File too large: ' +
+          this.model.fileSizeInKb.value.toLocaleString() +
+          'kb > ' +
+          this.schema.maxFileSizeInKb.value.toLocaleString() +
+          'kb';
       this.report.fileSize.test(filesizeOK, filesizeMessage);
     } else {
       // Check that filesize is within range (min-max)
@@ -233,22 +248,47 @@ export class Validator implements ValidatorInterface {
         // Less than Max
         (this.model.fileSizeInKb.value as number) <= (this.schema.maxFileSizeInKb.value as number);
       let filesizeMessage =
-        this.schema.minFileSizeInKb.value +
+        this.schema.minFileSizeInKb.value.toLocaleString() +
         'kb <= ' +
-        this.model.fileSizeInKb.value +
+        this.model.fileSizeInKb.value.toLocaleString() +
         'kb <= ' +
-        this.schema.maxFileSizeInKb.value +
+        this.schema.maxFileSizeInKb.value.toLocaleString() +
         'kb';
       if (!filesizeOK) {
         if ((this.model.fileSizeInKb.value as number) < (this.schema.minFileSizeInKb.value as number)) {
           filesizeMessage =
-            'File too small: ' + this.model.fileSizeInKb.value + 'kb < ' + this.schema.minFileSizeInKb.value + 'kb';
+            'File too small: ' +
+            this.model.fileSizeInKb.value.toLocaleString() +
+            'kb < ' +
+            this.schema.minFileSizeInKb.value.toLocaleString() +
+            'kb';
         } else if ((this.model.fileSizeInKb.value as number) > (this.schema.maxFileSizeInKb.value as number)) {
           filesizeMessage =
-            'File too large: ' + this.model.fileSizeInKb.value + 'kb > ' + this.schema.maxFileSizeInKb.value + 'kb';
+            'File too large: ' +
+            this.model.fileSizeInKb.value.toLocaleString() +
+            'kb > ' +
+            this.schema.maxFileSizeInKb.value.toLocaleString() +
+            'kb';
         }
       }
       this.report.fileSize.test(filesizeOK, filesizeMessage);
+    }
+  }
+
+  // glTF validation is considered passed if there are no errors.
+  private testGltfValidator() {
+    if (this.model.gltfValidatorReport) {
+      this.report.gltfValidator.test(
+        this.model.gltfValidatorReport.issues.numErrors === 0,
+        'Errors: ' +
+          this.model.gltfValidatorReport.issues.numErrors +
+          ', Warnings: ' +
+          this.model.gltfValidatorReport.issues.numWarnings +
+          ', Hints: ' +
+          this.model.gltfValidatorReport.issues.numHints +
+          ', Info: ' +
+          this.model.gltfValidatorReport.issues.numInfos,
+      );
     }
   }
 
@@ -271,13 +311,18 @@ export class Validator implements ValidatorInterface {
   // The number of triangles should be less than or equal to the max, unless the max is -1
   private testTriangleCount() {
     if (this.schema.maxTriangleCount.value === -1) {
-      this.report.triangleCount.skipTestWithMessage('Triangle count: ' + this.model.triangleCount.value);
+      this.report.triangleCount.skipTestWithMessage(
+        'Triangle count: ' + this.model.triangleCount.value.toLocaleString(),
+      );
     } else {
       const triangleCountOK =
         (this.model.triangleCount.value as number) <= (this.schema.maxTriangleCount.value as number);
       const triangleCountMessage = triangleCountOK
-        ? this.model.triangleCount.value + ' <= ' + this.schema.maxTriangleCount.value
-        : 'Too many triangles: ' + this.model.triangleCount.value + ' > ' + this.schema.maxTriangleCount.value;
+        ? this.model.triangleCount.value.toLocaleString() + ' <= ' + this.schema.maxTriangleCount.value.toLocaleString()
+        : 'Too many triangles: ' +
+          this.model.triangleCount.value.toLocaleString() +
+          ' > ' +
+          this.schema.maxTriangleCount.value.toLocaleString();
       this.report.triangleCount.test(triangleCountOK, triangleCountMessage);
     }
   }
