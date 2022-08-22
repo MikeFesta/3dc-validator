@@ -35,4 +35,15 @@ export interface SchemaJSONInterface {
     requireDimensionsBePowersOfTwo?: boolean;
     requireDimensionsBeQuadratic?: boolean;
   };
+  objectCount?: {
+    meshes?: {
+      maximum: number;
+    };
+    nodes?: {
+      maximum: number;
+    };
+    primitives?: {
+      maximum: number;
+    };
+  };
 }

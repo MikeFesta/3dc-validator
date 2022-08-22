@@ -8,6 +8,9 @@ export interface SchemaInterface {
   maxHeight: LoadableAttributeInterface;
   maxLength: LoadableAttributeInterface;
   maxMaterialCount: LoadableAttributeInterface;
+  maxMeshCount: LoadableAttributeInterface;
+  maxNodeCount: LoadableAttributeInterface;
+  maxPrimitiveCount: LoadableAttributeInterface;
   maxTextureHeight: LoadableAttributeInterface;
   maxTextureWidth: LoadableAttributeInterface;
   maxTriangleCount: LoadableAttributeInterface;
@@ -35,6 +38,9 @@ export class Schema implements SchemaInterface {
   maxHeight = new LoadableAttribute('Max Height (z)', 10); // Not specified in Asset Creation Guidelines, 10m seems reasonable for products
   maxLength = new LoadableAttribute('Max Length (y)', 10); // Not specified in Asset Creation Guidelines, 10m seems reasonable for products
   maxMaterialCount = new LoadableAttribute('Max Material Count', 5); // 5 per RFP Specifications
+  maxMeshCount = new LoadableAttribute('Max Mesh Count', -1); // Not specified in Asset Creation Guidelines. -1 to ignore
+  maxNodeCount = new LoadableAttribute('Max Node Count', -1); // Not specified in Asset Creation Guidelines. -1 to ignore
+  maxPrimitiveCount = new LoadableAttribute('Max Primitive Count', -1); // Not specified in Asset Creation Guidelines. -1 to ignore
   maxTextureHeight = new LoadableAttribute('Max Texture Height', 2048); // 2048 per Asset Creation Guidelines
   maxTextureWidth = new LoadableAttribute('Max Texture Width', 2048); // 2048 per Asset Creation Guidelines
   maxTriangleCount = new LoadableAttribute('Max Triangle Count', 100000); // 100k per Asset Creation Guidelines
@@ -62,6 +68,9 @@ export class Schema implements SchemaInterface {
       this.maxFileSizeInKb,
       this.maxTriangleCount,
       this.maxMaterialCount,
+      this.maxMeshCount,
+      this.maxNodeCount,
+      this.maxPrimitiveCount,
       this.minTextureWidth,
       this.maxTextureWidth,
       this.minTextureHeight,
@@ -126,6 +135,17 @@ export class Schema implements SchemaInterface {
       }
       if (obj.textures.requireDimensionsBeQuadratic) {
         this.requireTextureDimensionsBeQuadratic.loadValue(obj.textures.requireDimensionsBeQuadratic);
+      }
+    }
+    if (obj.objectCount) {
+      if (obj.objectCount.meshes) {
+        this.maxMeshCount.loadValue(obj.objectCount.meshes.maximum);
+      }
+      if (obj.objectCount.nodes) {
+        this.maxNodeCount.loadValue(obj.objectCount.nodes.maximum);
+      }
+      if (obj.objectCount.primitives) {
+        this.maxPrimitiveCount.loadValue(obj.objectCount.primitives.maximum);
       }
     }
 

@@ -21,13 +21,13 @@ This package is used for both a command line interface, as well as a front-end w
 * Texture Map Resolution (min/max)
 * Texture Map Resolution Power of 2
 * Texture Map Resolution Quadratic
+* Mesh Count (max)
+* Node Count (max)
+* Primitive Count (max)
 
 #### Checks to be added
 * Transparent Geometry Separated
 * 0-1 UV Texture Space
-* Mesh Count
-* Node Count
-* Primitive Count
 * Texture Density
 * Hard Edges
 * PBR Safe Colors

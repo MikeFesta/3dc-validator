@@ -22,6 +22,9 @@ export interface ModelInterface {
   length: LoadableAttributeInterface;
   loaded: boolean;
   materialCount: LoadableAttributeInterface;
+  meshCount: LoadableAttributeInterface;
+  nodeCount: LoadableAttributeInterface;
+  primitiveCount: LoadableAttributeInterface;
   texturesMaxHeight: LoadableAttributeInterface;
   texturesMaxWidth: LoadableAttributeInterface;
   texturesMinHeight: LoadableAttributeInterface;
@@ -42,6 +45,9 @@ export class Model implements ModelInterface {
   length = new LoadableAttribute('Length in Meters', 0);
   loaded = false;
   materialCount = new LoadableAttribute('Material Count', 0);
+  meshCount = new LoadableAttribute('Mesh Count', 0);
+  nodeCount = new LoadableAttribute('Node Count', 0);
+  primitiveCount = new LoadableAttribute('Primitive Count', 0);
   texturesMaxHeight = new LoadableAttribute('Max Texture Height', 0);
   texturesMaxWidth = new LoadableAttribute('Max Texture Width', 0);
   texturesMinHeight = new LoadableAttribute('Min Texture Height', 0);
@@ -56,6 +62,9 @@ export class Model implements ModelInterface {
       this.fileSizeInKb,
       this.triangleCount,
       this.materialCount,
+      this.meshCount,
+      this.nodeCount,
+      this.primitiveCount,
       this.texturesMaxHeight,
       this.texturesMinHeight,
       this.texturesMaxWidth,
@@ -179,6 +188,34 @@ export class Model implements ModelInterface {
     this.height.loadValue(+(max.y - min.y).toFixed(6) as number);
     this.length.loadValue(+(max.x - min.x).toFixed(6) as number);
     this.width.loadValue(+(max.z - min.z).toFixed(6) as number);
+
+    this.loadObjectCountsFromScene(scene);
+  }
+
+  // Get number of meshes, nodes, and primitives
+  private loadObjectCountsFromScene(scene: Scene) {
+    let meshCount = 0;
+    let nodeCount = 0;
+    let primitiveCount = 0;
+
+    // each of these objects are registered as AbstractMeshes
+    scene.meshes.forEach(abstractMesh => {
+      if (!abstractMesh.isVerticesDataPresent || abstractMesh.getTotalVertices() === 0) {
+        // Nodes have 0 vertices
+        nodeCount++;
+      } else {
+        meshCount++;
+        // Each mesh is comprised of 1 or more primitives (SubMeshes in BabylonJS)
+        // Primitives are used for multiple materials on the same mesh
+        // The Blender glTF exporter breaks multi-material objects into distinct meshes, so each mesh only has 1 SubMesh
+        // QUESTION: BabylonJS team - what, if any, glTF settings create more than 1 SubMesh?
+        primitiveCount += abstractMesh.subMeshes.length;
+      }
+    });
+
+    this.meshCount.loadValue(meshCount);
+    this.nodeCount.loadValue(nodeCount);
+    this.primitiveCount.loadValue(primitiveCount);
   }
 
   private async loadWithGltfValidator(data: ArrayBuffer) {

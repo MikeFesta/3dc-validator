@@ -6,6 +6,9 @@ export interface ReportInterface {
   fileSize: ReportItemInterface;
   triangleCount: ReportItemInterface;
   materialCount: ReportItemInterface;
+  meshCount: ReportItemInterface;
+  nodeCount: ReportItemInterface;
+  primitiveCount: ReportItemInterface;
   texturesPowerOfTwo: ReportItemInterface;
   texturesQuadratic: ReportItemInterface;
   textureDimensionsMaxHeight: ReportItemInterface;
@@ -31,6 +34,18 @@ export class Report implements ReportInterface {
   materialCount = new ReportItem(
     'Material Count',
     'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec05_MaterialsAndTextures/MaterialsAndTextures.md#multiple-materials-per-model',
+  );
+  meshCount = new ReportItem(
+    'Mesh Count',
+    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec99_PublishingTargets/PublishingTargets.md#maximum-number-of-draw-calls-and-triangles',
+  );
+  nodeCount = new ReportItem(
+    'Node Count',
+    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec99_PublishingTargets/PublishingTargets.md#maximum-number-of-draw-calls-and-triangles',
+  );
+  primitiveCount = new ReportItem(
+    'Primitive Count',
+    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec99_PublishingTargets/PublishingTargets.md#maximum-number-of-draw-calls-and-triangles',
   );
   texturesPowerOfTwo = new ReportItem(
     'Texture Dimensions are Powers of 2',
@@ -74,6 +89,9 @@ export class Report implements ReportInterface {
       this.fileSize,
       this.triangleCount,
       this.materialCount,
+      this.meshCount,
+      this.nodeCount,
+      this.primitiveCount,
       this.texturesPowerOfTwo,
       this.texturesQuadratic,
       this.textureDimensionsMaxHeight,
