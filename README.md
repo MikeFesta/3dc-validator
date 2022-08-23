@@ -25,10 +25,10 @@ This package is used for both a command line interface, as well as a front-end w
 * Node Count (max)
 * Primitive Count (max)
 * Clean Origin for Top Node
+* 0-1 UV Texture Space
 
 #### Checks to be added
 * Transparent Geometry Separated
-* 0-1 UV Texture Space
 * Texture Density
 * Hard Edges
 * PBR Safe Colors
