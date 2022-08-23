@@ -18,6 +18,7 @@ export interface ReportInterface {
   dimensionsMax: ReportItemInterface;
   dimensionsMin: ReportItemInterface;
   productDimensionsWithinTolerance: ReportItemInterface;
+  rootNodeCleanTransform: ReportItemInterface;
   getItems: () => ReportItemInterface[];
 }
 
@@ -83,6 +84,10 @@ export class Report implements ReportInterface {
     'Dimensions Match Product',
     'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec02_CoordinateSystemAndScaleUnit/CoordinateSystemAndScaleUnit.md',
   );
+  rootNodeCleanTransform = new ReportItem(
+    'Root Node has Clean Transform',
+    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec03_Geometry/Geometry.md#best-practice',
+  );
   getItems() {
     return [
       this.gltfValidator,
@@ -101,6 +106,7 @@ export class Report implements ReportInterface {
       this.dimensionsMax,
       this.dimensionsMin,
       this.productDimensionsWithinTolerance,
+      this.rootNodeCleanTransform,
     ];
   }
 }

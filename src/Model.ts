@@ -1,4 +1,5 @@
 import { LoadableAttribute, LoadableAttributeInterface } from './LoadableAttribute.js';
+import { NodeTransform, NodeTransformInterface } from './NodeTransform.js';
 import {
   GltfValidatorReportInterface,
   GltfValidatorReportInfoInterface,
@@ -33,6 +34,7 @@ export interface ModelInterface {
   texturesQuadratic: LoadableAttributeInterface;
   triangleCount: LoadableAttributeInterface;
   width: LoadableAttributeInterface;
+  rootNodeTransform: NodeTransformInterface;
   getAttributes: () => LoadableAttributeInterface[];
   loadFromFileInput(file: File): Promise<void>;
   loadFromFileSystem(filepath: string): Promise<void>;
@@ -56,6 +58,7 @@ export class Model implements ModelInterface {
   texturesQuadratic = new LoadableAttribute('Textures Have the Same Width and Height', false);
   triangleCount = new LoadableAttribute('Triangle Count', 0);
   width = new LoadableAttribute('Width in Meters', 0);
+  rootNodeTransform = new NodeTransform();
 
   getAttributes() {
     return [
@@ -182,20 +185,50 @@ export class Model implements ModelInterface {
 
     await SceneLoader.AppendAsync('', data, scene);
 
-    // Dimensions - from the root node, get bounds of all child meshes
-    // Note: uses toFixed to round the number up to 6 decimal places
+    this.loadDimensions(scene);
+    this.loadObjectCountsFromScene(scene);
+    this.loadRootNodeTransform(scene);
+  }
+
+  // Dimensions - from the root node, get bounds of all child meshes
+  private loadDimensions(scene: Scene) {
+    // TODO: move toFixed into the report
     const { min, max } = scene.meshes[0].getHierarchyBoundingVectors();
     this.height.loadValue(+(max.y - min.y).toFixed(6) as number);
     this.length.loadValue(+(max.x - min.x).toFixed(6) as number);
     this.width.loadValue(+(max.z - min.z).toFixed(6) as number);
+  }
 
-    this.loadObjectCountsFromScene(scene);
+  // Get the location, rotation, and scale of the rooot node
+  private loadRootNodeTransform(scene: Scene) {
+    if (scene.meshes.length <= 1) {
+      //const rootNode = scene.meshes[0]; // <-- This is not the correct node
+      // The top level __root__ node (scene.meshes[0]) is created by BabylonJS for coordinate system conversion (right hand to left hand)
+      throw new Error('There are no objects in the scene');
+    }
+    const rootNode = scene.meshes[1]; // The first real object from the glTF file
+
+    // location
+    this.rootNodeTransform.location.x.loadValue(rootNode.position.x);
+    this.rootNodeTransform.location.y.loadValue(rootNode.position.y);
+    this.rootNodeTransform.location.z.loadValue(rootNode.position.z);
+    // rotation
+    if (rootNode.rotationQuaternion) {
+      // glTF uses Quaternion rotations
+      this.rootNodeTransform.rotation.x.loadValue(rootNode.rotationQuaternion.x);
+      this.rootNodeTransform.rotation.y.loadValue(rootNode.rotationQuaternion.y);
+      this.rootNodeTransform.rotation.z.loadValue(rootNode.rotationQuaternion.z);
+    }
+    // scale
+    this.rootNodeTransform.scale.x.loadValue(rootNode.scaling.x);
+    this.rootNodeTransform.scale.y.loadValue(rootNode.scaling.y);
+    this.rootNodeTransform.scale.z.loadValue(rootNode.scaling.z);
   }
 
   // Get number of meshes, nodes, and primitives
   private loadObjectCountsFromScene(scene: Scene) {
     let meshCount = 0;
-    let nodeCount = 0;
+    let nodeCount = -1; // Note: Babylon adds a parent __root__ node for Right Hand to Left Hand coordinate system conversion that should be ignored
     let primitiveCount = 0;
 
     // each of these objects are registered as AbstractMeshes

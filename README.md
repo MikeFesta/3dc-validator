@@ -24,6 +24,7 @@ This package is used for both a command line interface, as well as a front-end w
 * Mesh Count (max)
 * Node Count (max)
 * Primitive Count (max)
+* Clean Origin for Top Node
 
 #### Checks to be added
 * Transparent Geometry Separated
@@ -34,5 +35,4 @@ This package is used for both a command line interface, as well as a front-end w
 * UV Overlaps
 * UV Margin Size
 * Inverted UVs
-* Clean Origin for Top Node
 * Non-Manifold Edges

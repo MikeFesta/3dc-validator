@@ -27,6 +27,8 @@ export interface SchemaInterface {
   requireTextureDimensionsBePowersOfTwo: LoadableAttributeInterface;
   requireTextureDimensionsBeQuadratic: LoadableAttributeInterface;
   version: LoadableAttributeInterface;
+  requireCleanRootNodeTransform: LoadableAttributeInterface;
+
   getAttributes: () => LoadableAttributeInterface[];
   loadFromFileInput(file: File): Promise<void>;
   loadFromFileSystem(filepath: string): Promise<void>;
@@ -60,6 +62,7 @@ export class Schema implements SchemaInterface {
     false,
   );
   version = new LoadableAttribute('Version', '1.0.0');
+  requireCleanRootNodeTransform = new LoadableAttribute('Require Root Node Have a Clean Transform', false);
 
   getAttributes() {
     return [
@@ -86,6 +89,7 @@ export class Schema implements SchemaInterface {
       this.percentToleranceLength,
       this.percentToleranceWidth,
       this.percentToleranceHeight,
+      this.requireCleanRootNodeTransform,
     ];
   }
 
@@ -147,6 +151,9 @@ export class Schema implements SchemaInterface {
       if (obj.objectCount.primitives) {
         this.maxPrimitiveCount.loadValue(obj.objectCount.primitives.maximum);
       }
+    }
+    if (obj.requireCleanRootNodeTransform) {
+      this.requireCleanRootNodeTransform.loadValue(obj.requireCleanRootNodeTransform);
     }
 
     this.loaded = true;

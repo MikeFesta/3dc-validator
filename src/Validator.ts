@@ -18,7 +18,7 @@ export class Validator implements ValidatorInterface {
   report = new Report();
   reportReady = false;
   schema = new Schema();
-  version = '1.0.0-alpha.8';
+  version = '1.0.0-alpha.9';
 
   public generateReport() {
     if (!this.model.loaded) {
@@ -35,6 +35,7 @@ export class Validator implements ValidatorInterface {
     this.testTextures();
     this.testDimensions();
     this.testObjectCount();
+    this.testRootNodeTransform();
 
     if (this.productInfo.loaded) {
       // Additional checks that require product information to be made available
@@ -346,6 +347,48 @@ export class Validator implements ValidatorInterface {
       widthWithinTolerance && heightWithinTolerance && lengthWithinTolerance,
       productToleranceMessage,
     );
+  }
+
+  private testRootNodeTransform() {
+    if (this.schema.requireCleanRootNodeTransform.value === false) {
+      this.report.rootNodeCleanTransform.skipTestWithMessage('Not required by schema');
+    } else {
+      let rootNodeTransformOK = this.model.rootNodeTransform.isClean();
+      let rootNodeTransformMessage = '';
+      if (!rootNodeTransformOK) {
+        if (!this.model.rootNodeTransform.locationIsZero()) {
+          rootNodeTransformMessage +=
+            'Location: (' +
+            (this.model.rootNodeTransform.location.x.value as number).toFixed(6) +
+            ',' +
+            (this.model.rootNodeTransform.location.y.value as number).toFixed(6) +
+            ',' +
+            (this.model.rootNodeTransform.location.z.value as number).toFixed(6) +
+            ') ';
+        }
+        if (!this.model.rootNodeTransform.rotationIsZero()) {
+          rootNodeTransformMessage +=
+            'Rotation: (' +
+            (this.model.rootNodeTransform.rotation.x.value as number).toFixed(6) +
+            ',' +
+            (this.model.rootNodeTransform.rotation.y.value as number).toFixed(6) +
+            ',' +
+            (this.model.rootNodeTransform.rotation.z.value as number).toFixed(6) +
+            ') ';
+        }
+        if (!this.model.rootNodeTransform.scaleIsOne()) {
+          rootNodeTransformMessage +=
+            'Scale: (' +
+            (this.model.rootNodeTransform.scale.x.value as number).toFixed(6) +
+            ',' +
+            (this.model.rootNodeTransform.scale.y.value as number).toFixed(6) +
+            ',' +
+            (this.model.rootNodeTransform.scale.z.value as number).toFixed(6) +
+            ')';
+        }
+      }
+      this.report.rootNodeCleanTransform.test(rootNodeTransformOK, rootNodeTransformMessage);
+    }
   }
 
   // The number of triangles should be less than or equal to the max, unless the max is -1

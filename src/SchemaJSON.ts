@@ -46,4 +46,5 @@ export interface SchemaJSONInterface {
       maximum: number;
     };
   };
+  requireCleanRootNodeTransform?: boolean;
 }
