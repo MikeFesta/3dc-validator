@@ -4,6 +4,7 @@ import { Report, ReportInterface } from './Report.js';
 import { Schema, SchemaInterface } from './Schema.js';
 
 export interface ValidatorInterface {
+  decimalDisplayPrecision: number;
   model: ModelInterface;
   productInfo: ProductInfoInterface;
   report: ReportInterface;
@@ -13,6 +14,7 @@ export interface ValidatorInterface {
 }
 
 export class Validator implements ValidatorInterface {
+  decimalDisplayPrecision = 3; // Used for display only (not comparisons), can be changed before running generateReport()
   model = new Model();
   productInfo = new ProductInfo(); // This is optional and can provide more specific per product validation
   report = new Report();
@@ -48,48 +50,46 @@ export class Validator implements ValidatorInterface {
   // Check that the model fits within viewer/application min/max dimensions
   private testDimensions() {
     // Dimensions (Max)
+    const dimensionsMaxOK =
+      this.model.height.value <= this.schema.maxHeight.value &&
+      this.model.length.value <= this.schema.maxLength.value &&
+      this.model.width.value <= this.schema.maxWidth.value;
     let dimensionsMaxMessage =
       '(L:' +
-      this.model.length.value +
+      (this.model.length.value as number).toFixed(this.decimalDisplayPrecision) +
       ' x W:' +
-      this.model.width.value +
+      (this.model.width.value as number).toFixed(this.decimalDisplayPrecision) +
       ' x H:' +
-      this.model.height.value +
+      (this.model.height.value as number).toFixed(this.decimalDisplayPrecision) +
       ') vs (L:' +
-      this.schema.maxLength.value +
+      (this.schema.maxLength.value as number).toFixed(this.decimalDisplayPrecision) +
       ' x W:' +
-      this.schema.maxWidth.value +
+      (this.schema.maxWidth.value as number).toFixed(this.decimalDisplayPrecision) +
       ' x H:' +
-      this.schema.maxHeight.value +
+      (this.schema.maxHeight.value as number).toFixed(this.decimalDisplayPrecision) +
       ') Max';
-    this.report.dimensionsMax.test(
-      this.model.height.value <= this.schema.maxHeight.value &&
-        this.model.length.value <= this.schema.maxLength.value &&
-        this.model.width.value <= this.schema.maxWidth.value,
-      dimensionsMaxMessage,
-    );
+    this.report.dimensionsMax.test(dimensionsMaxOK, dimensionsMaxMessage);
 
     // Dimensions (Min)
+    const dimensionsMinOK =
+      this.model.height.value >= this.schema.minHeight.value &&
+      this.model.length.value >= this.schema.minLength.value &&
+      this.model.width.value >= this.schema.minWidth.value;
     let dimensionsMinMessage =
       '(L:' +
-      this.model.length.value +
+      (this.model.length.value as number).toFixed(this.decimalDisplayPrecision) +
       ' x W:' +
-      this.model.width.value +
+      (this.model.width.value as number).toFixed(this.decimalDisplayPrecision) +
       ' x H:' +
-      this.model.height.value +
+      (this.model.height.value as number).toFixed(this.decimalDisplayPrecision) +
       ') vs (L:' +
-      this.schema.minLength.value +
+      (this.schema.minLength.value as number).toFixed(this.decimalDisplayPrecision) +
       ' x W:' +
-      this.schema.minWidth.value +
+      (this.schema.minWidth.value as number).toFixed(this.decimalDisplayPrecision) +
       ' x H:' +
-      this.schema.minHeight.value +
+      (this.schema.minHeight.value as number).toFixed(this.decimalDisplayPrecision) +
       ') Min';
-    this.report.dimensionsMin.test(
-      this.model.height.value >= this.schema.minHeight.value &&
-        this.model.length.value >= this.schema.minLength.value &&
-        this.model.width.value >= this.schema.minWidth.value,
-      dimensionsMinMessage,
-    );
+    this.report.dimensionsMin.test(dimensionsMinOK, dimensionsMinMessage);
   }
 
   // The filesize should be within the specified range. Min and/or Max size can be ignored with a value of -1
@@ -186,9 +186,8 @@ export class Validator implements ValidatorInterface {
     } else {
       const materialCountOK =
         (this.model.materialCount.value as number) <= (this.schema.maxMaterialCount.value as number);
-      const materialCountMessage = materialCountOK
-        ? this.model.materialCount.value + ' <= ' + this.schema.maxMaterialCount.value
-        : 'Too many materials: ' + this.model.materialCount.value + ' > ' + this.schema.maxMaterialCount.value;
+      const materialCountMessage =
+        this.model.materialCount.value + (materialCountOK ? ' <= ' : ' > ') + this.schema.maxMaterialCount.value;
       this.report.materialCount.test(materialCountOK, materialCountMessage);
     }
   }
@@ -200,9 +199,7 @@ export class Validator implements ValidatorInterface {
     } else {
       const meshCountOK = this.model.meshCount.value <= this.schema.maxMeshCount.value;
       const meshCountMessage =
-        (this.model.meshCount.value as number).toFixed(0) +
-        (meshCountOK ? ' <= ' : ' > ') +
-        (this.schema.maxMeshCount.value as number).toFixed(0);
+        this.model.meshCount.value + (meshCountOK ? ' <= ' : ' > ') + this.schema.maxMeshCount.value;
       this.report.meshCount.test(meshCountOK, meshCountMessage);
     }
     if (this.schema.maxNodeCount.value === -1) {
@@ -210,9 +207,7 @@ export class Validator implements ValidatorInterface {
     } else {
       const nodeCountOK = this.model.nodeCount.value <= this.schema.maxNodeCount.value;
       const nodeCountMessage =
-        (this.model.nodeCount.value as number).toFixed(0) +
-        (nodeCountOK ? ' <= ' : ' > ') +
-        (this.schema.maxNodeCount.value as number).toFixed(0);
+        this.model.nodeCount.value + (nodeCountOK ? ' <= ' : ' > ') + this.schema.maxNodeCount.value;
       this.report.nodeCount.test(nodeCountOK, nodeCountMessage);
     }
     if (this.schema.maxPrimitiveCount.value === -1) {
@@ -220,9 +215,7 @@ export class Validator implements ValidatorInterface {
     } else {
       const primitiveCountOK = this.model.primitiveCount.value <= this.schema.maxPrimitiveCount.value;
       const primitiveCountMessage =
-        (this.model.primitiveCount.value as number).toFixed(0) +
-        (primitiveCountOK ? ' <= ' : ' > ') +
-        (this.schema.maxPrimitiveCount.value as number).toFixed(0);
+        this.model.primitiveCount.value + (primitiveCountOK ? ' <= ' : ' > ') + this.schema.maxPrimitiveCount.value;
       this.report.primitiveCount.test(primitiveCountOK, primitiveCountMessage);
     }
   }
@@ -244,21 +237,21 @@ export class Validator implements ValidatorInterface {
       if (heightTooSmall) {
         productToleranceMessage +=
           'Height too small: ' +
-          (this.model.height.value as number).toFixed(3) +
+          (this.model.height.value as number).toFixed(this.decimalDisplayPrecision) +
           ' < (' +
-          (this.productInfo.height.value as number).toFixed(3) +
+          (this.productInfo.height.value as number).toFixed(this.decimalDisplayPrecision) +
           ' - ' +
-          heightMarginOfError.toFixed(3) +
+          heightMarginOfError.toFixed(this.decimalDisplayPrecision) +
           '); ';
       }
       if (heightTooLarge) {
         productToleranceMessage +=
           'Height too large: ' +
-          (this.model.height.value as number).toFixed(3) +
+          (this.model.height.value as number).toFixed(this.decimalDisplayPrecision) +
           ' > (' +
-          (this.productInfo.height.value as number).toFixed(3) +
+          (this.productInfo.height.value as number).toFixed(this.decimalDisplayPrecision) +
           ' + ' +
-          heightMarginOfError.toFixed(3) +
+          heightMarginOfError.toFixed(this.decimalDisplayPrecision) +
           '); ';
       }
     }
@@ -271,21 +264,21 @@ export class Validator implements ValidatorInterface {
       if (lengthTooSmall) {
         productToleranceMessage +=
           'Length too small: ' +
-          (this.model.length.value as number).toFixed(3) +
+          (this.model.length.value as number).toFixed(this.decimalDisplayPrecision) +
           ' < (' +
-          (this.productInfo.length.value as number).toFixed(3) +
+          (this.productInfo.length.value as number).toFixed(this.decimalDisplayPrecision) +
           ' - ' +
-          lengthMarginOfError.toFixed(3) +
+          lengthMarginOfError.toFixed(this.decimalDisplayPrecision) +
           '); ';
       }
       if (lengthTooLarge) {
         productToleranceMessage +=
           'Length too large: ' +
-          (this.model.length.value as number).toFixed(3) +
+          (this.model.length.value as number).toFixed(this.decimalDisplayPrecision) +
           ' > (' +
-          (this.productInfo.length.value as number).toFixed(3) +
+          (this.productInfo.length.value as number).toFixed(this.decimalDisplayPrecision) +
           ' + ' +
-          lengthMarginOfError.toFixed(3) +
+          lengthMarginOfError.toFixed(this.decimalDisplayPrecision) +
           '); ';
       }
     }
@@ -298,21 +291,21 @@ export class Validator implements ValidatorInterface {
       if (widthTooSmall) {
         productToleranceMessage +=
           'Width too small: ' +
-          (this.model.width.value as number).toFixed(3) +
+          (this.model.width.value as number).toFixed(this.decimalDisplayPrecision) +
           ' < (' +
-          (this.productInfo.width.value as number).toFixed(3) +
+          (this.productInfo.width.value as number).toFixed(this.decimalDisplayPrecision) +
           ' - ' +
-          widthMarginOfError.toFixed(3) +
+          widthMarginOfError.toFixed(this.decimalDisplayPrecision) +
           '); ';
       }
       if (widthTooLarge) {
         productToleranceMessage +=
           'Width too large: ' +
-          (this.model.width.value as number).toFixed(3) +
+          (this.model.width.value as number).toFixed(this.decimalDisplayPrecision) +
           ' > (' +
-          (this.productInfo.width.value as number).toFixed(3) +
+          (this.productInfo.width.value as number).toFixed(this.decimalDisplayPrecision) +
           ' + ' +
-          widthMarginOfError.toFixed(3) +
+          widthMarginOfError.toFixed(this.decimalDisplayPrecision) +
           '); ';
       }
     }
@@ -320,25 +313,26 @@ export class Validator implements ValidatorInterface {
     if (!productToleranceMessage) {
       productToleranceMessage =
         'Product Dimensions: (L: ' +
-        this.productInfo.length.value +
+        (this.productInfo.length.value as number).toFixed(this.decimalDisplayPrecision) +
         ' x W: ' +
-        this.productInfo.width.value +
+        (this.productInfo.width.value as number).toFixed(this.decimalDisplayPrecision) +
         ' x H: ' +
-        this.productInfo.height.value +
+        (this.productInfo.height.value as number).toFixed(this.decimalDisplayPrecision) +
         ') +/- ';
       if (
         this.schema.percentToleranceLength.value == this.schema.percentToleranceWidth.value &&
         this.schema.percentToleranceLength.value == this.schema.percentToleranceHeight.value
       ) {
-        productToleranceMessage += this.schema.percentToleranceLength.value + '%';
+        productToleranceMessage +=
+          (this.schema.percentToleranceLength.value as number).toFixed(this.decimalDisplayPrecision) + '%';
       } else {
         productToleranceMessage +=
           '(L: ' +
-          this.schema.percentToleranceLength.value +
+          (this.schema.percentToleranceLength.value as number).toFixed(this.decimalDisplayPrecision) +
           '% x W: ' +
-          this.schema.percentToleranceWidth.value +
+          (this.schema.percentToleranceWidth.value as number).toFixed(this.decimalDisplayPrecision) +
           '% x H: ' +
-          this.schema.percentToleranceHeight.value +
+          (this.schema.percentToleranceHeight.value as number).toFixed(this.decimalDisplayPrecision) +
           '%)';
       }
     }
@@ -351,7 +345,9 @@ export class Validator implements ValidatorInterface {
 
   private testRootNodeTransform() {
     if (this.schema.requireCleanRootNodeTransform.value === false) {
-      this.report.rootNodeCleanTransform.skipTestWithMessage('Not required by schema');
+      this.report.rootNodeCleanTransform.skipTestWithMessage(
+        (this.model.rootNodeTransform.isClean() ? 'true' : 'false') + '; not required by schema',
+      );
     } else {
       let rootNodeTransformOK = this.model.rootNodeTransform.isClean();
       let rootNodeTransformMessage = '';
@@ -359,31 +355,31 @@ export class Validator implements ValidatorInterface {
         if (!this.model.rootNodeTransform.locationIsZero()) {
           rootNodeTransformMessage +=
             'Location: (' +
-            (this.model.rootNodeTransform.location.x.value as number).toFixed(6) +
+            (this.model.rootNodeTransform.location.x.value as number).toFixed(this.decimalDisplayPrecision) +
             ',' +
-            (this.model.rootNodeTransform.location.y.value as number).toFixed(6) +
+            (this.model.rootNodeTransform.location.y.value as number).toFixed(this.decimalDisplayPrecision) +
             ',' +
-            (this.model.rootNodeTransform.location.z.value as number).toFixed(6) +
+            (this.model.rootNodeTransform.location.z.value as number).toFixed(this.decimalDisplayPrecision) +
             ') ';
         }
         if (!this.model.rootNodeTransform.rotationIsZero()) {
           rootNodeTransformMessage +=
             'Rotation: (' +
-            (this.model.rootNodeTransform.rotation.x.value as number).toFixed(6) +
+            (this.model.rootNodeTransform.rotation.x.value as number).toFixed(this.decimalDisplayPrecision) +
             ',' +
-            (this.model.rootNodeTransform.rotation.y.value as number).toFixed(6) +
+            (this.model.rootNodeTransform.rotation.y.value as number).toFixed(this.decimalDisplayPrecision) +
             ',' +
-            (this.model.rootNodeTransform.rotation.z.value as number).toFixed(6) +
+            (this.model.rootNodeTransform.rotation.z.value as number).toFixed(this.decimalDisplayPrecision) +
             ') ';
         }
         if (!this.model.rootNodeTransform.scaleIsOne()) {
           rootNodeTransformMessage +=
             'Scale: (' +
-            (this.model.rootNodeTransform.scale.x.value as number).toFixed(6) +
+            (this.model.rootNodeTransform.scale.x.value as number).toFixed(this.decimalDisplayPrecision) +
             ',' +
-            (this.model.rootNodeTransform.scale.y.value as number).toFixed(6) +
+            (this.model.rootNodeTransform.scale.y.value as number).toFixed(this.decimalDisplayPrecision) +
             ',' +
-            (this.model.rootNodeTransform.scale.z.value as number).toFixed(6) +
+            (this.model.rootNodeTransform.scale.z.value as number).toFixed(this.decimalDisplayPrecision) +
             ')';
         }
       }
@@ -400,12 +396,10 @@ export class Validator implements ValidatorInterface {
     } else {
       const triangleCountOK =
         (this.model.triangleCount.value as number) <= (this.schema.maxTriangleCount.value as number);
-      const triangleCountMessage = triangleCountOK
-        ? this.model.triangleCount.value.toLocaleString() + ' <= ' + this.schema.maxTriangleCount.value.toLocaleString()
-        : 'Too many triangles: ' +
-          this.model.triangleCount.value.toLocaleString() +
-          ' > ' +
-          this.schema.maxTriangleCount.value.toLocaleString();
+      const triangleCountMessage =
+        this.model.triangleCount.value.toLocaleString() +
+        (triangleCountOK ? ' <= ' : ' > ') +
+        this.schema.maxTriangleCount.value.toLocaleString();
       this.report.triangleCount.test(triangleCountOK, triangleCountMessage);
     }
   }
@@ -415,7 +409,7 @@ export class Validator implements ValidatorInterface {
     // Texture Size - Height (max)
     if (this.schema.maxTextureHeight.value === -1) {
       this.report.textureDimensionsMaxHeight.skipTestWithMessage(
-        (this.model.texturesMaxHeight.value as number).toFixed(0),
+        (this.model.texturesMaxHeight.value as number).toFixed(0) + '; not required by schema',
       );
     } else {
       const maxHeightPasses = this.model.texturesMaxHeight.value <= this.schema.maxTextureHeight.value;
@@ -428,7 +422,7 @@ export class Validator implements ValidatorInterface {
     // Texture Size - Height (min)
     if (this.schema.minTextureHeight.value === -1) {
       this.report.textureDimensionsMinHeight.skipTestWithMessage(
-        (this.model.texturesMinHeight.value as number).toFixed(0),
+        (this.model.texturesMinHeight.value as number).toFixed(0) + '; not required by schema',
       );
     } else {
       const minHeightPasses = this.model.texturesMinHeight.value >= this.schema.minTextureHeight.value;
@@ -441,7 +435,7 @@ export class Validator implements ValidatorInterface {
     // Texture Size - Width (max)
     if (this.schema.maxTextureWidth.value === -1) {
       this.report.textureDimensionsMaxWidth.skipTestWithMessage(
-        (this.model.texturesMaxWidth.value as number).toFixed(0),
+        (this.model.texturesMaxWidth.value as number).toFixed(0) + '; not required by schema',
       );
     } else {
       const maxWidthPasses = this.model.texturesMaxWidth.value <= this.schema.maxTextureWidth.value;
@@ -454,7 +448,7 @@ export class Validator implements ValidatorInterface {
     // Texture Size - Width (min)
     if (this.schema.minTextureWidth.value === -1) {
       this.report.textureDimensionsMinWidth.skipTestWithMessage(
-        (this.model.texturesMinWidth.value as number).toFixed(0),
+        (this.model.texturesMinWidth.value as number).toFixed(0) + '; not required by schema',
       );
     } else {
       const minWidthPasses = this.model.texturesMinWidth.value >= this.schema.minTextureWidth.value;
@@ -467,7 +461,7 @@ export class Validator implements ValidatorInterface {
     // Texture Size - Power of 2
     if (this.schema.requireTextureDimensionsBePowersOfTwo.value === false) {
       this.report.texturesPowerOfTwo.skipTestWithMessage(
-        'Not Required, but would have ' + ((this.model.texturesPowerOfTwo.value as boolean) ? 'passed' : 'failed'),
+        ((this.model.texturesPowerOfTwo.value as boolean) ? 'true' : 'false') + '; not required by schema',
       );
     } else {
       this.report.texturesPowerOfTwo.test(
@@ -479,7 +473,7 @@ export class Validator implements ValidatorInterface {
     // Texture Size - Quadratic (width=height)
     if (this.schema.requireTextureDimensionsBeQuadratic.value === false) {
       this.report.texturesQuadratic.skipTestWithMessage(
-        'Not Required, but would have ' + ((this.model.texturesQuadratic.value as boolean) ? 'passed' : 'failed'),
+        ((this.model.texturesQuadratic.value as boolean) ? 'true' : 'false') + '; not required by schema',
       );
     } else {
       this.report.texturesQuadratic.test(
