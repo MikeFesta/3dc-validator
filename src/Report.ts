@@ -19,6 +19,7 @@ export interface ReportInterface {
   dimensionsMin: ReportItemInterface;
   productDimensionsWithinTolerance: ReportItemInterface;
   rootNodeCleanTransform: ReportItemInterface;
+  uvsInZeroToOneRange: ReportItemInterface;
   getItems: () => ReportItemInterface[];
 }
 
@@ -88,6 +89,10 @@ export class Report implements ReportInterface {
     'Root Node has Clean Transform',
     'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec03_Geometry/Geometry.md#best-practice',
   );
+  uvsInZeroToOneRange = new ReportItem(
+    'UVs in 0 to 1 Range',
+    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec04_UVCoordinates/UVCoordinates.md',
+  );
   getItems() {
     return [
       this.gltfValidator,
@@ -107,6 +112,7 @@ export class Report implements ReportInterface {
       this.dimensionsMin,
       this.productDimensionsWithinTolerance,
       this.rootNodeCleanTransform,
+      this.uvsInZeroToOneRange,
     ];
   }
 }

@@ -47,4 +47,7 @@ export interface SchemaJSONInterface {
     };
   };
   requireCleanRootNodeTransform?: boolean;
+  uvs?: {
+    requireRangeZeroToOne: boolean;
+  };
 }

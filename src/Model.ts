@@ -1,5 +1,6 @@
 import { LoadableAttribute, LoadableAttributeInterface } from './LoadableAttribute.js';
 import { NodeTransform, NodeTransformInterface } from './NodeTransform.js';
+import { UV, UVInterface } from './UV.js';
 import {
   GltfValidatorReportInterface,
   GltfValidatorReportInfoInterface,
@@ -8,6 +9,7 @@ import {
 import { readFile, stat } from 'fs/promises';
 //@ts-ignore
 import { validateBytes } from 'gltf-validator';
+import { VertexBuffer } from '@babylonjs/core/Buffers/buffer.js';
 import { NullEngine } from '@babylonjs/core/Engines/nullEngine.js';
 import { Logger } from '@babylonjs/core/Misc/logger.js';
 import { SceneLoader } from '@babylonjs/core/Loading/sceneLoader.js';
@@ -35,6 +37,7 @@ export interface ModelInterface {
   triangleCount: LoadableAttributeInterface;
   width: LoadableAttributeInterface;
   rootNodeTransform: NodeTransformInterface;
+  uv: UVInterface;
   getAttributes: () => LoadableAttributeInterface[];
   loadFromFileInput(file: File): Promise<void>;
   loadFromFileSystem(filepath: string): Promise<void>;
@@ -59,6 +62,7 @@ export class Model implements ModelInterface {
   triangleCount = new LoadableAttribute('Triangle Count', 0);
   width = new LoadableAttribute('Width in Meters', 0);
   rootNodeTransform = new NodeTransform();
+  uv = new UV();
 
   getAttributes() {
     return [
@@ -77,6 +81,19 @@ export class Model implements ModelInterface {
       this.length,
       this.width,
       this.height,
+      this.rootNodeTransform.location.x,
+      this.rootNodeTransform.location.y,
+      this.rootNodeTransform.location.z,
+      this.rootNodeTransform.rotation.x,
+      this.rootNodeTransform.rotation.y,
+      this.rootNodeTransform.rotation.z,
+      this.rootNodeTransform.scale.x,
+      this.rootNodeTransform.scale.y,
+      this.rootNodeTransform.scale.z,
+      this.uv.u.max,
+      this.uv.u.max,
+      this.uv.u.max,
+      this.uv.u.max,
     ];
   }
 
@@ -188,6 +205,53 @@ export class Model implements ModelInterface {
     this.loadDimensions(scene);
     this.loadObjectCountsFromScene(scene);
     this.loadRootNodeTransform(scene);
+    this.loadUVs(scene);
+  }
+
+  // UVs should be in the 0-1 Range and not Inverted
+  private loadUVs(scene: Scene) {
+    let maxU = undefined as unknown as number;
+    let maxV = undefined as unknown as number;
+    let minU = undefined as unknown as number;
+    let minV = undefined as unknown as number;
+    // Loop through each mesh
+    scene.meshes.forEach(mesh => {
+      const uvData = mesh.getVerticesData(VertexBuffer.UVKind);
+      if (uvData) {
+        // UV data float array has 2 floats per vertex (u,v)
+        for (let i = 0; i < uvData.length; i = i + 2) {
+          const u = uvData[i];
+          const v = uvData[i + 1];
+          if (maxU === undefined || maxU < u) {
+            maxU = u;
+          }
+          if (maxV === undefined || maxV < v) {
+            maxV = v;
+          }
+          if (minU === undefined || minU > u) {
+            minU = u;
+          }
+          if (minV === undefined || minV > v) {
+            minV = v;
+          }
+        }
+      }
+    });
+
+    if (maxU !== undefined) {
+      this.uv.u.max.loadValue(maxU);
+    }
+    if (minU !== undefined) {
+      this.uv.u.min.loadValue(minU);
+    }
+    if (maxV !== undefined) {
+      this.uv.v.max.loadValue(maxV);
+    }
+    if (minV !== undefined) {
+      this.uv.v.min.loadValue(minV);
+    }
+
+    // TODO: alpha.11 - check for inverted UVs
   }
 
   // Dimensions - from the root node, get bounds of all child meshes

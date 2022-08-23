@@ -28,6 +28,7 @@ export interface SchemaInterface {
   requireTextureDimensionsBeQuadratic: LoadableAttributeInterface;
   version: LoadableAttributeInterface;
   requireCleanRootNodeTransform: LoadableAttributeInterface;
+  requireUVRangeZeroToOne: LoadableAttributeInterface;
 
   getAttributes: () => LoadableAttributeInterface[];
   loadFromFileInput(file: File): Promise<void>;
@@ -63,6 +64,7 @@ export class Schema implements SchemaInterface {
   );
   version = new LoadableAttribute('Version', '1.0.0');
   requireCleanRootNodeTransform = new LoadableAttribute('Require Root Node Have a Clean Transform', false);
+  requireUVRangeZeroToOne = new LoadableAttribute('Require UV range 0 to 1', false);
 
   getAttributes() {
     return [
@@ -90,6 +92,7 @@ export class Schema implements SchemaInterface {
       this.percentToleranceWidth,
       this.percentToleranceHeight,
       this.requireCleanRootNodeTransform,
+      this.requireUVRangeZeroToOne,
     ];
   }
 
@@ -154,6 +157,9 @@ export class Schema implements SchemaInterface {
     }
     if (obj.requireCleanRootNodeTransform) {
       this.requireCleanRootNodeTransform.loadValue(obj.requireCleanRootNodeTransform);
+    }
+    if (obj.uvs?.requireRangeZeroToOne) {
+      this.requireUVRangeZeroToOne.loadValue(obj.uvs.requireRangeZeroToOne);
     }
 
     this.loaded = true;

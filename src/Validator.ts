@@ -20,7 +20,7 @@ export class Validator implements ValidatorInterface {
   report = new Report();
   reportReady = false;
   schema = new Schema();
-  version = '1.0.0-alpha.9';
+  version = '1.0.0-alpha.10';
 
   public generateReport() {
     if (!this.model.loaded) {
@@ -38,6 +38,7 @@ export class Validator implements ValidatorInterface {
     this.testDimensions();
     this.testObjectCount();
     this.testRootNodeTransform();
+    this.testUVs();
 
     if (this.productInfo.loaded) {
       // Additional checks that require product information to be made available
@@ -480,6 +481,24 @@ export class Validator implements ValidatorInterface {
         this.model.texturesQuadratic.value as boolean,
         '', // TODO: report which textures failed (if any)
       );
+    }
+  }
+
+  // UVs are in the 0 to 1 range and not inverted
+  private testUVs() {
+    const uvRangeMessage =
+      'u: ' +
+      (this.model.uv.u.min.value as number).toFixed(this.decimalDisplayPrecision) +
+      ' to ' +
+      (this.model.uv.u.max.value as number).toFixed(this.decimalDisplayPrecision) +
+      ', v: ' +
+      (this.model.uv.v.min.value as number).toFixed(this.decimalDisplayPrecision) +
+      ' to ' +
+      (this.model.uv.v.max.value as number).toFixed(this.decimalDisplayPrecision);
+    if (this.schema.requireUVRangeZeroToOne.value === false) {
+      this.report.uvsInZeroToOneRange.skipTestWithMessage(uvRangeMessage + '; not required by schema');
+    } else {
+      this.report.uvsInZeroToOneRange.test(this.model.uv.isInRangeZeroToOne(), uvRangeMessage);
     }
   }
 }
