@@ -292,15 +292,15 @@ export class Model implements ModelInterface {
   // Get number of meshes, nodes, and primitives
   private loadObjectCountsFromScene(scene: Scene) {
     let meshCount = 0;
-    let nodeCount = -1; // Note: Babylon adds a parent __root__ node for Right Hand to Left Hand coordinate system conversion that should be ignored
+    // Meshes are included in the node count
+    // Subtract 1 because Babylon adds a parent __root__ node for Right Hand to Left Hand coordinate system conversion, which we want to ignore.
+    let nodeCount = scene.getNodes().length - 1;
     let primitiveCount = 0;
 
     // each of these objects are registered as AbstractMeshes
     scene.meshes.forEach(abstractMesh => {
-      if (!abstractMesh.isVerticesDataPresent || abstractMesh.getTotalVertices() === 0) {
-        // Nodes have 0 vertices
-        nodeCount++;
-      } else {
+      if (abstractMesh.getTotalVertices() > 0) {
+        // __root__ node has no vertices and should not be counted as a mesh
         meshCount++;
         // Each mesh is comprised of 1 or more primitives (SubMeshes in BabylonJS)
         // Primitives are used for multiple materials on the same mesh

@@ -20,7 +20,7 @@ export class Validator implements ValidatorInterface {
   report = new Report();
   reportReady = false;
   schema = new Schema();
-  version = '1.0.0-alpha.10';
+  version = '1.0.0-alpha.11';
 
   public generateReport() {
     if (!this.model.loaded) {
@@ -196,7 +196,9 @@ export class Validator implements ValidatorInterface {
   // Check the number of meshes, nodes, and primitives
   private testObjectCount() {
     if (this.schema.maxMeshCount.value === -1) {
-      this.report.meshCount.skipTestWithMessage((this.model.meshCount.value as number).toFixed(0));
+      this.report.meshCount.skipTestWithMessage(
+        (this.model.meshCount.value as number).toFixed(0) + '; not required by schema',
+      );
     } else {
       const meshCountOK = this.model.meshCount.value <= this.schema.maxMeshCount.value;
       const meshCountMessage =
