@@ -10,6 +10,7 @@ export interface SchemaInterface {
   maxMaterialCount: LoadableAttributeInterface;
   maxMeshCount: LoadableAttributeInterface;
   maxNodeCount: LoadableAttributeInterface;
+  maxPixelsPerMeter: LoadableAttributeInterface;
   maxPrimitiveCount: LoadableAttributeInterface;
   maxTextureHeight: LoadableAttributeInterface;
   maxTextureWidth: LoadableAttributeInterface;
@@ -18,6 +19,7 @@ export interface SchemaInterface {
   minFileSizeInKb: LoadableAttributeInterface;
   minHeight: LoadableAttributeInterface;
   minLength: LoadableAttributeInterface;
+  minPixelsPerMeter: LoadableAttributeInterface;
   minTextureHeight: LoadableAttributeInterface;
   minTextureWidth: LoadableAttributeInterface;
   minWidth: LoadableAttributeInterface;
@@ -43,6 +45,7 @@ export class Schema implements SchemaInterface {
   maxMaterialCount = new LoadableAttribute('Max Material Count', 5); // 5 per RFP Specifications
   maxMeshCount = new LoadableAttribute('Max Mesh Count', -1); // Not specified in Asset Creation Guidelines. -1 to ignore
   maxNodeCount = new LoadableAttribute('Max Node Count', -1); // Not specified in Asset Creation Guidelines. -1 to ignore
+  maxPixelsPerMeter = new LoadableAttribute('Max Pixels per Meter', -1); // Not specified in Asset Creation Guidelines
   maxPrimitiveCount = new LoadableAttribute('Max Primitive Count', -1); // Not specified in Asset Creation Guidelines. -1 to ignore
   maxTextureHeight = new LoadableAttribute('Max Texture Height', 2048); // 2048 per Asset Creation Guidelines
   maxTextureWidth = new LoadableAttribute('Max Texture Width', 2048); // 2048 per Asset Creation Guidelines
@@ -51,6 +54,7 @@ export class Schema implements SchemaInterface {
   minFileSizeInKb = new LoadableAttribute('Min file size in Kb', -1); // No minimum in Asset Creation Guidelines, -1 means not tested
   minHeight = new LoadableAttribute('Min Height (z)', 0.01); // Not specified in Asset Creation Guidelines, 1cm seems reasonable for products
   minLength = new LoadableAttribute('Min Length (y)', 0.01); // Not specified in Asset Creation Guidelines, 1cm seems reasonable for products
+  minPixelsPerMeter = new LoadableAttribute('Min Pixels per Meter', -1); // Not specified in Asset Creation Guidelines
   minTextureHeight = new LoadableAttribute('Max Texture Height', 512); // 512 is the smallest mentioned in the Asset Creation Guidelines
   minTextureWidth = new LoadableAttribute('Max Texture Width', 512); // 512 is the smallest mentioned in the Asset Creation Guidelines
   minWidth = new LoadableAttribute('Min Width (x)', 0.01); // Not specified in Asset Creation Guidelines, 1cm seems reasonable for products
@@ -93,6 +97,8 @@ export class Schema implements SchemaInterface {
       this.percentToleranceHeight,
       this.requireCleanRootNodeTransform,
       this.requireUVRangeZeroToOne,
+      this.maxPixelsPerMeter,
+      this.minPixelsPerMeter,
     ];
   }
 
@@ -158,8 +164,18 @@ export class Schema implements SchemaInterface {
     if (obj.requireCleanRootNodeTransform) {
       this.requireCleanRootNodeTransform.loadValue(obj.requireCleanRootNodeTransform);
     }
-    if (obj.uvs?.requireRangeZeroToOne) {
-      this.requireUVRangeZeroToOne.loadValue(obj.uvs.requireRangeZeroToOne);
+    if (obj.uvs) {
+      if (obj.uvs.requireRangeZeroToOne) {
+        this.requireUVRangeZeroToOne.loadValue(obj.uvs.requireRangeZeroToOne);
+      }
+      if (obj.uvs.pixelsPerMeter) {
+        if (obj.uvs.pixelsPerMeter?.maximum) {
+          this.maxPixelsPerMeter.loadValue(obj.uvs.pixelsPerMeter.maximum);
+        }
+        if (obj.uvs.pixelsPerMeter?.minimum) {
+          this.minPixelsPerMeter.loadValue(obj.uvs.pixelsPerMeter.minimum);
+        }
+      }
     }
 
     this.loaded = true;

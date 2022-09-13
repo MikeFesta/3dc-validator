@@ -48,6 +48,10 @@ export interface SchemaJSONInterface {
   };
   requireCleanRootNodeTransform?: boolean;
   uvs?: {
+    pixelsPerMeter?: {
+      maximum?: number;
+      minimum?: number;
+    };
     requireRangeZeroToOne: boolean;
   };
 }

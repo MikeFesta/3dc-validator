@@ -9,6 +9,7 @@ import {
 import { readFile, stat } from 'fs/promises';
 //@ts-ignore
 import { validateBytes } from 'gltf-validator';
+import { AbstractMesh, Vector2, Vector3 } from '@babylonjs/core';
 import { VertexBuffer } from '@babylonjs/core/Buffers/buffer.js';
 import { NullEngine } from '@babylonjs/core/Engines/nullEngine.js';
 import { Logger } from '@babylonjs/core/Misc/logger.js';
@@ -25,7 +26,9 @@ export interface ModelInterface {
   length: LoadableAttributeInterface;
   loaded: boolean;
   materialCount: LoadableAttributeInterface;
+  maxUvDensity: LoadableAttributeInterface;
   meshCount: LoadableAttributeInterface;
+  minUvDensity: LoadableAttributeInterface;
   nodeCount: LoadableAttributeInterface;
   primitiveCount: LoadableAttributeInterface;
   texturesMaxHeight: LoadableAttributeInterface;
@@ -50,7 +53,9 @@ export class Model implements ModelInterface {
   length = new LoadableAttribute('Length in Meters', 0);
   loaded = false;
   materialCount = new LoadableAttribute('Material Count', 0);
+  maxUvDensity = new LoadableAttribute('Max UV Density', 0);
   meshCount = new LoadableAttribute('Mesh Count', 0);
+  minUvDensity = new LoadableAttribute('Min UV Density', 0);
   nodeCount = new LoadableAttribute('Node Count', 0);
   primitiveCount = new LoadableAttribute('Primitive Count', 0);
   texturesMaxHeight = new LoadableAttribute('Max Texture Height', 0);
@@ -91,9 +96,11 @@ export class Model implements ModelInterface {
       this.rootNodeTransform.scale.y,
       this.rootNodeTransform.scale.z,
       this.uv.u.max,
-      this.uv.u.max,
-      this.uv.u.max,
-      this.uv.u.max,
+      this.uv.u.min,
+      this.uv.v.max,
+      this.uv.v.min,
+      this.maxUvDensity,
+      this.minUvDensity,
     ];
   }
 
@@ -125,19 +132,26 @@ export class Model implements ModelInterface {
       await this.loadWithBabylon(file);
       this.loaded = true;
     } catch (err) {
-      throw new Error('Unable to load file');
+      throw new Error('Unable to load file: ' + file.name);
     }
   }
 
   // This version is for node.js and the file comes from the file system
   public async loadFromFileSystem(filepath: string): Promise<void> {
-    const fileStats = await stat(filepath);
-    this.fileSizeInKb.loadValue(Number((fileStats.size / 1024).toFixed(0)));
-    const fileDataBuffer = await readFile(filepath);
-    await this.loadWithGltfValidator(fileDataBuffer);
-    const data = 'data:;base64,' + EncodeArrayBufferToBase64(fileDataBuffer);
-    await this.loadWithBabylon(data);
-    this.loaded = true;
+    try {
+      const fileStats = await stat(filepath);
+      this.fileSizeInKb.loadValue(Number((fileStats.size / 1024).toFixed(0)));
+      if (this.fileSizeInKb.value === 0) {
+        throw new Error('File size is zero');
+      }
+      const fileDataBuffer = await readFile(filepath);
+      await this.loadWithGltfValidator(fileDataBuffer);
+      const data = 'data:;base64,' + EncodeArrayBufferToBase64(fileDataBuffer);
+      await this.loadWithBabylon(data);
+      this.loaded = true;
+    } catch (err) {
+      throw new Error('Unable to load file: ' + filepath);
+    }
   }
 
   private numberIsPowerOfTwo(n: number): boolean {
@@ -148,13 +162,15 @@ export class Model implements ModelInterface {
 
   private allTexturesArePowersOfTwo(reportInfo: GltfValidatorReportInfoInterface) {
     let nonPowerOfTwoTextureFound = false;
-    reportInfo.resources.forEach((resource: GltfValidatorReportInfoResourceInterface) => {
-      if (resource.image) {
-        if (!this.numberIsPowerOfTwo(resource.image.height) || !this.numberIsPowerOfTwo(resource.image.width)) {
-          nonPowerOfTwoTextureFound = true;
+    if (reportInfo.resources) {
+      reportInfo.resources.forEach((resource: GltfValidatorReportInfoResourceInterface) => {
+        if (resource.image) {
+          if (!this.numberIsPowerOfTwo(resource.image.height) || !this.numberIsPowerOfTwo(resource.image.width)) {
+            nonPowerOfTwoTextureFound = true;
+          }
         }
-      }
-    });
+      });
+    }
     return !nonPowerOfTwoTextureFound;
   }
 
@@ -164,34 +180,38 @@ export class Model implements ModelInterface {
     let maxWidth = 0;
     let minWidth = 0;
 
-    reportInfo.resources.forEach((resource: GltfValidatorReportInfoResourceInterface) => {
-      if (resource.image) {
-        if (resource.image.height > maxHeight) {
-          maxHeight = resource.image.height;
+    if (reportInfo.resources) {
+      reportInfo.resources.forEach((resource: GltfValidatorReportInfoResourceInterface) => {
+        if (resource.image) {
+          if (resource.image.height > maxHeight) {
+            maxHeight = resource.image.height;
+          }
+          if (minHeight === 0 || resource.image.height < minHeight) {
+            minHeight = resource.image.height;
+          }
+          if (resource.image.width > maxWidth) {
+            maxWidth = resource.image.width;
+          }
+          if (minWidth === 0 || resource.image.width < minWidth) {
+            minWidth = resource.image.width;
+          }
         }
-        if (minHeight === 0 || resource.image.height < minHeight) {
-          minHeight = resource.image.height;
-        }
-        if (resource.image.width > maxWidth) {
-          maxWidth = resource.image.width;
-        }
-        if (minWidth === 0 || resource.image.width < minWidth) {
-          minWidth = resource.image.width;
-        }
-      }
-    });
+      });
+    }
     return { maxHeight, minHeight, maxWidth, minWidth };
   }
 
   private allTexturesAreQuadratic(reportInfo: GltfValidatorReportInfoInterface) {
     let nonQuadraticTextureFound = false;
-    reportInfo.resources.forEach((resource: GltfValidatorReportInfoResourceInterface) => {
-      if (resource.image) {
-        if (resource.image.height != resource.image.width) {
-          nonQuadraticTextureFound = true;
+    if (reportInfo.resources) {
+      reportInfo.resources.forEach((resource: GltfValidatorReportInfoResourceInterface) => {
+        if (resource.image) {
+          if (resource.image.height != resource.image.width) {
+            nonQuadraticTextureFound = true;
+          }
         }
-      }
-    });
+      });
+    }
     return !nonQuadraticTextureFound;
   }
 
@@ -206,6 +226,95 @@ export class Model implements ModelInterface {
     this.loadObjectCountsFromScene(scene);
     this.loadRootNodeTransform(scene);
     this.loadUVs(scene);
+    this.loadUVDensity(scene);
+  }
+
+  private loadUVDensity(scene: Scene) {
+    // Note: rendering a 2D heatmap texture would be a lot more useful
+    let maxDensity = 0;
+    let minDensity = 0;
+
+    // Loop through all meshes
+    scene.meshes.forEach((mesh: AbstractMesh) => {
+      // TODO: It would be more accurate to calculate pixel density for each mesh based on the texture(s) it uses
+      // Skip meshes that have no textures
+      // Use mesh.submeshes to get the correct material for each triangle
+      // Materials can have more than one texture and they can be different resolutions.
+      // QUESTION: Should we use the biggest for max, smallest for min or always use the diffuse texture when available?
+      const faceIndicies = mesh.getIndices();
+      // Loop through every triangle in the mesh
+      if (faceIndicies && faceIndicies.length > 0) {
+        const positionData = mesh.getVerticesData(VertexBuffer.PositionKind);
+        const uvData = mesh.getVerticesData(VertexBuffer.UVKind);
+
+        if (positionData && uvData) {
+          for (let i = 0; i < faceIndicies.length; i = i + 3) {
+            // 1 face = 3 vertices (a,b,c)
+            const indexA = faceIndicies[i];
+            const indexB = faceIndicies[i + 1];
+            const indexC = faceIndicies[i + 2];
+
+            // Position vertex = 3 floats (x,y,z)
+            const positionA = new Vector3(
+              positionData[indexA * 3],
+              positionData[indexA * 3 + 1],
+              positionData[indexA * 3 + 2],
+            );
+            const positionB = new Vector3(
+              positionData[indexB * 3],
+              positionData[indexB * 3 + 1],
+              positionData[indexB * 3 + 2],
+            );
+            const positionC = new Vector3(
+              positionData[indexC * 3],
+              positionData[indexC * 3 + 1],
+              positionData[indexC * 3 + 2],
+            );
+
+            // UV vertex = 2 floats (u,v)
+            const uvA = new Vector2(uvData[indexA * 2], uvData[indexA * 2 + 1]);
+            const uvB = new Vector2(uvData[indexB * 2], uvData[indexB * 2 + 1]);
+            const uvC = new Vector2(uvData[indexC * 2], uvData[indexC * 2 + 1]);
+
+            // Compute the geometry area in meters using Heron's formula
+            const positionAB = Vector3.Distance(positionA, positionB);
+            const positionAC = Vector3.Distance(positionA, positionC);
+            const positionBC = Vector3.Distance(positionB, positionC);
+            const positionHalfPerimeter = (positionAB + positionBC + positionAC) / 2;
+            const positionArea = Math.sqrt(
+              positionHalfPerimeter *
+                (positionHalfPerimeter - positionAB) *
+                (positionHalfPerimeter - positionBC) *
+                (positionHalfPerimeter - positionAC),
+            );
+
+            // Compute the UV area using Heron's formula
+            // Note: units are a percentage of the 0-1 UV area
+            const uvAB = Vector2.Distance(uvA, uvB);
+            const uvAC = Vector2.Distance(uvA, uvC);
+            const uvBC = Vector2.Distance(uvB, uvC);
+            const uvHalfPerimeter = (uvAB + uvBC + uvAC) / 2;
+            const uvArea = Math.sqrt(
+              uvHalfPerimeter * (uvHalfPerimeter - uvAB) * (uvHalfPerimeter - uvBC) * (uvHalfPerimeter - uvAC),
+            );
+
+            if (positionArea > 0 && uvArea > 0) {
+              const density = uvArea / positionArea;
+              // TODO: use texture resolution here instead of during validation
+              if (minDensity === 0 || (density < minDensity && density > 0)) {
+                minDensity = density;
+              }
+              if (maxDensity === 0 || density > maxDensity) {
+                maxDensity = density;
+              }
+            }
+          }
+        }
+      }
+    });
+
+    this.maxUvDensity.loadValue(maxDensity);
+    this.minUvDensity.loadValue(minDensity);
   }
 
   // UVs should be in the 0-1 Range and not Inverted
@@ -251,16 +360,17 @@ export class Model implements ModelInterface {
       this.uv.v.min.loadValue(minV);
     }
 
-    // TODO: alpha.11 - check for inverted UVs
+    // TODO: alpha.12 - check for inverted UVs
   }
 
   // Dimensions - from the root node, get bounds of all child meshes
   private loadDimensions(scene: Scene) {
-    // TODO: move toFixed into the report
-    const { min, max } = scene.meshes[0].getHierarchyBoundingVectors();
-    this.height.loadValue(+(max.y - min.y).toFixed(6) as number);
-    this.length.loadValue(+(max.x - min.x).toFixed(6) as number);
-    this.width.loadValue(+(max.z - min.z).toFixed(6) as number);
+    if (scene.meshes.length > 0) {
+      const { min, max } = scene.meshes[0].getHierarchyBoundingVectors();
+      this.height.loadValue(+(max.y - min.y).toFixed(6) as number);
+      this.length.loadValue(+(max.x - min.x).toFixed(6) as number);
+      this.width.loadValue(+(max.z - min.z).toFixed(6) as number);
+    }
   }
 
   // Get the location, rotation, and scale of the rooot node
@@ -298,7 +408,7 @@ export class Model implements ModelInterface {
     let primitiveCount = 0;
 
     // each of these objects are registered as AbstractMeshes
-    scene.meshes.forEach(abstractMesh => {
+    scene.meshes.forEach((abstractMesh: AbstractMesh) => {
       if (abstractMesh.getTotalVertices() > 0) {
         // __root__ node has no vertices and should not be counted as a mesh
         meshCount++;

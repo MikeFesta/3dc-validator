@@ -486,8 +486,9 @@ export class Validator implements ValidatorInterface {
     }
   }
 
-  // UVs are in the 0 to 1 range and not inverted
+  // UVs are in the 0 to 1 range, not inverted, and texel density is within limits
   private testUVs() {
+    // 0-1 Range
     const uvRangeMessage =
       'u: ' +
       (this.model.uv.u.min.value as number).toFixed(this.decimalDisplayPrecision) +
@@ -501,6 +502,41 @@ export class Validator implements ValidatorInterface {
       this.report.uvsInZeroToOneRange.skipTestWithMessage(uvRangeMessage + '; not required by schema');
     } else {
       this.report.uvsInZeroToOneRange.test(this.model.uv.isInRangeZeroToOne(), uvRangeMessage);
+    }
+
+    // Pixels per Meter (Texel Density)
+    // TODO: move resolution multiplier into model to be more relevant
+    const maxResolutionSquared =
+      (this.model.texturesMaxWidth.value as number) * (this.model.texturesMaxHeight.value as number);
+    const minResolutionSquared =
+      (this.model.texturesMinWidth.value as number) * (this.model.texturesMinHeight.value as number);
+    const maxPixelDensity = (this.model.maxUvDensity.value as number) * maxResolutionSquared;
+    const minPixelDensity = (this.model.minUvDensity.value as number) * minResolutionSquared;
+    const maxPixelDensityMessage = maxPixelDensity.toFixed(this.decimalDisplayPrecision) + 'px per meter';
+    const minPixelDensityMessage = minPixelDensity.toFixed(this.decimalDisplayPrecision) + 'px per meter';
+    // Max ppm
+    if (this.schema.maxPixelsPerMeter.value === -1) {
+      this.report.pixelsPerMeterMax.skipTestWithMessage(maxPixelDensityMessage + '; not required by schema');
+    } else {
+      const maxUvDensityOK = this.model.maxUvDensity.value <= this.schema.maxPixelsPerMeter.value;
+      this.report.pixelsPerMeterMax.test(
+        maxUvDensityOK,
+        maxPixelDensityMessage +
+          (maxUvDensityOK ? ' <= ' : ' > ') +
+          (this.schema.maxPixelsPerMeter.value as number).toFixed(this.decimalDisplayPrecision),
+      );
+    }
+    // Min ppm
+    if (this.schema.minPixelsPerMeter.value === -1) {
+      this.report.pixelsPerMeterMin.skipTestWithMessage(minPixelDensityMessage + '; not required by schema');
+    } else {
+      const minUvDensityOK = this.model.minUvDensity.value >= this.schema.minPixelsPerMeter.value;
+      this.report.pixelsPerMeterMin.test(
+        minUvDensityOK,
+        minPixelDensityMessage +
+          (minUvDensityOK ? ' >= ' : ' < ') +
+          (this.schema.minPixelsPerMeter.value as number).toFixed(this.decimalDisplayPrecision),
+      );
     }
   }
 }

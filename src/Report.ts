@@ -2,37 +2,43 @@ import { ReportItem, ReportItemInterface } from './ReportItem.js';
 
 export interface ReportInterface {
   // TODO: group these into a sub-objects to match schema structure
-  gltfValidator: ReportItemInterface;
+  dimensionsMax: ReportItemInterface;
+  dimensionsMin: ReportItemInterface;
   fileSize: ReportItemInterface;
-  triangleCount: ReportItemInterface;
+  gltfValidator: ReportItemInterface;
   materialCount: ReportItemInterface;
   meshCount: ReportItemInterface;
   nodeCount: ReportItemInterface;
+  pixelsPerMeterMax: ReportItemInterface;
+  pixelsPerMeterMin: ReportItemInterface;
   primitiveCount: ReportItemInterface;
-  texturesPowerOfTwo: ReportItemInterface;
-  texturesQuadratic: ReportItemInterface;
-  textureDimensionsMaxHeight: ReportItemInterface;
-  textureDimensionsMinHeight: ReportItemInterface;
-  textureDimensionsMaxWidth: ReportItemInterface;
-  textureDimensionsMinWidth: ReportItemInterface;
-  dimensionsMax: ReportItemInterface;
-  dimensionsMin: ReportItemInterface;
   productDimensionsWithinTolerance: ReportItemInterface;
   rootNodeCleanTransform: ReportItemInterface;
+  textureDimensionsMaxHeight: ReportItemInterface;
+  textureDimensionsMaxWidth: ReportItemInterface;
+  textureDimensionsMinHeight: ReportItemInterface;
+  textureDimensionsMinWidth: ReportItemInterface;
+  texturesPowerOfTwo: ReportItemInterface;
+  texturesQuadratic: ReportItemInterface;
+  triangleCount: ReportItemInterface;
   uvsInZeroToOneRange: ReportItemInterface;
   getItems: () => ReportItemInterface[];
 }
 
 export class Report implements ReportInterface {
-  gltfValidator = new ReportItem('glTF Validator', 'https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html');
+  dimensionsMax = new ReportItem(
+    'Dimensions Not Too Big',
+    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec02_CoordinateSystemAndScaleUnit/CoordinateSystemAndScaleUnit.md',
+  );
+  dimensionsMin = new ReportItem(
+    'Dimensions Not Too Small',
+    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec02_CoordinateSystemAndScaleUnit/CoordinateSystemAndScaleUnit.md',
+  );
   fileSize = new ReportItem(
     'File Size',
     'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec01_FileFormatsAndAssetStructure/FileFormatsAndAssetStructure.md',
   );
-  triangleCount = new ReportItem(
-    'Triangle Count',
-    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec03_Geometry/Geometry.md#polygonal-count',
-  );
+  gltfValidator = new ReportItem('glTF Validator', 'https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html');
   materialCount = new ReportItem(
     'Material Count',
     'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec05_MaterialsAndTextures/MaterialsAndTextures.md#multiple-materials-per-model',
@@ -45,9 +51,41 @@ export class Report implements ReportInterface {
     'Node Count',
     'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec99_PublishingTargets/PublishingTargets.md#maximum-number-of-draw-calls-and-triangles',
   );
+  pixelsPerMeterMax = new ReportItem(
+    'Maximum Pixels per Meter',
+    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec02_CoordinateSystemAndScaleUnit/CoordinateSystemAndScaleUnit.md',
+  );
+  pixelsPerMeterMin = new ReportItem(
+    'Minimum Pixels per Meter',
+    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec02_CoordinateSystemAndScaleUnit/CoordinateSystemAndScaleUnit.md',
+  );
   primitiveCount = new ReportItem(
     'Primitive Count',
     'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec99_PublishingTargets/PublishingTargets.md#maximum-number-of-draw-calls-and-triangles',
+  );
+  productDimensionsWithinTolerance = new ReportItem(
+    'Dimensions Match Product',
+    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec02_CoordinateSystemAndScaleUnit/CoordinateSystemAndScaleUnit.md',
+  );
+  rootNodeCleanTransform = new ReportItem(
+    'Root Node has Clean Transform',
+    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec03_Geometry/Geometry.md#best-practice',
+  );
+  textureDimensionsMaxHeight = new ReportItem(
+    'Texture Height <= Max',
+    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec99_PublishingTargets/PublishingTargets.md#3d-commerce-publishing-guidelines-v10',
+  );
+  textureDimensionsMaxWidth = new ReportItem(
+    'Texture Width <= Max',
+    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec99_PublishingTargets/PublishingTargets.md#3d-commerce-publishing-guidelines-v10',
+  );
+  textureDimensionsMinHeight = new ReportItem(
+    'Texture Height >= Min',
+    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec99_PublishingTargets/PublishingTargets.md#3d-commerce-publishing-guidelines-v10',
+  );
+  textureDimensionsMinWidth = new ReportItem(
+    'Texture Width >= Min',
+    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec99_PublishingTargets/PublishingTargets.md#3d-commerce-publishing-guidelines-v10',
   );
   texturesPowerOfTwo = new ReportItem(
     'Texture Dimensions are Powers of 2',
@@ -57,37 +95,9 @@ export class Report implements ReportInterface {
     'Texture Dimensions are Square (width=height)',
     'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec05_MaterialsAndTextures/MaterialsAndTextures.md#texture-dimensions-square-vs-rectangular',
   );
-  textureDimensionsMaxHeight = new ReportItem(
-    'Texture Height <= Max',
-    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec99_PublishingTargets/PublishingTargets.md#3d-commerce-publishing-guidelines-v10',
-  );
-  textureDimensionsMinHeight = new ReportItem(
-    'Texture Height >= Min',
-    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec99_PublishingTargets/PublishingTargets.md#3d-commerce-publishing-guidelines-v10',
-  );
-  textureDimensionsMaxWidth = new ReportItem(
-    'Texture Width <= Max',
-    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec99_PublishingTargets/PublishingTargets.md#3d-commerce-publishing-guidelines-v10',
-  );
-  textureDimensionsMinWidth = new ReportItem(
-    'Texture Width >= Min',
-    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec99_PublishingTargets/PublishingTargets.md#3d-commerce-publishing-guidelines-v10',
-  );
-  dimensionsMax = new ReportItem(
-    'Dimensions Not Too Big',
-    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec02_CoordinateSystemAndScaleUnit/CoordinateSystemAndScaleUnit.md',
-  );
-  dimensionsMin = new ReportItem(
-    'Dimensions Not Too Small',
-    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec02_CoordinateSystemAndScaleUnit/CoordinateSystemAndScaleUnit.md',
-  );
-  productDimensionsWithinTolerance = new ReportItem(
-    'Dimensions Match Product',
-    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec02_CoordinateSystemAndScaleUnit/CoordinateSystemAndScaleUnit.md',
-  );
-  rootNodeCleanTransform = new ReportItem(
-    'Root Node has Clean Transform',
-    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec03_Geometry/Geometry.md#best-practice',
+  triangleCount = new ReportItem(
+    'Triangle Count',
+    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec03_Geometry/Geometry.md#polygonal-count',
   );
   uvsInZeroToOneRange = new ReportItem(
     'UVs in 0 to 1 Range',
@@ -113,6 +123,8 @@ export class Report implements ReportInterface {
       this.productDimensionsWithinTolerance,
       this.rootNodeCleanTransform,
       this.uvsInZeroToOneRange,
+      this.pixelsPerMeterMax,
+      this.pixelsPerMeterMin,
     ];
   }
 }

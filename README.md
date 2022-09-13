@@ -26,13 +26,13 @@ This package is used for both a command line interface, as well as a front-end w
 * Primitive Count (max)
 * Clean Origin for Top Node
 * 0-1 UV Texture Space
+* Texture Density
 
 #### Checks to be added
+* Inverted UVs
 * Transparent Geometry Separated
-* Texture Density
-* Hard Edges
 * PBR Safe Colors
 * UV Overlaps
 * UV Margin Size
-* Inverted UVs
+* Hard Edges
 * Non-Manifold Edges
