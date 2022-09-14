@@ -27,9 +27,9 @@ This package is used for both a command line interface, as well as a front-end w
 * Clean Origin for Top Node
 * 0-1 UV Texture Space
 * Texture Density
+* Inverted UVs
 
 #### Checks to be added
-* Inverted UVs
 * Transparent Geometry Separated
 * PBR Safe Colors
 * UV Overlaps

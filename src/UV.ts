@@ -6,12 +6,14 @@ export interface MaxMinLoadableAttributeInterface {
 }
 
 export interface UVInterface {
+  invertedFaceCount: LoadableAttribute;
   u: MaxMinLoadableAttributeInterface;
   v: MaxMinLoadableAttributeInterface;
   isInRangeZeroToOne: () => boolean;
 }
 
 export class UV implements UVInterface {
+  invertedFaceCount = new LoadableAttribute('Number of inverted faces', 0);
   u = {
     max: new LoadableAttribute('Max U value', 0),
     min: new LoadableAttribute('Min U value', 0),

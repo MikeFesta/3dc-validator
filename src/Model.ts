@@ -226,11 +226,19 @@ export class Model implements ModelInterface {
     this.loadObjectCountsFromScene(scene);
     this.loadRootNodeTransform(scene);
     this.loadUVs(scene);
-    this.loadUVDensity(scene);
   }
 
-  private loadUVDensity(scene: Scene) {
-    // Note: rendering a 2D heatmap texture would be a lot more useful
+  private loadUVs(scene: Scene) {
+    // 1. Find the min/max U and V values
+    let maxU = undefined as unknown as number;
+    let maxV = undefined as unknown as number;
+    let minU = undefined as unknown as number;
+    let minV = undefined as unknown as number;
+
+    // 2. Count the number of inverted UVs
+    let invertedFaceCount = 0;
+
+    // 3. Find the min/max texel density
     let maxDensity = 0;
     let minDensity = 0;
 
@@ -247,65 +255,96 @@ export class Model implements ModelInterface {
         const positionData = mesh.getVerticesData(VertexBuffer.PositionKind);
         const uvData = mesh.getVerticesData(VertexBuffer.UVKind);
 
-        if (positionData && uvData) {
-          for (let i = 0; i < faceIndicies.length; i = i + 3) {
-            // 1 face = 3 vertices (a,b,c)
-            const indexA = faceIndicies[i];
-            const indexB = faceIndicies[i + 1];
-            const indexC = faceIndicies[i + 2];
+        if (uvData) {
+          // 1. min/max U and V values
+          for (let i = 0; i < uvData.length; i = i + 2) {
+            // UV data float array has 2 floats per vertex (u,v)
+            const u = uvData[i];
+            const v = uvData[i + 1];
+            if (maxU === undefined || maxU < u) {
+              maxU = u;
+            }
+            if (maxV === undefined || maxV < v) {
+              maxV = v;
+            }
+            if (minU === undefined || minU > u) {
+              minU = u;
+            }
+            if (minV === undefined || minV > v) {
+              minV = v;
+            }
+          }
 
-            // Position vertex = 3 floats (x,y,z)
-            const positionA = new Vector3(
-              positionData[indexA * 3],
-              positionData[indexA * 3 + 1],
-              positionData[indexA * 3 + 2],
-            );
-            const positionB = new Vector3(
-              positionData[indexB * 3],
-              positionData[indexB * 3 + 1],
-              positionData[indexB * 3 + 2],
-            );
-            const positionC = new Vector3(
-              positionData[indexC * 3],
-              positionData[indexC * 3 + 1],
-              positionData[indexC * 3 + 2],
-            );
+          // 2. Inverted UVs
+          // 3. Texel density
+          if (positionData) {
+            // Face = 3 vertices (a,b,c)
+            for (let i = 0; i < faceIndicies.length; i = i + 3) {
+              const indexA = faceIndicies[i];
+              const indexB = faceIndicies[i + 1];
+              const indexC = faceIndicies[i + 2];
 
-            // UV vertex = 2 floats (u,v)
-            const uvA = new Vector2(uvData[indexA * 2], uvData[indexA * 2 + 1]);
-            const uvB = new Vector2(uvData[indexB * 2], uvData[indexB * 2 + 1]);
-            const uvC = new Vector2(uvData[indexC * 2], uvData[indexC * 2 + 1]);
+              // Position vertex = 3 floats (x,y,z)
+              const positionA = new Vector3(
+                positionData[indexA * 3],
+                positionData[indexA * 3 + 1],
+                positionData[indexA * 3 + 2],
+              );
+              const positionB = new Vector3(
+                positionData[indexB * 3],
+                positionData[indexB * 3 + 1],
+                positionData[indexB * 3 + 2],
+              );
+              const positionC = new Vector3(
+                positionData[indexC * 3],
+                positionData[indexC * 3 + 1],
+                positionData[indexC * 3 + 2],
+              );
 
-            // Compute the geometry area in meters using Heron's formula
-            const positionAB = Vector3.Distance(positionA, positionB);
-            const positionAC = Vector3.Distance(positionA, positionC);
-            const positionBC = Vector3.Distance(positionB, positionC);
-            const positionHalfPerimeter = (positionAB + positionBC + positionAC) / 2;
-            const positionArea = Math.sqrt(
-              positionHalfPerimeter *
-                (positionHalfPerimeter - positionAB) *
-                (positionHalfPerimeter - positionBC) *
-                (positionHalfPerimeter - positionAC),
-            );
+              // UV vertex = 2 floats (u,v)
+              const uvA = new Vector2(uvData[indexA * 2], uvData[indexA * 2 + 1]);
+              const uvB = new Vector2(uvData[indexB * 2], uvData[indexB * 2 + 1]);
+              const uvC = new Vector2(uvData[indexC * 2], uvData[indexC * 2 + 1]);
 
-            // Compute the UV area using Heron's formula
-            // Note: units are a percentage of the 0-1 UV area
-            const uvAB = Vector2.Distance(uvA, uvB);
-            const uvAC = Vector2.Distance(uvA, uvC);
-            const uvBC = Vector2.Distance(uvB, uvC);
-            const uvHalfPerimeter = (uvAB + uvBC + uvAC) / 2;
-            const uvArea = Math.sqrt(
-              uvHalfPerimeter * (uvHalfPerimeter - uvAB) * (uvHalfPerimeter - uvBC) * (uvHalfPerimeter - uvAC),
-            );
-
-            if (positionArea > 0 && uvArea > 0) {
-              const density = uvArea / positionArea;
-              // TODO: use texture resolution here instead of during validation
-              if (minDensity === 0 || (density < minDensity && density > 0)) {
-                minDensity = density;
+              // 2. Look for inverted UVs by their winding direction (clockwise = OK, counter-clockwise = inverted)
+              // https://stackoverflow.com/questions/17592800/how-to-find-the-orientation-of-three-points-in-a-two-dimensional-space-given-coo
+              if ((uvB.y - uvA.y) * (uvC.x - uvB.x) - (uvB.x - uvA.x) * (uvC.y - uvB.y) <= 0) {
+                invertedFaceCount++;
               }
-              if (maxDensity === 0 || density > maxDensity) {
-                maxDensity = density;
+
+              // 3a. Compute the geometry area in meters using Heron's formula
+              const positionAB = Vector3.Distance(positionA, positionB);
+              const positionAC = Vector3.Distance(positionA, positionC);
+              const positionBC = Vector3.Distance(positionB, positionC);
+              const positionHalfPerimeter = (positionAB + positionBC + positionAC) / 2;
+              const positionArea = Math.sqrt(
+                positionHalfPerimeter *
+                  (positionHalfPerimeter - positionAB) *
+                  (positionHalfPerimeter - positionBC) *
+                  (positionHalfPerimeter - positionAC),
+              );
+
+              // 3b. Compute the UV area using Heron's formula
+              // Note: units are a percentage of the 0-1 UV area
+              const uvAB = Vector2.Distance(uvA, uvB);
+              const uvAC = Vector2.Distance(uvA, uvC);
+              const uvBC = Vector2.Distance(uvB, uvC);
+              const uvHalfPerimeter = (uvAB + uvBC + uvAC) / 2;
+              const uvArea = Math.sqrt(
+                uvHalfPerimeter * (uvHalfPerimeter - uvAB) * (uvHalfPerimeter - uvBC) * (uvHalfPerimeter - uvAC),
+              );
+
+              if (positionArea > 0 && uvArea > 0) {
+                const density = uvArea / positionArea;
+                // TODO: use texture resolution here instead of during validation
+                // Unfortunately mesh.material.getActiveTextures()[0].getSize() always returns 512x512 because of NullEngine
+                // Need to find another way to get texture sizes - glTF validator has the sizes, but no robust way to link to each face
+                if (minDensity === 0 || (density < minDensity && density > 0)) {
+                  minDensity = density;
+                }
+                if (maxDensity === 0 || density > maxDensity) {
+                  maxDensity = density;
+                }
               }
             }
           }
@@ -313,40 +352,7 @@ export class Model implements ModelInterface {
       }
     });
 
-    this.maxUvDensity.loadValue(maxDensity);
-    this.minUvDensity.loadValue(minDensity);
-  }
-
-  // UVs should be in the 0-1 Range and not Inverted
-  private loadUVs(scene: Scene) {
-    let maxU = undefined as unknown as number;
-    let maxV = undefined as unknown as number;
-    let minU = undefined as unknown as number;
-    let minV = undefined as unknown as number;
-    // Loop through each mesh
-    scene.meshes.forEach(mesh => {
-      const uvData = mesh.getVerticesData(VertexBuffer.UVKind);
-      if (uvData) {
-        // UV data float array has 2 floats per vertex (u,v)
-        for (let i = 0; i < uvData.length; i = i + 2) {
-          const u = uvData[i];
-          const v = uvData[i + 1];
-          if (maxU === undefined || maxU < u) {
-            maxU = u;
-          }
-          if (maxV === undefined || maxV < v) {
-            maxV = v;
-          }
-          if (minU === undefined || minU > u) {
-            minU = u;
-          }
-          if (minV === undefined || minV > v) {
-            minV = v;
-          }
-        }
-      }
-    });
-
+    // 1.
     if (maxU !== undefined) {
       this.uv.u.max.loadValue(maxU);
     }
@@ -360,7 +366,12 @@ export class Model implements ModelInterface {
       this.uv.v.min.loadValue(minV);
     }
 
-    // TODO: alpha.12 - check for inverted UVs
+    // 2.
+    this.uv.invertedFaceCount.loadValue(invertedFaceCount);
+
+    // 3.
+    this.maxUvDensity.loadValue(maxDensity);
+    this.minUvDensity.loadValue(minDensity);
   }
 
   // Dimensions - from the root node, get bounds of all child meshes

@@ -21,6 +21,7 @@ export interface ReportInterface {
   texturesPowerOfTwo: ReportItemInterface;
   texturesQuadratic: ReportItemInterface;
   triangleCount: ReportItemInterface;
+  uvsInverted: ReportItemInterface;
   uvsInZeroToOneRange: ReportItemInterface;
   getItems: () => ReportItemInterface[];
 }
@@ -99,6 +100,10 @@ export class Report implements ReportInterface {
     'Triangle Count',
     'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec03_Geometry/Geometry.md#polygonal-count',
   );
+  uvsInverted = new ReportItem(
+    'Inverted UVs',
+    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec04_UVCoordinates/UVCoordinates.md',
+  );
   uvsInZeroToOneRange = new ReportItem(
     'UVs in 0 to 1 Range',
     'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec04_UVCoordinates/UVCoordinates.md',
@@ -125,6 +130,7 @@ export class Report implements ReportInterface {
       this.uvsInZeroToOneRange,
       this.pixelsPerMeterMax,
       this.pixelsPerMeterMin,
+      this.uvsInverted,
     ];
   }
 }

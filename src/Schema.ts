@@ -4,6 +4,8 @@ import { readFile } from 'fs/promises';
 
 export interface SchemaInterface {
   loaded: boolean;
+
+  allowInvertedUVs: LoadableAttributeInterface;
   maxFileSizeInKb: LoadableAttributeInterface;
   maxHeight: LoadableAttributeInterface;
   maxLength: LoadableAttributeInterface;
@@ -26,11 +28,11 @@ export interface SchemaInterface {
   percentToleranceHeight: LoadableAttributeInterface;
   percentToleranceLength: LoadableAttributeInterface;
   percentToleranceWidth: LoadableAttributeInterface;
+  requireCleanRootNodeTransform: LoadableAttributeInterface;
   requireTextureDimensionsBePowersOfTwo: LoadableAttributeInterface;
   requireTextureDimensionsBeQuadratic: LoadableAttributeInterface;
-  version: LoadableAttributeInterface;
-  requireCleanRootNodeTransform: LoadableAttributeInterface;
   requireUVRangeZeroToOne: LoadableAttributeInterface;
+  version: LoadableAttributeInterface;
 
   getAttributes: () => LoadableAttributeInterface[];
   loadFromFileInput(file: File): Promise<void>;
@@ -39,6 +41,7 @@ export interface SchemaInterface {
 
 export class Schema implements SchemaInterface {
   loaded = false;
+  allowInvertedUVs = new LoadableAttribute('Allow Inverted UVs', false); // Inverted UVs are not recommended
   maxFileSizeInKb = new LoadableAttribute('Max file size in Kb', 5120); // 5mb per Asset Creation Guidelines
   maxHeight = new LoadableAttribute('Max Height (z)', 10); // Not specified in Asset Creation Guidelines, 10m seems reasonable for products
   maxLength = new LoadableAttribute('Max Length (y)', 10); // Not specified in Asset Creation Guidelines, 10m seems reasonable for products
@@ -99,6 +102,7 @@ export class Schema implements SchemaInterface {
       this.requireUVRangeZeroToOne,
       this.maxPixelsPerMeter,
       this.minPixelsPerMeter,
+      this.allowInvertedUVs,
     ];
   }
 
@@ -165,6 +169,9 @@ export class Schema implements SchemaInterface {
       this.requireCleanRootNodeTransform.loadValue(obj.requireCleanRootNodeTransform);
     }
     if (obj.uvs) {
+      if (obj.uvs.allowInverted) {
+        this.allowInvertedUVs.loadValue(obj.uvs.allowInverted);
+      }
       if (obj.uvs.requireRangeZeroToOne) {
         this.requireUVRangeZeroToOne.loadValue(obj.uvs.requireRangeZeroToOne);
       }
