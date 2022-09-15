@@ -30,7 +30,6 @@ This package is used for both a command line interface, as well as a front-end w
 * Inverted UVs
 
 #### Checks to be added
-* Transparent Geometry Separated
 * PBR Safe Colors
 * UV Overlaps
 * UV Margin Size
