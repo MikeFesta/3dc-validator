@@ -1,4 +1,5 @@
 import { LoadableAttribute, LoadableAttributeInterface } from './LoadableAttribute.js';
+import { Svg, SvgInterface } from './Svg.js';
 
 export interface MaxMinLoadableAttributeInterface {
   max: LoadableAttributeInterface;
@@ -7,6 +8,7 @@ export interface MaxMinLoadableAttributeInterface {
 
 export interface UVInterface {
   invertedFaceCount: LoadableAttribute;
+  invertedFacesSvgs: SvgInterface[];
   u: MaxMinLoadableAttributeInterface;
   v: MaxMinLoadableAttributeInterface;
   isInRangeZeroToOne: () => boolean;
@@ -14,6 +16,7 @@ export interface UVInterface {
 
 export class UV implements UVInterface {
   invertedFaceCount = new LoadableAttribute('Number of inverted faces', 0);
+  invertedFacesSvgs = [] as SvgInterface[];
   u = {
     max: new LoadableAttribute('Max U value', 0),
     min: new LoadableAttribute('Min U value', 0),

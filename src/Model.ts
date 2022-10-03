@@ -1,5 +1,6 @@
 import { LoadableAttribute, LoadableAttributeInterface } from './LoadableAttribute.js';
 import { NodeTransform, NodeTransformInterface } from './NodeTransform.js';
+import { Svg } from './Svg.js';
 import { UV, UVInterface } from './UV.js';
 import {
   GltfValidatorReportInterface,
@@ -244,6 +245,16 @@ export class Model implements ModelInterface {
 
     // Loop through all meshes
     scene.meshes.forEach((mesh: AbstractMesh) => {
+      // Generate UV maps svgs to highlight issues (if any)
+      const svgUvs = new Svg(mesh.name + '-uvs');
+      const svgInvertedUvs = new Svg(mesh.name + '-inverted-uvs');
+      const svgModelOrthographicFront = new Svg(mesh.name + '-front');
+      const svgModelOrthographicLeft = new Svg(mesh.name + '-left');
+      const svgModelOrthographicTop = new Svg(mesh.name + '-top');
+      const svgNoUvsModelOrthographicFront = new Svg(mesh.name + '-no-uvs-front');
+      const svgNoUvsModelOrthographicLeft = new Svg(mesh.name + '-no-uvs-left');
+      const svgNoUvsModelOrthographicTop = new Svg(mesh.name + '-no-uvs-top');
+
       // TODO: It would be more accurate to calculate pixel density for each mesh based on the texture(s) it uses
       // Skip meshes that have no textures
       // Use mesh.submeshes to get the correct material for each triangle
@@ -301,15 +312,170 @@ export class Model implements ModelInterface {
                 positionData[indexC * 3 + 2],
               );
 
+              // Create Orthographic SVGs for background of areas without UVs
+              svgModelOrthographicFront.pathCount++;
+              svgModelOrthographicFront.adjustExtents(1000 * positionA.x, -1000 * positionA.y);
+              svgModelOrthographicFront.adjustExtents(1000 * positionB.x, -1000 * positionB.y);
+              svgModelOrthographicFront.adjustExtents(1000 * positionC.x, -1000 * positionC.y);
+              // Want the same extents for the error svgs
+              svgNoUvsModelOrthographicFront.adjustExtents(1000 * positionA.x, -1000 * positionA.y);
+              svgNoUvsModelOrthographicFront.adjustExtents(1000 * positionB.x, -1000 * positionB.y);
+              svgNoUvsModelOrthographicFront.adjustExtents(1000 * positionC.x, -1000 * positionC.y);
+              svgModelOrthographicFront.pathData +=
+                '<path fill="#000" d="m ' +
+                (1000 * positionA.x).toFixed(3) +
+                ' ' +
+                (-1000 * positionA.y).toFixed(3) +
+                ' L ' +
+                (1000 * positionB.x).toFixed(3) +
+                ' ' +
+                (-1000 * positionB.y).toFixed(3) +
+                ' ' +
+                (1000 * positionC.x).toFixed(3) +
+                ' ' +
+                (-1000 * positionC.y).toFixed(3) +
+                'Z"/>';
+              svgModelOrthographicLeft.pathCount++;
+              svgModelOrthographicLeft.adjustExtents(1000 * positionA.z, -1000 * positionA.y);
+              svgModelOrthographicLeft.adjustExtents(1000 * positionB.z, -1000 * positionB.y);
+              svgModelOrthographicLeft.adjustExtents(1000 * positionC.z, -1000 * positionC.y);
+              // same for errors
+              svgNoUvsModelOrthographicLeft.adjustExtents(1000 * positionA.z, -1000 * positionA.y);
+              svgNoUvsModelOrthographicLeft.adjustExtents(1000 * positionB.z, -1000 * positionB.y);
+              svgNoUvsModelOrthographicLeft.adjustExtents(1000 * positionC.z, -1000 * positionC.y);
+              svgModelOrthographicLeft.pathData +=
+                '<path fill="#000" d="m ' +
+                (1000 * positionA.z).toFixed(3) +
+                ' ' +
+                (-1000 * positionA.y).toFixed(3) +
+                ' L ' +
+                (1000 * positionB.z).toFixed(3) +
+                ' ' +
+                (-1000 * positionB.y).toFixed(3) +
+                ' ' +
+                (1000 * positionC.z).toFixed(3) +
+                ' ' +
+                (-1000 * positionC.y).toFixed(3) +
+                'Z"/>';
+              svgModelOrthographicTop.pathCount++;
+              svgModelOrthographicTop.adjustExtents(1000 * positionA.x, 1000 * positionA.z);
+              svgModelOrthographicTop.adjustExtents(1000 * positionB.x, 1000 * positionB.z);
+              svgModelOrthographicTop.adjustExtents(1000 * positionC.x, 1000 * positionC.z);
+              // same for errors
+              svgNoUvsModelOrthographicTop.adjustExtents(1000 * positionA.x, 1000 * positionA.z);
+              svgNoUvsModelOrthographicTop.adjustExtents(1000 * positionB.x, 1000 * positionB.z);
+              svgNoUvsModelOrthographicTop.adjustExtents(1000 * positionC.x, 1000 * positionC.z);
+              svgModelOrthographicTop.pathData +=
+                '<path fill="#000" d="m ' +
+                (1000 * positionA.x).toFixed(3) +
+                ' ' +
+                (1000 * positionA.z).toFixed(3) +
+                ' L ' +
+                (1000 * positionB.x).toFixed(3) +
+                ' ' +
+                (1000 * positionB.z).toFixed(3) +
+                ' ' +
+                (1000 * positionC.x).toFixed(3) +
+                ' ' +
+                (1000 * positionC.z).toFixed(3) +
+                'Z"/>';
+
               // UV vertex = 2 floats (u,v)
               const uvA = new Vector2(uvData[indexA * 2], uvData[indexA * 2 + 1]);
               const uvB = new Vector2(uvData[indexB * 2], uvData[indexB * 2 + 1]);
               const uvC = new Vector2(uvData[indexC * 2], uvData[indexC * 2 + 1]);
 
+              // Create an SVG of the UVs to use as a background
+              svgUvs.pathCount++;
+              svgUvs.adjustExtents(1000 * uvA.x, 1000 * uvA.y);
+              svgUvs.adjustExtents(1000 * uvB.x, 1000 * uvB.y);
+              svgUvs.adjustExtents(1000 * uvC.x, 1000 * uvC.y);
+              // same for errors
+              svgInvertedUvs.adjustExtents(1000 * uvA.x, 1000 * uvA.y);
+              svgInvertedUvs.adjustExtents(1000 * uvB.x, 1000 * uvB.y);
+              svgInvertedUvs.adjustExtents(1000 * uvC.x, 1000 * uvC.y);
+              svgUvs.pathData +=
+                '<path fill="#000" d="m ' +
+                (1000 * uvA.x).toFixed(3) +
+                ' ' +
+                (1000 * uvA.y).toFixed(3) +
+                ' L ' +
+                (1000 * uvB.x).toFixed(3) +
+                ' ' +
+                (1000 * uvB.y).toFixed(3) +
+                ' ' +
+                (1000 * uvC.x).toFixed(3) +
+                ' ' +
+                (1000 * uvC.y).toFixed(3) +
+                'Z"/>';
+
               // 2. Look for inverted UVs by their winding direction (clockwise = OK, counter-clockwise = inverted)
               // https://stackoverflow.com/questions/17592800/how-to-find-the-orientation-of-three-points-in-a-two-dimensional-space-given-coo
-              if ((uvB.y - uvA.y) * (uvC.x - uvB.x) - (uvB.x - uvA.x) * (uvC.y - uvB.y) <= 0) {
+              if ((uvB.y - uvA.y) * (uvC.x - uvB.x) - (uvB.x - uvA.x) * (uvC.y - uvB.y) == 0) {
+                // Triangle with no UV space
+                svgNoUvsModelOrthographicFront.pathCount++;
+                svgNoUvsModelOrthographicFront.pathData +=
+                  '<path fill="#f00" d="m ' +
+                  (1000 * positionA.x).toFixed(3) +
+                  ' ' +
+                  (1000 * positionA.y).toFixed(3) +
+                  ' L ' +
+                  (1000 * positionB.x).toFixed(3) +
+                  ' ' +
+                  (1000 * positionB.y).toFixed(3) +
+                  ' ' +
+                  (1000 * positionC.x).toFixed(3) +
+                  ' ' +
+                  (1000 * positionC.y).toFixed(3) +
+                  'Z"/>';
+                svgNoUvsModelOrthographicLeft.pathCount++;
+                svgNoUvsModelOrthographicLeft.pathData +=
+                  '<path fill="#f00" d="m ' +
+                  (1000 * positionA.z).toFixed(3) +
+                  ' ' +
+                  (1000 * positionA.y).toFixed(3) +
+                  ' L ' +
+                  (1000 * positionB.z).toFixed(3) +
+                  ' ' +
+                  (1000 * positionB.y).toFixed(3) +
+                  ' ' +
+                  (1000 * positionC.z).toFixed(3) +
+                  ' ' +
+                  (1000 * positionC.y).toFixed(3) +
+                  'Z"/>';
+                svgNoUvsModelOrthographicTop.pathCount++;
+                svgNoUvsModelOrthographicTop.pathData +=
+                  '<path fill="#f00" d="m ' +
+                  (1000 * positionA.x).toFixed(3) +
+                  ' ' +
+                  (1000 * positionA.z).toFixed(3) +
+                  ' L ' +
+                  (1000 * positionB.x).toFixed(3) +
+                  ' ' +
+                  (1000 * positionB.z).toFixed(3) +
+                  ' ' +
+                  (1000 * positionC.x).toFixed(3) +
+                  ' ' +
+                  (1000 * positionC.z).toFixed(3) +
+                  'Z"/>';
+              } else if ((uvB.y - uvA.y) * (uvC.x - uvB.x) - (uvB.x - uvA.x) * (uvC.y - uvB.y) < 0) {
+                // Inverted
                 invertedFaceCount++;
+                svgInvertedUvs.pathCount++;
+                svgInvertedUvs.pathData +=
+                  '<path fill="#f00" d="m ' +
+                  (1000 * uvA.x).toFixed(3) +
+                  ' ' +
+                  (1000 * uvA.y).toFixed(3) +
+                  ' L ' +
+                  (1000 * uvB.x).toFixed(3) +
+                  ' ' +
+                  (1000 * uvB.y).toFixed(3) +
+                  ' ' +
+                  (1000 * uvC.x).toFixed(3) +
+                  ' ' +
+                  (1000 * uvC.y).toFixed(3) +
+                  'Z"/>';
               }
 
               // 3a. Compute the geometry area in meters using Heron's formula
@@ -349,6 +515,30 @@ export class Model implements ModelInterface {
             }
           }
         }
+      }
+      if (svgUvs.pathCount > 0) {
+        this.uv.invertedFacesSvgs.push(svgUvs);
+      }
+      if (svgModelOrthographicFront.pathCount > 0) {
+        this.uv.invertedFacesSvgs.push(svgModelOrthographicFront);
+      }
+      if (svgModelOrthographicLeft.pathCount > 0) {
+        this.uv.invertedFacesSvgs.push(svgModelOrthographicLeft);
+      }
+      if (svgModelOrthographicTop.pathCount > 0) {
+        this.uv.invertedFacesSvgs.push(svgModelOrthographicTop);
+      }
+      if (svgInvertedUvs.pathCount > 0) {
+        this.uv.invertedFacesSvgs.push(svgInvertedUvs);
+      }
+      if (svgNoUvsModelOrthographicFront.pathCount > 0) {
+        this.uv.invertedFacesSvgs.push(svgNoUvsModelOrthographicFront);
+      }
+      if (svgNoUvsModelOrthographicLeft.pathCount > 0) {
+        this.uv.invertedFacesSvgs.push(svgNoUvsModelOrthographicLeft);
+      }
+      if (svgNoUvsModelOrthographicTop.pathCount > 0) {
+        this.uv.invertedFacesSvgs.push(svgNoUvsModelOrthographicTop);
       }
     });
 
