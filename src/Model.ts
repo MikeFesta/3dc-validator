@@ -2,6 +2,7 @@ import { LoadableAttribute, LoadableAttributeInterface } from './LoadableAttribu
 import { NodeTransform, NodeTransformInterface } from './NodeTransform.js';
 import { Svg } from './Svg.js';
 import { UV, UVInterface } from './UV.js';
+import { GltfJsonInterface, GltfJsonMeshInterface } from './GltfJson.js';
 import {
   GltfValidatorReportInterface,
   GltfValidatorReportInfoInterface,
@@ -17,10 +18,13 @@ import { Logger } from '@babylonjs/core/Misc/logger.js';
 import { SceneLoader } from '@babylonjs/core/Loading/sceneLoader.js';
 import { EncodeArrayBufferToBase64 } from '@babylonjs/core/Misc/stringTools.js';
 import { Scene } from '@babylonjs/core/scene.js';
+import { GLTFFileLoader } from '@babylonjs/loaders';
 import '@babylonjs/loaders/glTF/2.0/glTFLoader.js';
+import { GLTFLoader } from '@babylonjs/loaders/glTF/2.0/glTFLoader.js';
 
 export interface ModelInterface {
   // TODO: group these into a sub-objects to match schema structure
+  gltfJson: GltfJsonInterface;
   gltfValidatorReport: GltfValidatorReportInterface;
   fileSizeInKb: LoadableAttributeInterface;
   height: LoadableAttributeInterface;
@@ -48,6 +52,7 @@ export interface ModelInterface {
 }
 
 export class Model implements ModelInterface {
+  gltfJson = null as unknown as GltfJsonInterface;
   gltfValidatorReport = null as unknown as GltfValidatorReportInterface;
   fileSizeInKb = new LoadableAttribute('File size in Kb', 0);
   height = new LoadableAttribute('Height in Meters', 0);
@@ -216,15 +221,39 @@ export class Model implements ModelInterface {
     return !nonQuadraticTextureFound;
   }
 
+  private async loadGltfJson(scene: Scene, data: string | File): Promise<GltfJsonInterface> {
+    return await new Promise((resolve, reject) => {
+      const fileLoader = new GLTFFileLoader();
+      fileLoader.loadFile(
+        scene,
+        data,
+        data => {
+          resolve(data.json);
+        },
+        ev => {
+          // progress. nothing to do
+        },
+        true,
+        err => {
+          reject();
+        },
+      );
+    });
+  }
+
   private async loadWithBabylon(data: string | File) {
     Logger.LogLevels = Logger.WarningLogLevel; // supress NullEngine welcome message in CLI / unit tests
     const engine = new NullEngine();
     const scene = new Scene(engine);
 
+    this.gltfJson = await this.loadGltfJson(scene, data);
+    // Note: the file was already loaded to extract the JSON, but now
+    // gets loaded a 2nd time by SceneLoader. There might be a more
+    // efficient way to import what's already loaded into the scene.
     await SceneLoader.AppendAsync('', data, scene);
 
     this.loadDimensions(scene);
-    this.loadObjectCountsFromScene(scene);
+    this.loadObjectCountsFromJson(this.gltfJson);
     this.loadRootNodeTransform(scene);
     this.loadUVs(scene);
   }
@@ -601,28 +630,13 @@ export class Model implements ModelInterface {
   }
 
   // Get number of meshes, nodes, and primitives
-  private loadObjectCountsFromScene(scene: Scene) {
-    let meshCount = 0;
-    // Meshes are included in the node count
-    // Subtract 1 because Babylon adds a parent __root__ node for Right Hand to Left Hand coordinate system conversion, which we want to ignore.
-    let nodeCount = scene.getNodes().length - 1;
+  private loadObjectCountsFromJson(json: GltfJsonInterface) {
+    this.meshCount.loadValue(json.meshes.length);
+    this.nodeCount.loadValue(json.nodes.length);
     let primitiveCount = 0;
-
-    // each of these objects are registered as AbstractMeshes
-    scene.meshes.forEach((abstractMesh: AbstractMesh) => {
-      if (abstractMesh.getTotalVertices() > 0) {
-        // __root__ node has no vertices and should not be counted as a mesh
-        meshCount++;
-        // Each mesh is comprised of 1 or more primitives (SubMeshes in BabylonJS)
-        // Primitives are used for multiple materials on the same mesh
-        // The Blender glTF exporter breaks multi-material objects into distinct meshes, so each mesh only has 1 SubMesh
-        // QUESTION: BabylonJS team - what, if any, glTF settings create more than 1 SubMesh?
-        primitiveCount += abstractMesh.subMeshes.length;
-      }
+    json.meshes.forEach((mesh: GltfJsonMeshInterface) => {
+      primitiveCount += mesh.primitives.length;
     });
-
-    this.meshCount.loadValue(meshCount);
-    this.nodeCount.loadValue(nodeCount);
     this.primitiveCount.loadValue(primitiveCount);
   }
 
