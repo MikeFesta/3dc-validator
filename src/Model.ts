@@ -72,6 +72,7 @@ export class Model implements ModelInterface {
   meshCount = new LoadableAttribute('Mesh Count', 0);
   minUvDensity = new LoadableAttribute('Min UV Density', 0);
   nodeCount = new LoadableAttribute('Node Count', 0);
+  overlappingUvCount = new LoadableAttribute('Overlapping UVs', 0);
   primitives = [] as PrimitiveInterface[];
   primitiveCount = new LoadableAttribute('Primitive Count', 0);
   rootNodeTransform = new NodeTransform();
@@ -125,6 +126,7 @@ export class Model implements ModelInterface {
       this.maxUvDensity,
       this.minUvDensity,
       this.invertedFaceCount,
+      this.overlappingUvCount,
     ];
   }
 

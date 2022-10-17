@@ -22,6 +22,7 @@ export interface ReportInterface {
   triangleCount: ReportItemInterface;
   uvsInverted: ReportItemInterface;
   uvsInZeroToOneRange: ReportItemInterface;
+  uvsOverlap: ReportItemInterface;
   getItems: () => ReportItemInterface[];
 }
 
@@ -107,6 +108,10 @@ export class Report implements ReportInterface {
     'UVs in 0 to 1 Range',
     'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec04_UVCoordinates/UVCoordinates.md',
   );
+  uvsOverlap = new ReportItem(
+    'Overlapping UVs',
+    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec04_UVCoordinates/UVCoordinates.md#overlapping-uvs-considerations-in-an-atlas-layout',
+  );
   getItems() {
     return [
       this.gltfValidator,
@@ -130,6 +135,7 @@ export class Report implements ReportInterface {
       this.pixelsPerMeterMax,
       this.pixelsPerMeterMin,
       this.uvsInverted,
+      this.uvsOverlap,
     ];
   }
 }

@@ -20,7 +20,7 @@ export class Validator implements ValidatorInterface {
   report = new Report();
   reportReady = false;
   schema = new Schema();
-  version = '1.0.0-alpha.15';
+  version = '1.0.0-alpha.16';
 
   public generateReport() {
     if (!this.model.loaded) {
@@ -512,6 +512,17 @@ export class Validator implements ValidatorInterface {
       this.report.uvsInverted.test(
         this.model.invertedFaceCount.value === 0,
         this.model.invertedFaceCount.value + ' inverted',
+      );
+    }
+
+    // Overlapping UVs
+    if (this.schema.allowOverlappingUVs.value === true) {
+      this.report.uvsOverlap.test(true, this.model.overlappingUvCount.value + ' overlapping; allowed by schema');
+    } else {
+      // TODO: O.13 Improved - report which primitives have overlapping uvs
+      this.report.uvsOverlap.test(
+        this.model.overlappingUvCount.value === 0,
+        this.model.overlappingUvCount.value + ' overlapping',
       );
     }
 
