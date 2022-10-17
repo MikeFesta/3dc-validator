@@ -26,7 +26,7 @@ export interface ModelInterface {
   gltfValidatorReport: GltfValidatorReportInterface;
   fileSizeInKb: LoadableAttributeInterface;
   height: LoadableAttributeInterface;
-  invertedFaceCount: LoadableAttributeInterface;
+  invertedTriangleCount: LoadableAttributeInterface;
   length: LoadableAttributeInterface;
   loaded: boolean;
   materialCount: LoadableAttributeInterface;
@@ -64,7 +64,7 @@ export class Model implements ModelInterface {
   gltfValidatorReport = null as unknown as GltfValidatorReportInterface;
   fileSizeInKb = new LoadableAttribute('File size in Kb', 0);
   height = new LoadableAttribute('Height in Meters', 0);
-  invertedFaceCount = new LoadableAttribute('Inverted Faces', 0);
+  invertedTriangleCount = new LoadableAttribute('Inverted Faces', 0);
   length = new LoadableAttribute('Length in Meters', 0);
   loaded = false;
   materialCount = new LoadableAttribute('Material Count', 0);
@@ -125,7 +125,7 @@ export class Model implements ModelInterface {
       this.v.min,
       this.maxUvDensity,
       this.minUvDensity,
-      this.invertedFaceCount,
+      this.invertedTriangleCount,
       this.overlappingUvCount,
     ];
   }
@@ -240,7 +240,7 @@ export class Model implements ModelInterface {
     let minV = undefined as unknown as number;
 
     // 2. Count the number of inverted UVs
-    let invertedFaceCount = 0;
+    let invertedTriangleCount = 0;
 
     // 3. Find the min/max texel density
     let maxDensity = undefined as unknown as number;
@@ -262,7 +262,7 @@ export class Model implements ModelInterface {
       }
 
       // 2.
-      invertedFaceCount += primitive.uv.invertedFaceCount.value as number;
+      invertedTriangleCount += primitive.uv.invertedTriangleCount.value as number;
 
       // 3.
       if (maxDensity === undefined || primitive.maxDensity.value > maxDensity) {
@@ -288,7 +288,7 @@ export class Model implements ModelInterface {
     }
 
     // 2.
-    this.invertedFaceCount.loadValue(invertedFaceCount);
+    this.invertedTriangleCount.loadValue(invertedTriangleCount);
 
     // 3.
     if (maxDensity !== undefined) {

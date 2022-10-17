@@ -506,12 +506,12 @@ export class Validator implements ValidatorInterface {
 
     // Inverted UVs
     if (this.schema.allowInvertedUVs.value === true) {
-      this.report.uvsInverted.test(true, this.model.invertedFaceCount.value + ' inverted; allowed by schema');
+      this.report.uvsInverted.test(true, this.model.invertedTriangleCount.value + ' inverted; allowed by schema');
     } else {
       // TODO: O.15 Improved - report which primitives have inverted normals
       this.report.uvsInverted.test(
-        this.model.invertedFaceCount.value === 0,
-        this.model.invertedFaceCount.value + ' inverted',
+        this.model.invertedTriangleCount.value === 0,
+        this.model.invertedTriangleCount.value + ' inverted',
       );
     }
 
