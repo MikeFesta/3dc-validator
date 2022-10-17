@@ -1,7 +1,6 @@
 import { LoadableAttribute, LoadableAttributeInterface } from './LoadableAttribute.js';
 import { NodeTransform, NodeTransformInterface } from './NodeTransform.js';
-import { Svg } from './Svg.js';
-import { UV, UVInterface } from './UV.js';
+import { Primitive, PrimitiveInterface } from './Primitive.js';
 import { GltfJsonInterface, GltfJsonMeshInterface } from './GltfJson.js';
 import {
   GltfValidatorReportInterface,
@@ -11,7 +10,7 @@ import {
 import { readFile, stat } from 'fs/promises';
 //@ts-ignore
 import { validateBytes } from 'gltf-validator';
-import { AbstractMesh, Vector2, Vector3 } from '@babylonjs/core';
+import { AbstractMesh } from '@babylonjs/core';
 import { VertexBuffer } from '@babylonjs/core/Buffers/buffer.js';
 import { NullEngine } from '@babylonjs/core/Engines/nullEngine.js';
 import { Logger } from '@babylonjs/core/Misc/logger.js';
@@ -23,11 +22,11 @@ import '@babylonjs/loaders/glTF/2.0/glTFLoader.js';
 import { GLTFLoader } from '@babylonjs/loaders/glTF/2.0/glTFLoader.js';
 
 export interface ModelInterface {
-  // TODO: group these into a sub-objects to match schema structure
   gltfJson: GltfJsonInterface;
   gltfValidatorReport: GltfValidatorReportInterface;
   fileSizeInKb: LoadableAttributeInterface;
   height: LoadableAttributeInterface;
+  invertedFaceCount: LoadableAttributeInterface;
   length: LoadableAttributeInterface;
   loaded: boolean;
   materialCount: LoadableAttributeInterface;
@@ -35,7 +34,9 @@ export interface ModelInterface {
   meshCount: LoadableAttributeInterface;
   minUvDensity: LoadableAttributeInterface;
   nodeCount: LoadableAttributeInterface;
+  primitives: PrimitiveInterface[];
   primitiveCount: LoadableAttributeInterface;
+  rootNodeTransform: NodeTransformInterface;
   texturesMaxHeight: LoadableAttributeInterface;
   texturesMaxWidth: LoadableAttributeInterface;
   texturesMinHeight: LoadableAttributeInterface;
@@ -43,12 +44,19 @@ export interface ModelInterface {
   texturesPowerOfTwo: LoadableAttributeInterface;
   texturesQuadratic: LoadableAttributeInterface;
   triangleCount: LoadableAttributeInterface;
+  u: {
+    max: LoadableAttributeInterface;
+    min: LoadableAttributeInterface;
+  };
+  v: {
+    max: LoadableAttributeInterface;
+    min: LoadableAttributeInterface;
+  };
   width: LoadableAttributeInterface;
-  rootNodeTransform: NodeTransformInterface;
-  uv: UVInterface;
   getAttributes: () => LoadableAttributeInterface[];
   loadFromFileInput(file: File): Promise<void>;
   loadFromFileSystem(filepath: string): Promise<void>;
+  uvIsInRangeZeroToOne: () => boolean;
 }
 
 export class Model implements ModelInterface {
@@ -56,6 +64,7 @@ export class Model implements ModelInterface {
   gltfValidatorReport = null as unknown as GltfValidatorReportInterface;
   fileSizeInKb = new LoadableAttribute('File size in Kb', 0);
   height = new LoadableAttribute('Height in Meters', 0);
+  invertedFaceCount = new LoadableAttribute('Inverted Faces', 0);
   length = new LoadableAttribute('Length in Meters', 0);
   loaded = false;
   materialCount = new LoadableAttribute('Material Count', 0);
@@ -63,7 +72,9 @@ export class Model implements ModelInterface {
   meshCount = new LoadableAttribute('Mesh Count', 0);
   minUvDensity = new LoadableAttribute('Min UV Density', 0);
   nodeCount = new LoadableAttribute('Node Count', 0);
+  primitives = [] as PrimitiveInterface[];
   primitiveCount = new LoadableAttribute('Primitive Count', 0);
+  rootNodeTransform = new NodeTransform();
   texturesMaxHeight = new LoadableAttribute('Max Texture Height', 0);
   texturesMaxWidth = new LoadableAttribute('Max Texture Width', 0);
   texturesMinHeight = new LoadableAttribute('Min Texture Height', 0);
@@ -71,11 +82,17 @@ export class Model implements ModelInterface {
   texturesPowerOfTwo = new LoadableAttribute('Texture Dimensions are Powers of 2', false);
   texturesQuadratic = new LoadableAttribute('Textures Have the Same Width and Height', false);
   triangleCount = new LoadableAttribute('Triangle Count', 0);
+  u = {
+    max: new LoadableAttribute('Max U value', 0),
+    min: new LoadableAttribute('Min U value', 0),
+  };
+  v = {
+    max: new LoadableAttribute('Max V value', 0),
+    min: new LoadableAttribute('Min V value', 0),
+  };
   width = new LoadableAttribute('Width in Meters', 0);
-  rootNodeTransform = new NodeTransform();
-  uv = new UV();
 
-  getAttributes() {
+  public getAttributes() {
     return [
       this.fileSizeInKb,
       this.triangleCount,
@@ -101,12 +118,13 @@ export class Model implements ModelInterface {
       this.rootNodeTransform.scale.x,
       this.rootNodeTransform.scale.y,
       this.rootNodeTransform.scale.z,
-      this.uv.u.max,
-      this.uv.u.min,
-      this.uv.v.max,
-      this.uv.v.min,
+      this.u.max,
+      this.u.min,
+      this.v.max,
+      this.v.min,
       this.maxUvDensity,
       this.minUvDensity,
+      this.invertedFaceCount,
     ];
   }
 
@@ -160,11 +178,18 @@ export class Model implements ModelInterface {
     }
   }
 
-  private numberIsPowerOfTwo(n: number): boolean {
-    // bitwise check that all trailing bits are 0
-    // Power of two numbers are 0x100...00
-    return n > 0 && (n & (n - 1)) === 0;
-  }
+  public uvIsInRangeZeroToOne = () => {
+    return (
+      (this.u.max.value as number) <= 1 &&
+      (this.u.min.value as number) >= 0 &&
+      (this.v.max.value as number) <= 1 &&
+      (this.v.min.value as number) >= 0
+    );
+  };
+
+  ///////////////////////
+  // PRIVATE FUNCTIONS //
+  ///////////////////////
 
   private allTexturesArePowersOfTwo(reportInfo: GltfValidatorReportInfoInterface) {
     let nonPowerOfTwoTextureFound = false;
@@ -178,6 +203,98 @@ export class Model implements ModelInterface {
       });
     }
     return !nonPowerOfTwoTextureFound;
+  }
+
+  private allTexturesAreQuadratic(reportInfo: GltfValidatorReportInfoInterface) {
+    let nonQuadraticTextureFound = false;
+    if (reportInfo.resources) {
+      reportInfo.resources.forEach((resource: GltfValidatorReportInfoResourceInterface) => {
+        if (resource.image) {
+          if (resource.image.height != resource.image.width) {
+            nonQuadraticTextureFound = true;
+          }
+        }
+      });
+    }
+    return !nonQuadraticTextureFound;
+  }
+
+  private calculateDimensions(scene: Scene) {
+    // Dimensions - from the __root__ node, get bounds of all child meshes
+    if (scene.meshes.length > 0) {
+      const { min, max } = scene.meshes[0].getHierarchyBoundingVectors();
+      // Round to precision of 6
+      this.height.loadValue(+(max.y - min.y).toFixed(6) as number);
+      this.length.loadValue(+(max.x - min.x).toFixed(6) as number);
+      this.width.loadValue(+(max.z - min.z).toFixed(6) as number);
+    }
+  }
+
+  private calculateUvValues(primitives: PrimitiveInterface[]) {
+    // 1. Find the min/max U and V values
+    let maxU = undefined as unknown as number;
+    let maxV = undefined as unknown as number;
+    let minU = undefined as unknown as number;
+    let minV = undefined as unknown as number;
+
+    // 2. Count the number of inverted UVs
+    let invertedFaceCount = 0;
+
+    // 3. Find the min/max texel density
+    let maxDensity = undefined as unknown as number;
+    let minDensity = undefined as unknown as number;
+
+    this.primitives.forEach((primitive: Primitive) => {
+      // 1.
+      if (maxU === undefined || primitive.uv.u.max.value > maxU) {
+        maxU = primitive.uv.u.max.value as number;
+      }
+      if (maxV === undefined || primitive.uv.v.max.value > maxV) {
+        maxV = primitive.uv.v.max.value as number;
+      }
+      if (minU === undefined || primitive.uv.u.min.value < minU) {
+        minU = primitive.uv.u.min.value as number;
+      }
+      if (minV === undefined || primitive.uv.v.min.value < minV) {
+        minV = primitive.uv.v.min.value as number;
+      }
+
+      // 2.
+      invertedFaceCount += primitive.uv.invertedFaceCount.value as number;
+
+      // 3.
+      if (maxDensity === undefined || primitive.maxDensity.value > maxDensity) {
+        maxDensity = primitive.maxDensity.value as number;
+      }
+      if (minDensity === undefined || primitive.minDensity.value < minDensity) {
+        minDensity = primitive.minDensity.value as number;
+      }
+    });
+
+    // 1.
+    if (maxU !== undefined) {
+      this.u.max.loadValue(maxU);
+    }
+    if (minU !== undefined) {
+      this.u.min.loadValue(minU);
+    }
+    if (maxV !== undefined) {
+      this.v.max.loadValue(maxV);
+    }
+    if (minV !== undefined) {
+      this.v.min.loadValue(minV);
+    }
+
+    // 2.
+    this.invertedFaceCount.loadValue(invertedFaceCount);
+
+    // 3.
+    if (maxDensity !== undefined) {
+      this.maxUvDensity.loadValue(maxDensity);
+    }
+    if (minDensity !== undefined) {
+      this.minUvDensity.loadValue(minDensity);
+    }
   }
 
   private getTextureSizes(reportInfo: GltfValidatorReportInfoInterface) {
@@ -205,20 +322,6 @@ export class Model implements ModelInterface {
       });
     }
     return { maxHeight, minHeight, maxWidth, minWidth };
-  }
-
-  private allTexturesAreQuadratic(reportInfo: GltfValidatorReportInfoInterface) {
-    let nonQuadraticTextureFound = false;
-    if (reportInfo.resources) {
-      reportInfo.resources.forEach((resource: GltfValidatorReportInfoResourceInterface) => {
-        if (resource.image) {
-          if (resource.image.height != resource.image.width) {
-            nonQuadraticTextureFound = true;
-          }
-        }
-      });
-    }
-    return !nonQuadraticTextureFound;
   }
 
   private async loadGltfJson(scene: Scene, data: string | File): Promise<GltfJsonInterface> {
@@ -252,358 +355,23 @@ export class Model implements ModelInterface {
     // efficient way to import what's already loaded into the scene.
     await SceneLoader.AppendAsync('', data, scene);
 
-    this.loadDimensions(scene);
+    this.calculateDimensions(scene);
     this.loadObjectCountsFromJson(this.gltfJson);
     this.loadRootNodeTransform(scene);
-    this.loadUVs(scene);
+    this.loadPrimitives(scene);
+    this.calculateUvValues(this.primitives);
   }
 
-  private loadUVs(scene: Scene) {
-    // 1. Find the min/max U and V values
-    let maxU = undefined as unknown as number;
-    let maxV = undefined as unknown as number;
-    let minU = undefined as unknown as number;
-    let minV = undefined as unknown as number;
-
-    // 2. Count the number of inverted UVs
-    let invertedFaceCount = 0;
-
-    // 3. Find the min/max texel density
-    let maxDensity = 0;
-    let minDensity = 0;
-
-    // Loop through all meshes
+  private loadPrimitives(scene: Scene) {
     scene.meshes.forEach((mesh: AbstractMesh) => {
-      // Generate UV maps svgs to highlight issues (if any)
-      const svgUvs = new Svg(mesh.name + '-uvs');
-      const svgInvertedUvs = new Svg(mesh.name + '-inverted-uvs');
-      const svgModelOrthographicFront = new Svg(mesh.name + '-front');
-      const svgModelOrthographicLeft = new Svg(mesh.name + '-left');
-      const svgModelOrthographicTop = new Svg(mesh.name + '-top');
-      const svgNoUvsModelOrthographicFront = new Svg(mesh.name + '-no-uvs-front');
-      const svgNoUvsModelOrthographicLeft = new Svg(mesh.name + '-no-uvs-left');
-      const svgNoUvsModelOrthographicTop = new Svg(mesh.name + '-no-uvs-top');
-
-      // TODO: It would be more accurate to calculate pixel density for each mesh based on the texture(s) it uses
-      // Skip meshes that have no textures
-      // Use mesh.submeshes to get the correct material for each triangle
-      // Materials can have more than one texture and they can be different resolutions.
-      // QUESTION: Should we use the biggest for max, smallest for min or always use the diffuse texture when available?
-      const faceIndicies = mesh.getIndices();
-      // Loop through every triangle in the mesh
-      if (faceIndicies && faceIndicies.length > 0) {
-        const positionData = mesh.getVerticesData(VertexBuffer.PositionKind);
-        const uvData = mesh.getVerticesData(VertexBuffer.UVKind);
-
-        if (uvData) {
-          // 1. min/max U and V values
-          for (let i = 0; i < uvData.length; i = i + 2) {
-            // UV data float array has 2 floats per vertex (u,v)
-            const u = uvData[i];
-            const v = uvData[i + 1];
-            if (maxU === undefined || maxU < u) {
-              maxU = u;
-            }
-            if (maxV === undefined || maxV < v) {
-              maxV = v;
-            }
-            if (minU === undefined || minU > u) {
-              minU = u;
-            }
-            if (minV === undefined || minV > v) {
-              minV = v;
-            }
-          }
-
-          // 2. Inverted UVs
-          // 3. Texel density
-          if (positionData) {
-            // Face = 3 vertices (a,b,c)
-            for (let i = 0; i < faceIndicies.length; i = i + 3) {
-              const indexA = faceIndicies[i];
-              const indexB = faceIndicies[i + 1];
-              const indexC = faceIndicies[i + 2];
-
-              // Position vertex = 3 floats (x,y,z)
-              const positionA = new Vector3(
-                positionData[indexA * 3],
-                positionData[indexA * 3 + 1],
-                positionData[indexA * 3 + 2],
-              );
-              const positionB = new Vector3(
-                positionData[indexB * 3],
-                positionData[indexB * 3 + 1],
-                positionData[indexB * 3 + 2],
-              );
-              const positionC = new Vector3(
-                positionData[indexC * 3],
-                positionData[indexC * 3 + 1],
-                positionData[indexC * 3 + 2],
-              );
-
-              // Create Orthographic SVGs for background of areas without UVs
-              svgModelOrthographicFront.pathCount++;
-              svgModelOrthographicFront.adjustExtents(1000 * positionA.x, -1000 * positionA.y);
-              svgModelOrthographicFront.adjustExtents(1000 * positionB.x, -1000 * positionB.y);
-              svgModelOrthographicFront.adjustExtents(1000 * positionC.x, -1000 * positionC.y);
-              // Want the same extents for the error svgs
-              svgNoUvsModelOrthographicFront.adjustExtents(1000 * positionA.x, -1000 * positionA.y);
-              svgNoUvsModelOrthographicFront.adjustExtents(1000 * positionB.x, -1000 * positionB.y);
-              svgNoUvsModelOrthographicFront.adjustExtents(1000 * positionC.x, -1000 * positionC.y);
-              svgModelOrthographicFront.pathData +=
-                '<path fill="#000" d="m ' +
-                (1000 * positionA.x).toFixed(3) +
-                ' ' +
-                (-1000 * positionA.y).toFixed(3) +
-                ' L ' +
-                (1000 * positionB.x).toFixed(3) +
-                ' ' +
-                (-1000 * positionB.y).toFixed(3) +
-                ' ' +
-                (1000 * positionC.x).toFixed(3) +
-                ' ' +
-                (-1000 * positionC.y).toFixed(3) +
-                'Z"/>';
-              svgModelOrthographicLeft.pathCount++;
-              svgModelOrthographicLeft.adjustExtents(1000 * positionA.z, -1000 * positionA.y);
-              svgModelOrthographicLeft.adjustExtents(1000 * positionB.z, -1000 * positionB.y);
-              svgModelOrthographicLeft.adjustExtents(1000 * positionC.z, -1000 * positionC.y);
-              // same for errors
-              svgNoUvsModelOrthographicLeft.adjustExtents(1000 * positionA.z, -1000 * positionA.y);
-              svgNoUvsModelOrthographicLeft.adjustExtents(1000 * positionB.z, -1000 * positionB.y);
-              svgNoUvsModelOrthographicLeft.adjustExtents(1000 * positionC.z, -1000 * positionC.y);
-              svgModelOrthographicLeft.pathData +=
-                '<path fill="#000" d="m ' +
-                (1000 * positionA.z).toFixed(3) +
-                ' ' +
-                (-1000 * positionA.y).toFixed(3) +
-                ' L ' +
-                (1000 * positionB.z).toFixed(3) +
-                ' ' +
-                (-1000 * positionB.y).toFixed(3) +
-                ' ' +
-                (1000 * positionC.z).toFixed(3) +
-                ' ' +
-                (-1000 * positionC.y).toFixed(3) +
-                'Z"/>';
-              svgModelOrthographicTop.pathCount++;
-              svgModelOrthographicTop.adjustExtents(1000 * positionA.x, 1000 * positionA.z);
-              svgModelOrthographicTop.adjustExtents(1000 * positionB.x, 1000 * positionB.z);
-              svgModelOrthographicTop.adjustExtents(1000 * positionC.x, 1000 * positionC.z);
-              // same for errors
-              svgNoUvsModelOrthographicTop.adjustExtents(1000 * positionA.x, 1000 * positionA.z);
-              svgNoUvsModelOrthographicTop.adjustExtents(1000 * positionB.x, 1000 * positionB.z);
-              svgNoUvsModelOrthographicTop.adjustExtents(1000 * positionC.x, 1000 * positionC.z);
-              svgModelOrthographicTop.pathData +=
-                '<path fill="#000" d="m ' +
-                (1000 * positionA.x).toFixed(3) +
-                ' ' +
-                (1000 * positionA.z).toFixed(3) +
-                ' L ' +
-                (1000 * positionB.x).toFixed(3) +
-                ' ' +
-                (1000 * positionB.z).toFixed(3) +
-                ' ' +
-                (1000 * positionC.x).toFixed(3) +
-                ' ' +
-                (1000 * positionC.z).toFixed(3) +
-                'Z"/>';
-
-              // UV vertex = 2 floats (u,v)
-              const uvA = new Vector2(uvData[indexA * 2], uvData[indexA * 2 + 1]);
-              const uvB = new Vector2(uvData[indexB * 2], uvData[indexB * 2 + 1]);
-              const uvC = new Vector2(uvData[indexC * 2], uvData[indexC * 2 + 1]);
-
-              // Create an SVG of the UVs to use as a background
-              svgUvs.pathCount++;
-              svgUvs.adjustExtents(1000 * uvA.x, 1000 * uvA.y);
-              svgUvs.adjustExtents(1000 * uvB.x, 1000 * uvB.y);
-              svgUvs.adjustExtents(1000 * uvC.x, 1000 * uvC.y);
-              // same for errors
-              svgInvertedUvs.adjustExtents(1000 * uvA.x, 1000 * uvA.y);
-              svgInvertedUvs.adjustExtents(1000 * uvB.x, 1000 * uvB.y);
-              svgInvertedUvs.adjustExtents(1000 * uvC.x, 1000 * uvC.y);
-              svgUvs.pathData +=
-                '<path fill="#000" d="m ' +
-                (1000 * uvA.x).toFixed(3) +
-                ' ' +
-                (1000 * uvA.y).toFixed(3) +
-                ' L ' +
-                (1000 * uvB.x).toFixed(3) +
-                ' ' +
-                (1000 * uvB.y).toFixed(3) +
-                ' ' +
-                (1000 * uvC.x).toFixed(3) +
-                ' ' +
-                (1000 * uvC.y).toFixed(3) +
-                'Z"/>';
-
-              // 2. Look for inverted UVs by their winding direction (clockwise = OK, counter-clockwise = inverted)
-              // https://stackoverflow.com/questions/17592800/how-to-find-the-orientation-of-three-points-in-a-two-dimensional-space-given-coo
-              if ((uvB.y - uvA.y) * (uvC.x - uvB.x) - (uvB.x - uvA.x) * (uvC.y - uvB.y) == 0) {
-                // Triangle with no UV space
-                svgNoUvsModelOrthographicFront.pathCount++;
-                svgNoUvsModelOrthographicFront.pathData +=
-                  '<path fill="#f00" d="m ' +
-                  (1000 * positionA.x).toFixed(3) +
-                  ' ' +
-                  (1000 * positionA.y).toFixed(3) +
-                  ' L ' +
-                  (1000 * positionB.x).toFixed(3) +
-                  ' ' +
-                  (1000 * positionB.y).toFixed(3) +
-                  ' ' +
-                  (1000 * positionC.x).toFixed(3) +
-                  ' ' +
-                  (1000 * positionC.y).toFixed(3) +
-                  'Z"/>';
-                svgNoUvsModelOrthographicLeft.pathCount++;
-                svgNoUvsModelOrthographicLeft.pathData +=
-                  '<path fill="#f00" d="m ' +
-                  (1000 * positionA.z).toFixed(3) +
-                  ' ' +
-                  (1000 * positionA.y).toFixed(3) +
-                  ' L ' +
-                  (1000 * positionB.z).toFixed(3) +
-                  ' ' +
-                  (1000 * positionB.y).toFixed(3) +
-                  ' ' +
-                  (1000 * positionC.z).toFixed(3) +
-                  ' ' +
-                  (1000 * positionC.y).toFixed(3) +
-                  'Z"/>';
-                svgNoUvsModelOrthographicTop.pathCount++;
-                svgNoUvsModelOrthographicTop.pathData +=
-                  '<path fill="#f00" d="m ' +
-                  (1000 * positionA.x).toFixed(3) +
-                  ' ' +
-                  (1000 * positionA.z).toFixed(3) +
-                  ' L ' +
-                  (1000 * positionB.x).toFixed(3) +
-                  ' ' +
-                  (1000 * positionB.z).toFixed(3) +
-                  ' ' +
-                  (1000 * positionC.x).toFixed(3) +
-                  ' ' +
-                  (1000 * positionC.z).toFixed(3) +
-                  'Z"/>';
-              } else if ((uvB.y - uvA.y) * (uvC.x - uvB.x) - (uvB.x - uvA.x) * (uvC.y - uvB.y) < 0) {
-                // Inverted
-                invertedFaceCount++;
-                svgInvertedUvs.pathCount++;
-                svgInvertedUvs.pathData +=
-                  '<path fill="#f00" d="m ' +
-                  (1000 * uvA.x).toFixed(3) +
-                  ' ' +
-                  (1000 * uvA.y).toFixed(3) +
-                  ' L ' +
-                  (1000 * uvB.x).toFixed(3) +
-                  ' ' +
-                  (1000 * uvB.y).toFixed(3) +
-                  ' ' +
-                  (1000 * uvC.x).toFixed(3) +
-                  ' ' +
-                  (1000 * uvC.y).toFixed(3) +
-                  'Z"/>';
-              }
-
-              // 3a. Compute the geometry area in meters using Heron's formula
-              const positionAB = Vector3.Distance(positionA, positionB);
-              const positionAC = Vector3.Distance(positionA, positionC);
-              const positionBC = Vector3.Distance(positionB, positionC);
-              const positionHalfPerimeter = (positionAB + positionBC + positionAC) / 2;
-              const positionArea = Math.sqrt(
-                positionHalfPerimeter *
-                  (positionHalfPerimeter - positionAB) *
-                  (positionHalfPerimeter - positionBC) *
-                  (positionHalfPerimeter - positionAC),
-              );
-
-              // 3b. Compute the UV area using Heron's formula
-              // Note: units are a percentage of the 0-1 UV area
-              const uvAB = Vector2.Distance(uvA, uvB);
-              const uvAC = Vector2.Distance(uvA, uvC);
-              const uvBC = Vector2.Distance(uvB, uvC);
-              const uvHalfPerimeter = (uvAB + uvBC + uvAC) / 2;
-              const uvArea = Math.sqrt(
-                uvHalfPerimeter * (uvHalfPerimeter - uvAB) * (uvHalfPerimeter - uvBC) * (uvHalfPerimeter - uvAC),
-              );
-
-              if (positionArea > 0 && uvArea > 0) {
-                const density = uvArea / positionArea;
-                // TODO: use texture resolution here instead of during validation
-                // Unfortunately mesh.material.getActiveTextures()[0].getSize() always returns 512x512 because of NullEngine
-                // Need to find another way to get texture sizes - glTF validator has the sizes, but no robust way to link to each face
-                if (minDensity === 0 || (density < minDensity && density > 0)) {
-                  minDensity = density;
-                }
-                if (maxDensity === 0 || density > maxDensity) {
-                  maxDensity = density;
-                }
-              }
-            }
-          }
-        }
-      }
-      if (svgUvs.pathCount > 0) {
-        this.uv.invertedFacesSvgs.push(svgUvs);
-      }
-      if (svgModelOrthographicFront.pathCount > 0) {
-        this.uv.invertedFacesSvgs.push(svgModelOrthographicFront);
-      }
-      if (svgModelOrthographicLeft.pathCount > 0) {
-        this.uv.invertedFacesSvgs.push(svgModelOrthographicLeft);
-      }
-      if (svgModelOrthographicTop.pathCount > 0) {
-        this.uv.invertedFacesSvgs.push(svgModelOrthographicTop);
-      }
-      if (svgInvertedUvs.pathCount > 0) {
-        this.uv.invertedFacesSvgs.push(svgInvertedUvs);
-      }
-      if (svgNoUvsModelOrthographicFront.pathCount > 0) {
-        this.uv.invertedFacesSvgs.push(svgNoUvsModelOrthographicFront);
-      }
-      if (svgNoUvsModelOrthographicLeft.pathCount > 0) {
-        this.uv.invertedFacesSvgs.push(svgNoUvsModelOrthographicLeft);
-      }
-      if (svgNoUvsModelOrthographicTop.pathCount > 0) {
-        this.uv.invertedFacesSvgs.push(svgNoUvsModelOrthographicTop);
+      // exclude the auto-generated __root__ node and anything else with no vertices
+      if (mesh.isVerticesDataPresent(VertexBuffer.PositionKind)) {
+        this.primitives.push(new Primitive(mesh));
       }
     });
-
-    // 1.
-    if (maxU !== undefined) {
-      this.uv.u.max.loadValue(maxU);
-    }
-    if (minU !== undefined) {
-      this.uv.u.min.loadValue(minU);
-    }
-    if (maxV !== undefined) {
-      this.uv.v.max.loadValue(maxV);
-    }
-    if (minV !== undefined) {
-      this.uv.v.min.loadValue(minV);
-    }
-
-    // 2.
-    this.uv.invertedFaceCount.loadValue(invertedFaceCount);
-
-    // 3.
-    this.maxUvDensity.loadValue(maxDensity);
-    this.minUvDensity.loadValue(minDensity);
   }
 
-  // Dimensions - from the root node, get bounds of all child meshes
-  private loadDimensions(scene: Scene) {
-    if (scene.meshes.length > 0) {
-      const { min, max } = scene.meshes[0].getHierarchyBoundingVectors();
-      this.height.loadValue(+(max.y - min.y).toFixed(6) as number);
-      this.length.loadValue(+(max.x - min.x).toFixed(6) as number);
-      this.width.loadValue(+(max.z - min.z).toFixed(6) as number);
-    }
-  }
-
-  // Get the location, rotation, and scale of the rooot node
+  // Get the location, rotation, and scale of the root node
   private loadRootNodeTransform(scene: Scene) {
     if (scene.meshes.length <= 1) {
       //const rootNode = scene.meshes[0]; // <-- This is not the correct node
@@ -640,13 +408,15 @@ export class Model implements ModelInterface {
     this.primitiveCount.loadValue(primitiveCount);
   }
 
+  // Generate a report from the glTF Validator
   private async loadWithGltfValidator(data: ArrayBuffer) {
     return new Promise<void>((resolve, reject) => {
       const binaryData = new Uint8Array(data);
       validateBytes(binaryData)
         .then((report: GltfValidatorReportInterface) => {
+          // Keep a copy of the report
           this.gltfValidatorReport = report;
-          // TODO: Get these from Babylon instead
+          // These values are available in the glTF validator, so we might as well use them
           this.triangleCount.loadValue(report.info.totalTriangleCount);
           this.materialCount.loadValue(report.info.materialCount);
           this.texturesPowerOfTwo.loadValue(this.allTexturesArePowersOfTwo(report.info));
@@ -664,5 +434,11 @@ export class Model implements ModelInterface {
           reject();
         });
     });
+  }
+
+  // bitwise check that all trailing bits are 0
+  private numberIsPowerOfTwo(n: number): boolean {
+    // Power of two numbers are 0x100...00
+    return n > 0 && (n & (n - 1)) === 0;
   }
 }

@@ -20,7 +20,7 @@ export class Validator implements ValidatorInterface {
   report = new Report();
   reportReady = false;
   schema = new Schema();
-  version = '1.0.0-alpha.14';
+  version = '1.0.0-alpha.15';
 
   public generateReport() {
     if (!this.model.loaded) {
@@ -469,7 +469,7 @@ export class Validator implements ValidatorInterface {
     } else {
       this.report.texturesPowerOfTwo.test(
         this.model.texturesPowerOfTwo.value as boolean,
-        '', // TODO: report which textures failed (if any)
+        '', // TODO: R.8 Improved - report which textures failed (if any)
       );
     }
 
@@ -481,7 +481,7 @@ export class Validator implements ValidatorInterface {
     } else {
       this.report.texturesQuadratic.test(
         this.model.texturesQuadratic.value as boolean,
-        '', // TODO: report which textures failed (if any)
+        '', // TODO: R.8 Improved - report which textures failed (if any)
       );
     }
   }
@@ -491,31 +491,32 @@ export class Validator implements ValidatorInterface {
     // 0-1 Range
     const uvRangeMessage =
       'u: ' +
-      (this.model.uv.u.min.value as number).toFixed(this.decimalDisplayPrecision) +
+      (this.model.u.min.value as number).toFixed(this.decimalDisplayPrecision) +
       ' to ' +
-      (this.model.uv.u.max.value as number).toFixed(this.decimalDisplayPrecision) +
+      (this.model.u.max.value as number).toFixed(this.decimalDisplayPrecision) +
       ', v: ' +
-      (this.model.uv.v.min.value as number).toFixed(this.decimalDisplayPrecision) +
+      (this.model.v.min.value as number).toFixed(this.decimalDisplayPrecision) +
       ' to ' +
-      (this.model.uv.v.max.value as number).toFixed(this.decimalDisplayPrecision);
+      (this.model.v.max.value as number).toFixed(this.decimalDisplayPrecision);
     if (this.schema.requireUVRangeZeroToOne.value === false) {
       this.report.uvsInZeroToOneRange.skipTestWithMessage(uvRangeMessage + '; not required by schema');
     } else {
-      this.report.uvsInZeroToOneRange.test(this.model.uv.isInRangeZeroToOne(), uvRangeMessage);
+      this.report.uvsInZeroToOneRange.test(this.model.uvIsInRangeZeroToOne(), uvRangeMessage);
     }
 
     // Inverted UVs
     if (this.schema.allowInvertedUVs.value === true) {
-      this.report.uvsInverted.test(true, this.model.uv.invertedFaceCount.value + ' inverted; allowed by schema');
+      this.report.uvsInverted.test(true, this.model.invertedFaceCount.value + ' inverted; allowed by schema');
     } else {
+      // TODO: O.15 Improved - report which primitives have inverted normals
       this.report.uvsInverted.test(
-        this.model.uv.invertedFaceCount.value === 0,
-        this.model.uv.invertedFaceCount.value + ' inverted',
+        this.model.invertedFaceCount.value === 0,
+        this.model.invertedFaceCount.value + ' inverted',
       );
     }
 
     // Pixels per Meter (Texel Density)
-    // TODO: move resolution multiplier into model to be more relevant
+    // TODO: R.9 Improved - texel density calculation per material (move this to Primitive.ts)
     const maxResolutionSquared =
       (this.model.texturesMaxWidth.value as number) * (this.model.texturesMaxHeight.value as number);
     const minResolutionSquared =

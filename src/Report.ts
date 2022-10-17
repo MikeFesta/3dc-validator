@@ -1,7 +1,6 @@
 import { ReportItem, ReportItemInterface } from './ReportItem.js';
 
 export interface ReportInterface {
-  // TODO: group these into a sub-objects to match schema structure
   dimensionsMax: ReportItemInterface;
   dimensionsMin: ReportItemInterface;
   fileSize: ReportItemInterface;
