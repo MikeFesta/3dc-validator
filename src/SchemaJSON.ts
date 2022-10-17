@@ -48,8 +48,8 @@ export interface SchemaJSONInterface {
   };
   requireCleanRootNodeTransform?: boolean;
   uvs?: {
-    allowInverted?: boolean;
-    allowOverlap?: boolean;
+    notInverted?: boolean;
+    notOverlapping?: boolean;
     pixelsPerMeter?: {
       maximum?: number;
       minimum?: number;

@@ -5,8 +5,6 @@ import { readFile } from 'fs/promises';
 export interface SchemaInterface {
   loaded: boolean;
 
-  allowInvertedUVs: LoadableAttributeInterface;
-  allowOverlappingUVs: LoadableAttributeInterface;
   maxFileSizeInKb: LoadableAttributeInterface;
   maxHeight: LoadableAttributeInterface;
   maxLength: LoadableAttributeInterface;
@@ -26,6 +24,8 @@ export interface SchemaInterface {
   minTextureHeight: LoadableAttributeInterface;
   minTextureWidth: LoadableAttributeInterface;
   minWidth: LoadableAttributeInterface;
+  notInvertedUVs: LoadableAttributeInterface;
+  notOverlappingUVs: LoadableAttributeInterface;
   percentToleranceHeight: LoadableAttributeInterface;
   percentToleranceLength: LoadableAttributeInterface;
   percentToleranceWidth: LoadableAttributeInterface;
@@ -42,8 +42,6 @@ export interface SchemaInterface {
 
 export class Schema implements SchemaInterface {
   loaded = false;
-  allowInvertedUVs = new LoadableAttribute('Allow Inverted UVs', false); // Inverted UVs are not recommended
-  allowOverlappingUVs = new LoadableAttribute('Allow Overlapping UVs', false); // Overlapping UVs are not recommended
   maxFileSizeInKb = new LoadableAttribute('Max file size in Kb', 5120); // 5mb per Asset Creation Guidelines
   maxHeight = new LoadableAttribute('Max Height (z)', 10); // Not specified in Asset Creation Guidelines, 10m seems reasonable for products
   maxLength = new LoadableAttribute('Max Length (y)', 10); // Not specified in Asset Creation Guidelines, 10m seems reasonable for products
@@ -63,6 +61,8 @@ export class Schema implements SchemaInterface {
   minTextureHeight = new LoadableAttribute('Max Texture Height', 512); // 512 is the smallest mentioned in the Asset Creation Guidelines
   minTextureWidth = new LoadableAttribute('Max Texture Width', 512); // 512 is the smallest mentioned in the Asset Creation Guidelines
   minWidth = new LoadableAttribute('Min Width (x)', 0.01); // Not specified in Asset Creation Guidelines, 1cm seems reasonable for products
+  notInvertedUVs = new LoadableAttribute('No Inverted UVs', true); // Inverted UVs are not recommended
+  notOverlappingUVs = new LoadableAttribute('No Overlapping UVs', true); // Overlapping UVs are not recommended
   percentToleranceHeight = new LoadableAttribute('Percent Tolerance Height (z)', 3); // 3% per RFP Specifications
   percentToleranceLength = new LoadableAttribute('Percent Tolerance Length (y)', 3); // 3% per RFP Specifications
   percentToleranceWidth = new LoadableAttribute('Percent Tolerance Width (x)', 3); // 3% per RFP Specifications
@@ -104,8 +104,8 @@ export class Schema implements SchemaInterface {
       this.requireUVRangeZeroToOne,
       this.maxPixelsPerMeter,
       this.minPixelsPerMeter,
-      this.allowInvertedUVs,
-      this.allowOverlappingUVs,
+      this.notInvertedUVs,
+      this.notOverlappingUVs,
     ];
   }
 
@@ -172,11 +172,11 @@ export class Schema implements SchemaInterface {
       this.requireCleanRootNodeTransform.loadValue(obj.requireCleanRootNodeTransform);
     }
     if (obj.uvs !== undefined) {
-      if (obj.uvs.allowInverted !== undefined) {
-        this.allowInvertedUVs.loadValue(obj.uvs.allowInverted);
+      if (obj.uvs.notInverted !== undefined) {
+        this.notInvertedUVs.loadValue(obj.uvs.notInverted);
       }
-      if (obj.uvs.allowOverlap !== undefined) {
-        this.allowOverlappingUVs.loadValue(obj.uvs.allowOverlap);
+      if (obj.uvs.notOverlapping !== undefined) {
+        this.notOverlappingUVs.loadValue(obj.uvs.notOverlapping);
       }
       if (obj.uvs.requireRangeZeroToOne !== undefined) {
         this.requireUVRangeZeroToOne.loadValue(obj.uvs.requireRangeZeroToOne);

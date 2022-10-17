@@ -33,6 +33,7 @@ export interface ModelInterface {
   maxUvDensity: LoadableAttributeInterface;
   meshCount: LoadableAttributeInterface;
   minUvDensity: LoadableAttributeInterface;
+  overlappingUvCount: LoadableAttributeInterface;
   nodeCount: LoadableAttributeInterface;
   primitives: PrimitiveInterface[];
   primitiveCount: LoadableAttributeInterface;
@@ -242,7 +243,10 @@ export class Model implements ModelInterface {
     // 2. Count the number of inverted UVs
     let invertedTriangleCount = 0;
 
-    // 3. Find the min/max texel density
+    // 3. Count the number of overlapping UVs
+    let overlappingUvCount = 0;
+
+    // 4. Find the min/max texel density
     let maxDensity = undefined as unknown as number;
     let minDensity = undefined as unknown as number;
 
@@ -265,6 +269,9 @@ export class Model implements ModelInterface {
       invertedTriangleCount += primitive.uv.invertedTriangleCount.value as number;
 
       // 3.
+      overlappingUvCount += primitive.uv.overlapCount.value as number;
+
+      // 4.
       if (maxDensity === undefined || primitive.maxDensity.value > maxDensity) {
         maxDensity = primitive.maxDensity.value as number;
       }
@@ -291,6 +298,9 @@ export class Model implements ModelInterface {
     this.invertedTriangleCount.loadValue(invertedTriangleCount);
 
     // 3.
+    this.overlappingUvCount.loadValue(overlappingUvCount);
+
+    // 4.
     if (maxDensity !== undefined) {
       this.maxUvDensity.loadValue(maxDensity);
     }

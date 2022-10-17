@@ -43,6 +43,7 @@ export class UV implements UVInterface {
 
     this.calculateInvertedTriangleCount();
     this.calculateMaxMinExtents();
+    this.calculateOverlapCount();
     this.generateSvgs();
   }
 
@@ -58,15 +59,6 @@ export class UV implements UVInterface {
   ///////////////////////
   // PRIVATE FUNCTIONS //
   ///////////////////////
-
-  private generateSvgs = () => {
-    this.triangles.forEach((triangle: TriangleUvInterface) => {
-      this.svgLayout.pathData += triangle.getSvgPath('#000');
-      if (triangle.inverted) {
-        this.svgInvertedTriangles.pathData += triangle.getSvgPath('#f00');
-      }
-    });
-  };
 
   private calculateInvertedTriangleCount = () => {
     let invertedTriangles = 0;
@@ -105,5 +97,30 @@ export class UV implements UVInterface {
     this.v.max.loadValue(maxV);
     this.u.min.loadValue(minU);
     this.v.min.loadValue(minV);
+  };
+
+  private calculateOverlapCount = () => {
+    // Test each triangle against each other - O(n*n)
+    this.triangles.forEach((triangle: TriangleUvInterface) => {
+      this.triangles.forEach((triangleToCompare: TriangleUvInterface) => {
+        triangle.updateOverlap(triangleToCompare);
+      });
+    });
+    let overlappingTrianglesCount = 0;
+    this.triangles.forEach((triangle: TriangleUvInterface) => {
+      if (triangle.overlapping) {
+        overlappingTrianglesCount++;
+      }
+    });
+    this.overlapCount.loadValue(overlappingTrianglesCount);
+  };
+
+  private generateSvgs = () => {
+    this.triangles.forEach((triangle: TriangleUvInterface) => {
+      this.svgLayout.pathData += triangle.getSvgPath('#000');
+      if (triangle.inverted) {
+        this.svgInvertedTriangles.pathData += triangle.getSvgPath('#f00');
+      }
+    });
   };
 }
