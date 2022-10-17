@@ -114,78 +114,78 @@ export class Schema implements SchemaInterface {
     this.version.loadValue(obj.version);
 
     // Optional Attributes (default values will be used if not provided)
-    if (obj.fileSizeInKb) {
+    if (obj.fileSizeInKb !== undefined) {
       this.minFileSizeInKb.loadValue(obj.fileSizeInKb.min);
       this.maxFileSizeInKb.loadValue(obj.fileSizeInKb.max);
     }
-    if (obj.maxTriangleCount) {
+    if (obj.maxTriangleCount !== undefined) {
       this.maxTriangleCount.loadValue(obj.maxTriangleCount);
     }
-    if (obj.maxMaterialCount) {
+    if (obj.maxMaterialCount !== undefined) {
       this.maxMaterialCount.loadValue(obj.maxMaterialCount);
     }
-    if (obj.dimensions) {
-      if (obj.dimensions.maximum) {
+    if (obj.dimensions !== undefined) {
+      if (obj.dimensions.maximum !== undefined) {
         this.maxLength.loadValue(obj.dimensions.maximum.length);
         this.maxWidth.loadValue(obj.dimensions.maximum.width);
         this.maxHeight.loadValue(obj.dimensions.maximum.height);
       }
-      if (obj.dimensions.minimum) {
+      if (obj.dimensions.minimum !== undefined) {
         this.minLength.loadValue(obj.dimensions.minimum.length);
         this.minWidth.loadValue(obj.dimensions.minimum.width);
         this.minHeight.loadValue(obj.dimensions.minimum.height);
       }
-      if (obj.dimensions.percentTolerance) {
+      if (obj.dimensions.percentTolerance !== undefined) {
         this.percentToleranceLength.loadValue(obj.dimensions.percentTolerance.length);
         this.percentToleranceWidth.loadValue(obj.dimensions.percentTolerance.width);
         this.percentToleranceHeight.loadValue(obj.dimensions.percentTolerance.height);
       }
     }
-    if (obj.textures) {
-      if (obj.textures.maximum) {
+    if (obj.textures !== undefined) {
+      if (obj.textures.maximum !== undefined) {
         this.maxTextureWidth.loadValue(obj.textures.maximum.width);
         this.maxTextureHeight.loadValue(obj.textures.maximum.height);
       }
-      if (obj.textures.minimum) {
+      if (obj.textures.minimum !== undefined) {
         this.minTextureWidth.loadValue(obj.textures.minimum.width);
         this.minTextureHeight.loadValue(obj.textures.minimum.height);
       }
-      if (obj.textures.requireDimensionsBePowersOfTwo) {
+      if (obj.textures.requireDimensionsBePowersOfTwo !== undefined) {
         this.requireTextureDimensionsBePowersOfTwo.loadValue(obj.textures.requireDimensionsBePowersOfTwo);
       }
-      if (obj.textures.requireDimensionsBeQuadratic) {
+      if (obj.textures.requireDimensionsBeQuadratic !== undefined) {
         this.requireTextureDimensionsBeQuadratic.loadValue(obj.textures.requireDimensionsBeQuadratic);
       }
     }
-    if (obj.objectCount) {
-      if (obj.objectCount.meshes) {
+    if (obj.objectCount !== undefined) {
+      if (obj.objectCount.meshes !== undefined) {
         this.maxMeshCount.loadValue(obj.objectCount.meshes.maximum);
       }
-      if (obj.objectCount.nodes) {
+      if (obj.objectCount.nodes !== undefined) {
         this.maxNodeCount.loadValue(obj.objectCount.nodes.maximum);
       }
-      if (obj.objectCount.primitives) {
+      if (obj.objectCount.primitives !== undefined) {
         this.maxPrimitiveCount.loadValue(obj.objectCount.primitives.maximum);
       }
     }
-    if (obj.requireCleanRootNodeTransform) {
+    if (obj.requireCleanRootNodeTransform !== undefined) {
       this.requireCleanRootNodeTransform.loadValue(obj.requireCleanRootNodeTransform);
     }
-    if (obj.uvs) {
-      if (obj.uvs.allowInverted) {
+    if (obj.uvs !== undefined) {
+      if (obj.uvs.allowInverted !== undefined) {
         this.allowInvertedUVs.loadValue(obj.uvs.allowInverted);
       }
-      if (obj.uvs.allowOverlap) {
+      if (obj.uvs.allowOverlap !== undefined) {
         this.allowOverlappingUVs.loadValue(obj.uvs.allowOverlap);
       }
-      if (obj.uvs.requireRangeZeroToOne) {
+      if (obj.uvs.requireRangeZeroToOne !== undefined) {
         this.requireUVRangeZeroToOne.loadValue(obj.uvs.requireRangeZeroToOne);
       }
-      if (obj.uvs.pixelsPerMeter) {
-        if (obj.uvs.pixelsPerMeter?.maximum) {
+      if (obj.uvs.pixelsPerMeter !== undefined) {
+        if (obj.uvs.pixelsPerMeter?.maximum !== undefined) {
           this.maxPixelsPerMeter.loadValue(obj.uvs.pixelsPerMeter.maximum);
         }
-        if (obj.uvs.pixelsPerMeter?.minimum) {
+        if (obj.uvs.pixelsPerMeter?.minimum !== undefined) {
           this.minPixelsPerMeter.loadValue(obj.uvs.pixelsPerMeter.minimum);
         }
       }

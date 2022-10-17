@@ -50,47 +50,79 @@ export class Validator implements ValidatorInterface {
 
   // Check that the model fits within viewer/application min/max dimensions
   private testDimensions() {
-    // Dimensions (Max)
-    const dimensionsMaxOK =
-      this.model.height.value <= this.schema.maxHeight.value &&
-      this.model.length.value <= this.schema.maxLength.value &&
-      this.model.width.value <= this.schema.maxWidth.value;
-    let dimensionsMaxMessage =
+    let dimensionsMessage =
       '(L:' +
       (this.model.length.value as number).toFixed(this.decimalDisplayPrecision) +
       ' x W:' +
       (this.model.width.value as number).toFixed(this.decimalDisplayPrecision) +
       ' x H:' +
       (this.model.height.value as number).toFixed(this.decimalDisplayPrecision) +
-      ') vs (L:' +
-      (this.schema.maxLength.value as number).toFixed(this.decimalDisplayPrecision) +
-      ' x W:' +
-      (this.schema.maxWidth.value as number).toFixed(this.decimalDisplayPrecision) +
-      ' x H:' +
-      (this.schema.maxHeight.value as number).toFixed(this.decimalDisplayPrecision) +
-      ') Max';
-    this.report.dimensionsMax.test(dimensionsMaxOK, dimensionsMaxMessage);
+      ')';
+    // Dimensions (Max)
+    if (this.schema.maxHeight.value === -1 && this.schema.maxLength.value === -1 && this.schema.maxWidth.value === -1) {
+      this.report.dimensionsMax.skipTestWithMessage(dimensionsMessage);
+    } else {
+      let dimensionsMaxOK = true;
+      let dimensionsMaxMessage = dimensionsMessage + ' vs (L:';
+      // Length (max)
+      if (this.schema.maxLength.value === -1) {
+        dimensionsMaxMessage += 'n/a';
+      } else {
+        dimensionsMaxOK = dimensionsMaxOK && this.model.length.value <= this.schema.maxLength.value;
+        dimensionsMaxMessage += (this.schema.maxLength.value as number).toFixed(this.decimalDisplayPrecision);
+      }
+      dimensionsMaxMessage += ' x W:';
+      // Width (max)
+      if (this.schema.maxWidth.value === -1) {
+        dimensionsMaxMessage += 'n/a';
+      } else {
+        dimensionsMaxOK = dimensionsMaxOK && this.model.width.value <= this.schema.maxWidth.value;
+        dimensionsMaxMessage += (this.schema.maxWidth.value as number).toFixed(this.decimalDisplayPrecision);
+      }
+      dimensionsMaxMessage += ' x H:';
+      // Height (max)
+      if (this.schema.maxHeight.value === -1) {
+        dimensionsMaxMessage += 'n/a';
+      } else {
+        dimensionsMaxOK = dimensionsMaxOK && this.model.height.value <= this.schema.maxHeight.value;
+        dimensionsMaxMessage += (this.schema.maxHeight.value as number).toFixed(this.decimalDisplayPrecision);
+      }
+      dimensionsMaxMessage += ') Max';
+      this.report.dimensionsMax.test(dimensionsMaxOK, dimensionsMaxMessage);
+    }
 
     // Dimensions (Min)
-    const dimensionsMinOK =
-      this.model.height.value >= this.schema.minHeight.value &&
-      this.model.length.value >= this.schema.minLength.value &&
-      this.model.width.value >= this.schema.minWidth.value;
-    let dimensionsMinMessage =
-      '(L:' +
-      (this.model.length.value as number).toFixed(this.decimalDisplayPrecision) +
-      ' x W:' +
-      (this.model.width.value as number).toFixed(this.decimalDisplayPrecision) +
-      ' x H:' +
-      (this.model.height.value as number).toFixed(this.decimalDisplayPrecision) +
-      ') vs (L:' +
-      (this.schema.minLength.value as number).toFixed(this.decimalDisplayPrecision) +
-      ' x W:' +
-      (this.schema.minWidth.value as number).toFixed(this.decimalDisplayPrecision) +
-      ' x H:' +
-      (this.schema.minHeight.value as number).toFixed(this.decimalDisplayPrecision) +
-      ') Min';
-    this.report.dimensionsMin.test(dimensionsMinOK, dimensionsMinMessage);
+    if (this.schema.minHeight.value === -1 && this.schema.minLength.value === -1 && this.schema.minWidth.value === -1) {
+      this.report.dimensionsMin.skipTestWithMessage(dimensionsMessage);
+    } else {
+      let dimensionsMinOK = true;
+      let dimensionsMinMessage = dimensionsMessage + ' vs (L:';
+      // Length (min)
+      if (this.schema.minLength.value === -1) {
+        dimensionsMinMessage += 'n/a';
+      } else {
+        dimensionsMinOK = dimensionsMinOK && this.model.length.value >= this.schema.minLength.value;
+        dimensionsMinMessage += (this.schema.minLength.value as number).toFixed(this.decimalDisplayPrecision);
+      }
+      dimensionsMinMessage += ' x W:';
+      // Width (min)
+      if (this.schema.minWidth.value === -1) {
+        dimensionsMinMessage += 'n/a';
+      } else {
+        dimensionsMinOK = dimensionsMinOK && this.model.width.value >= this.schema.minWidth.value;
+        dimensionsMinMessage += (this.schema.minWidth.value as number).toFixed(this.decimalDisplayPrecision);
+      }
+      dimensionsMinMessage += ' x H:';
+      // Height (min)
+      if (this.schema.minHeight.value === -1) {
+        dimensionsMinMessage += 'n/a';
+      } else {
+        dimensionsMinOK = dimensionsMinOK && this.model.height.value >= this.schema.minHeight.value;
+        dimensionsMinMessage += (this.schema.minHeight.value as number).toFixed(this.decimalDisplayPrecision);
+      }
+      dimensionsMinMessage += ') Min';
+      this.report.dimensionsMin.test(dimensionsMinOK, dimensionsMinMessage);
+    }
   }
 
   // The filesize should be within the specified range. Min and/or Max size can be ignored with a value of -1
