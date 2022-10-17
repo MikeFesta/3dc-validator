@@ -129,7 +129,7 @@ export class Validator implements ValidatorInterface {
   private testFileSize() {
     if (this.schema.maxFileSizeInKb.value === -1 && this.schema.minFileSizeInKb.value === -1) {
       // Skip test, but still report the file size
-      this.report.fileSize.skipTestWithMessage('File size: ' + this.model.fileSizeInKb.value.toLocaleString() + 'kb');
+      this.report.fileSize.skipTestWithMessage(this.model.fileSizeInKb.value.toLocaleString() + 'kb');
     } else if (this.schema.maxFileSizeInKb.value === -1) {
       // Check only the min filesize
       const filesizeOK = (this.model.fileSizeInKb.value as number) >= (this.schema.minFileSizeInKb.value as number);
@@ -213,9 +213,7 @@ export class Validator implements ValidatorInterface {
   // The number of materials should be less than or equal to the max, unless the max is -1
   private testMaterialCount() {
     if (this.schema.maxMaterialCount.value === -1) {
-      this.report.materialCount.skipTestWithMessage(
-        this.model.materialCount.value + ' material' + (this.model.materialCount.value == 1 ? '' : 's'),
-      );
+      this.report.materialCount.skipTestWithMessage(this.model.materialCount.value.toLocaleString());
     } else {
       const materialCountOK =
         (this.model.materialCount.value as number) <= (this.schema.maxMaterialCount.value as number);
@@ -228,9 +226,7 @@ export class Validator implements ValidatorInterface {
   // Check the number of meshes, nodes, and primitives
   private testObjectCount() {
     if (this.schema.maxMeshCount.value === -1) {
-      this.report.meshCount.skipTestWithMessage(
-        (this.model.meshCount.value as number).toFixed(0) + '; not required by schema',
-      );
+      this.report.meshCount.skipTestWithMessage(this.model.meshCount.value.toLocaleString());
     } else {
       const meshCountOK = this.model.meshCount.value <= this.schema.maxMeshCount.value;
       const meshCountMessage =
@@ -238,7 +234,7 @@ export class Validator implements ValidatorInterface {
       this.report.meshCount.test(meshCountOK, meshCountMessage);
     }
     if (this.schema.maxNodeCount.value === -1) {
-      this.report.nodeCount.skipTestWithMessage((this.model.nodeCount.value as number).toFixed(0));
+      this.report.nodeCount.skipTestWithMessage(this.model.nodeCount.value.toLocaleString());
     } else {
       const nodeCountOK = this.model.nodeCount.value <= this.schema.maxNodeCount.value;
       const nodeCountMessage =
@@ -246,7 +242,7 @@ export class Validator implements ValidatorInterface {
       this.report.nodeCount.test(nodeCountOK, nodeCountMessage);
     }
     if (this.schema.maxPrimitiveCount.value === -1) {
-      this.report.primitiveCount.skipTestWithMessage((this.model.primitiveCount.value as number).toFixed(0));
+      this.report.primitiveCount.skipTestWithMessage(this.model.primitiveCount.value.toLocaleString());
     } else {
       const primitiveCountOK = this.model.primitiveCount.value <= this.schema.maxPrimitiveCount.value;
       const primitiveCountMessage =
@@ -380,9 +376,7 @@ export class Validator implements ValidatorInterface {
 
   private testRootNodeTransform() {
     if (this.schema.requireCleanRootNodeTransform.value === false) {
-      this.report.rootNodeCleanTransform.skipTestWithMessage(
-        (this.model.rootNodeTransform.isClean() ? 'true' : 'false') + '; not required by schema',
-      );
+      this.report.rootNodeCleanTransform.skipTestWithMessage(this.model.rootNodeTransform.isClean() ? 'true' : 'false');
     } else {
       let rootNodeTransformOK = this.model.rootNodeTransform.isClean();
       let rootNodeTransformMessage = '';
@@ -425,9 +419,7 @@ export class Validator implements ValidatorInterface {
   // The number of triangles should be less than or equal to the max, unless the max is -1
   private testTriangleCount() {
     if (this.schema.maxTriangleCount.value === -1) {
-      this.report.triangleCount.skipTestWithMessage(
-        'Triangle count: ' + this.model.triangleCount.value.toLocaleString(),
-      );
+      this.report.triangleCount.skipTestWithMessage(this.model.triangleCount.value.toLocaleString());
     } else {
       const triangleCountOK =
         (this.model.triangleCount.value as number) <= (this.schema.maxTriangleCount.value as number);
@@ -443,9 +435,7 @@ export class Validator implements ValidatorInterface {
   private testTextures() {
     // Texture Size - Height (max)
     if (this.schema.maxTextureHeight.value === -1) {
-      this.report.textureDimensionsMaxHeight.skipTestWithMessage(
-        (this.model.texturesMaxHeight.value as number).toFixed(0) + '; not required by schema',
-      );
+      this.report.textureDimensionsMaxHeight.skipTestWithMessage(this.model.texturesMaxHeight.value.toLocaleString());
     } else {
       const maxHeightPasses = this.model.texturesMaxHeight.value <= this.schema.maxTextureHeight.value;
       this.report.textureDimensionsMaxHeight.test(
@@ -456,9 +446,7 @@ export class Validator implements ValidatorInterface {
 
     // Texture Size - Height (min)
     if (this.schema.minTextureHeight.value === -1) {
-      this.report.textureDimensionsMinHeight.skipTestWithMessage(
-        (this.model.texturesMinHeight.value as number).toFixed(0) + '; not required by schema',
-      );
+      this.report.textureDimensionsMinHeight.skipTestWithMessage(this.model.texturesMinHeight.value.toLocaleString());
     } else {
       const minHeightPasses = this.model.texturesMinHeight.value >= this.schema.minTextureHeight.value;
       this.report.textureDimensionsMinHeight.test(
@@ -469,9 +457,7 @@ export class Validator implements ValidatorInterface {
 
     // Texture Size - Width (max)
     if (this.schema.maxTextureWidth.value === -1) {
-      this.report.textureDimensionsMaxWidth.skipTestWithMessage(
-        (this.model.texturesMaxWidth.value as number).toFixed(0) + '; not required by schema',
-      );
+      this.report.textureDimensionsMaxWidth.skipTestWithMessage(this.model.texturesMaxWidth.value.toLocaleString());
     } else {
       const maxWidthPasses = this.model.texturesMaxWidth.value <= this.schema.maxTextureWidth.value;
       this.report.textureDimensionsMaxWidth.test(
@@ -482,9 +468,7 @@ export class Validator implements ValidatorInterface {
 
     // Texture Size - Width (min)
     if (this.schema.minTextureWidth.value === -1) {
-      this.report.textureDimensionsMinWidth.skipTestWithMessage(
-        (this.model.texturesMinWidth.value as number).toFixed(0) + '; not required by schema',
-      );
+      this.report.textureDimensionsMinWidth.skipTestWithMessage(this.model.texturesMinWidth.value.toLocaleString());
     } else {
       const minWidthPasses = this.model.texturesMinWidth.value >= this.schema.minTextureWidth.value;
       this.report.textureDimensionsMinWidth.test(
@@ -496,7 +480,7 @@ export class Validator implements ValidatorInterface {
     // Texture Size - Power of 2
     if (this.schema.requireTextureDimensionsBePowersOfTwo.value === false) {
       this.report.texturesPowerOfTwo.skipTestWithMessage(
-        ((this.model.texturesPowerOfTwo.value as boolean) ? 'true' : 'false') + '; not required by schema',
+        (this.model.texturesPowerOfTwo.value as boolean) ? 'true' : 'false',
       );
     } else {
       this.report.texturesPowerOfTwo.test(
@@ -508,7 +492,7 @@ export class Validator implements ValidatorInterface {
     // Texture Size - Quadratic (width=height)
     if (this.schema.requireTextureDimensionsBeQuadratic.value === false) {
       this.report.texturesQuadratic.skipTestWithMessage(
-        ((this.model.texturesQuadratic.value as boolean) ? 'true' : 'false') + '; not required by schema',
+        (this.model.texturesQuadratic.value as boolean) ? 'true' : 'false',
       );
     } else {
       this.report.texturesQuadratic.test(
@@ -531,30 +515,30 @@ export class Validator implements ValidatorInterface {
       ' to ' +
       (this.model.v.max.value as number).toFixed(this.decimalDisplayPrecision);
     if (this.schema.requireUVRangeZeroToOne.value === false) {
-      this.report.uvsInZeroToOneRange.skipTestWithMessage(uvRangeMessage + '; not required by schema');
+      this.report.uvsInZeroToOneRange.skipTestWithMessage(uvRangeMessage);
     } else {
       this.report.uvsInZeroToOneRange.test(this.model.uvIsInRangeZeroToOne(), uvRangeMessage);
     }
 
     // Inverted UVs
-    if (this.schema.allowInvertedUVs.value === true) {
-      this.report.uvsInverted.test(true, this.model.invertedTriangleCount.value + ' inverted; allowed by schema');
+    if (this.schema.notInvertedUVs.value === false) {
+      this.report.uvsInverted.skipTestWithMessage(this.model.invertedTriangleCount.value.toLocaleString());
     } else {
       // TODO: O.15 Improved - report which primitives have inverted normals
       this.report.uvsInverted.test(
         this.model.invertedTriangleCount.value === 0,
-        this.model.invertedTriangleCount.value + ' inverted',
+        this.model.invertedTriangleCount.value.toLocaleString(),
       );
     }
 
     // Overlapping UVs
-    if (this.schema.allowOverlappingUVs.value === true) {
-      this.report.uvsOverlap.test(true, this.model.overlappingUvCount.value + ' overlapping; allowed by schema');
+    if (this.schema.notOverlappingUVs.value === false) {
+      this.report.uvsOverlap.skipTestWithMessage(this.model.overlappingUvCount.value.toLocaleString());
     } else {
       // TODO: O.13 Improved - report which primitives have overlapping uvs
       this.report.uvsOverlap.test(
         this.model.overlappingUvCount.value === 0,
-        this.model.overlappingUvCount.value + ' overlapping',
+        this.model.overlappingUvCount.value.toLocaleString(),
       );
     }
 
@@ -570,9 +554,7 @@ export class Validator implements ValidatorInterface {
     const minPixelDensityMessage = minPixelDensity.toLocaleString();
     // Max ppm
     if (this.schema.maxPixelsPerMeter.value === -1) {
-      this.report.pixelsPerMeterMax.skipTestWithMessage(
-        maxPixelDensityMessage + ' pixels per meter; not required by schema',
-      );
+      this.report.pixelsPerMeterMax.skipTestWithMessage(maxPixelDensityMessage);
     } else {
       const maxUvDensityOK = maxPixelDensity <= this.schema.maxPixelsPerMeter.value;
       this.report.pixelsPerMeterMax.test(
@@ -584,9 +566,7 @@ export class Validator implements ValidatorInterface {
     }
     // Min ppm
     if (this.schema.minPixelsPerMeter.value === -1) {
-      this.report.pixelsPerMeterMin.skipTestWithMessage(
-        minPixelDensityMessage + ' pixels per meter; not required by schema',
-      );
+      this.report.pixelsPerMeterMin.skipTestWithMessage(minPixelDensityMessage);
     } else {
       const minUvDensityOK = minPixelDensity >= this.schema.minPixelsPerMeter.value;
       this.report.pixelsPerMeterMin.test(
