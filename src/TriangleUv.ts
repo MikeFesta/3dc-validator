@@ -7,6 +7,7 @@ export interface TriangleUvInterface {
   area: number;
   b: PointUvInterface;
   c: PointUvInterface;
+  id: number;
   inverted: boolean;
   maxU: number;
   maxV: number;
@@ -14,7 +15,8 @@ export interface TriangleUvInterface {
   minV: number;
   overlapping: boolean;
   getSvgPath(color: string): string;
-  updateOverlap(triagle: TriangleUvInterface): void;
+  pointInside(point: PointUvInterface): boolean;
+  updateOverlap(testNumber: number, triagle: TriangleUvInterface): void;
 }
 
 export class TriangleUv implements TriangleUvInterface {
@@ -22,6 +24,7 @@ export class TriangleUv implements TriangleUvInterface {
   area = 0;
   b = { u: 0, v: 0 };
   c = { u: 0, v: 0 };
+  id = 0;
   inverted = false;
   maxU = undefined as unknown as number;
   maxV = undefined as unknown as number;
@@ -29,7 +32,8 @@ export class TriangleUv implements TriangleUvInterface {
   minV = undefined as unknown as number;
   overlapping = false;
 
-  constructor(pointArray: number[]) {
+  constructor(id: number, pointArray: number[]) {
+    this.id = id;
     if (pointArray.length == 6) {
       this.a.u = pointArray[0];
       this.a.v = pointArray[1];
@@ -62,16 +66,158 @@ export class TriangleUv implements TriangleUvInterface {
       'Z"/>'
     );
   }
-  updateOverlap(otherTriangle: TriangleUvInterface) {
-    // TODO: O.13 - Overlapping UVs
+
+  public pointInside(point: PointUvInterface): boolean {
+    // https://stackoverflow.com/questions/2049582/how-to-determine-if-a-point-is-in-a-2d-triangle
+    // https://www.gamedev.net/forums/topic.asp?topic_id=295943
+    const b1 = TriangleUv.isCounterClockwise(point, this.a, this.b);
+    const b2 = TriangleUv.isCounterClockwise(point, this.b, this.c);
+    const b3 = TriangleUv.isCounterClockwise(point, this.c, this.a);
+    return b1 == b2 && b2 == b3;
+  }
+
+  // TODO: remove test number after development
+  updateOverlap(testNumber: number, otherTriangle: TriangleUvInterface) {
     // Only check if no overlaps have been found so far
     if (this.overlapping == false) {
-      // Step 1 - quick rectangle check using min/max values from each (fastest)
-      // Step 2 - check for shared points
-      // * 3 shared points - this.overlapping = true; (fast)
-      // * 2 shared points - the 3rd points need to be on opposite sides of the edge (fast)
-      // * 1 shared point - check each set of 2 points to see if they are inside each other, then check for edge intersects (slow)
-      // * 0 shared points - check each set of 3 points to see if they are inside each other, then check for edge intersects (slowest)
+      // Step 1 - skip if it is the same triangle (fastest)
+      if (this.id === otherTriangle.id) {
+        return; // not overlapping
+      }
+      // Step 2 - skip any triangle with no area. ensures all 3 points are different
+      if (this.area === 0 || otherTriangle.area === 0) {
+        return; // not overlapping
+      }
+      // Step 3 - rectangle check using min/max values from each (fast)
+      if (
+        this.minU >= otherTriangle.maxU || // right
+        this.maxU <= otherTriangle.minU || // left
+        this.minV >= otherTriangle.maxV || // above
+        this.maxV <= otherTriangle.minV //    below
+      ) {
+        return; // not overlapping
+      }
+      // Step 4 - check for shared points (order is not sorted, so 9 checks needed)
+      const aMatchesA = this.a.u === otherTriangle.a.u && this.a.v === otherTriangle.a.v;
+      const aMatchesB = this.a.u === otherTriangle.b.u && this.a.v === otherTriangle.b.v;
+      const aMatchesC = this.a.u === otherTriangle.c.u && this.a.v === otherTriangle.c.v;
+      const bMatchesA = this.b.u === otherTriangle.a.u && this.b.v === otherTriangle.a.v;
+      const bMatchesB = this.b.u === otherTriangle.b.u && this.b.v === otherTriangle.b.v;
+      const bMatchesC = this.b.u === otherTriangle.c.u && this.b.v === otherTriangle.c.v;
+      const cMatchesA = this.c.u === otherTriangle.a.u && this.c.v === otherTriangle.a.v;
+      const cMatchesB = this.c.u === otherTriangle.b.u && this.c.v === otherTriangle.b.v;
+      const cMatchesC = this.c.u === otherTriangle.c.u && this.c.v === otherTriangle.c.v;
+
+      const aMatches = aMatchesA || aMatchesB || aMatchesC;
+      const bMatches = bMatchesA || bMatchesB || bMatchesC;
+      const cMatches = cMatchesA || cMatchesB || cMatchesC;
+      const matchCount = (aMatches ? 1 : 0) + (bMatches ? 1 : 0) + (cMatches ? 1 : 0);
+
+      if (matchCount === 3) {
+        // (fast)
+        this.overlapping = true;
+        otherTriangle.overlapping = true;
+        return;
+      } else if (matchCount === 2) {
+        // (somewhat fast)
+        // The non-matching points need to be on opposite sides of the edge to not overlap
+        const edgeP1 = aMatches ? this.a : this.b; // if not a, it must be BC
+        const edgeP2 = cMatches ? this.c : this.b; // if not c, it must be AB
+        const point1 = !aMatches ? this.a : !bMatches ? this.b : this.c; // the one that doesn't match
+        let point2 = otherTriangle.a;
+        if (!aMatchesB && !bMatchesB && !cMatchesB) {
+          point2 = otherTriangle.b;
+        } else if (!aMatchesC && !bMatchesC && !cMatchesC) {
+          point2 = otherTriangle.c;
+        }
+
+        // Linear equation to test which side of the line each point is on. Negative result is one side, positive is the other side
+        const side1 = TriangleUv.isCounterClockwise(point1, edgeP1, edgeP2);
+        const side2 = TriangleUv.isCounterClockwise(point2, edgeP1, edgeP2);
+
+        // If both sides are the same (positive * positive) or (negative * negative), the value will be > 0
+        if (side1 == side2) {
+          this.overlapping = true;
+          otherTriangle.overlapping = true;
+          return;
+        } else {
+          return; // not overlapping
+        }
+      } else if (matchCount === 1) {
+        // (somewhat slow)
+        const commonPoint = aMatches ? this.a : bMatches ? this.b : this.c;
+        const point1 = !aMatches ? this.a : this.b; // if a is the common point, points are [b and c]
+        const point2 = !cMatches ? this.c : this.b; // if c is the common point, points are [a and b]
+        // start with the assumption that other C is the common point, so check [a and b]
+        let otherPoint1 = otherTriangle.a;
+        let otherPoint2 = otherTriangle.b;
+        if (aMatchesA && bMatchesA && cMatchesA) {
+          // A is the common point, so check [b and c]
+          otherPoint1 = otherTriangle.b;
+          otherPoint2 = otherTriangle.c;
+        } else if (aMatchesB && bMatchesB && cMatchesB) {
+          // B is the common point, so check [a and c]
+          otherPoint1 = otherTriangle.a;
+          otherPoint2 = otherTriangle.c;
+        }
+
+        // 4a. Check if either point is inside the other triangle
+        if (
+          this.pointInside(otherPoint1) ||
+          this.pointInside(otherPoint2) ||
+          otherTriangle.pointInside(point1) ||
+          otherTriangle.pointInside(point2)
+        ) {
+          this.overlapping = true;
+          otherTriangle.overlapping = true;
+          return;
+        }
+
+        // 4b. Check for edge intersections
+        // For each triangle, check the edge with the non-shared vertex against the two edges that are shared
+        if (
+          TriangleUv.edgesIntersect(commonPoint, otherPoint1, point1, point2) ||
+          TriangleUv.edgesIntersect(commonPoint, otherPoint2, point1, point2) ||
+          TriangleUv.edgesIntersect(commonPoint, point1, otherPoint1, otherPoint2) ||
+          TriangleUv.edgesIntersect(commonPoint, point2, otherPoint1, otherPoint2)
+        ) {
+          this.overlapping = true;
+          otherTriangle.overlapping = true;
+          return;
+        }
+        return; // not overlapping
+      }
+
+      // Step 5 - check if all 3 points are inside of each other (same as 4a, but with 6 checks)
+      if (
+        this.pointInside(otherTriangle.a) ||
+        this.pointInside(otherTriangle.b) ||
+        this.pointInside(otherTriangle.c) ||
+        otherTriangle.pointInside(this.a) ||
+        otherTriangle.pointInside(this.b) ||
+        otherTriangle.pointInside(this.c)
+      ) {
+        this.overlapping = true;
+        otherTriangle.overlapping = true;
+        return;
+      }
+
+      // Step 6 - check for edge intersects (same as 4b, but with 9 checks)
+      if (
+        TriangleUv.edgesIntersect(this.a, this.b, otherTriangle.a, otherTriangle.b) ||
+        TriangleUv.edgesIntersect(this.b, this.c, otherTriangle.a, otherTriangle.b) ||
+        TriangleUv.edgesIntersect(this.c, this.a, otherTriangle.a, otherTriangle.b) ||
+        TriangleUv.edgesIntersect(this.a, this.b, otherTriangle.b, otherTriangle.c) ||
+        TriangleUv.edgesIntersect(this.b, this.c, otherTriangle.b, otherTriangle.c) ||
+        TriangleUv.edgesIntersect(this.c, this.a, otherTriangle.b, otherTriangle.c) ||
+        TriangleUv.edgesIntersect(this.a, this.b, otherTriangle.c, otherTriangle.a) ||
+        TriangleUv.edgesIntersect(this.b, this.c, otherTriangle.c, otherTriangle.a) ||
+        TriangleUv.edgesIntersect(this.c, this.a, otherTriangle.c, otherTriangle.a)
+      ) {
+        this.overlapping = true;
+        otherTriangle.overlapping = true;
+        return;
+      }
     }
   }
 
@@ -93,34 +239,55 @@ export class TriangleUv implements TriangleUvInterface {
       uvHalfPerimeter * (uvHalfPerimeter - uvAB) * (uvHalfPerimeter - uvBC) * (uvHalfPerimeter - uvAC),
     );
   }
+
   private calculateInverted() {
     // https://stackoverflow.com/questions/17592800/how-to-find-the-orientation-of-three-points-in-a-two-dimensional-space-given-coo
-    if ((this.b.v - this.a.v) * (this.c.u - this.b.u) - (this.b.u - this.a.u) * (this.c.v - this.b.v) < 0) {
-      this.inverted = true;
-    }
+    this.inverted = TriangleUv.isCounterClockwise(this.a, this.b, this.c);
   }
-  private getMaxOf2(first: number, second: number): number {
+
+  private static edgesIntersect(
+    p1: PointUvInterface,
+    p2: PointUvInterface,
+    q1: PointUvInterface,
+    q2: PointUvInterface,
+  ) {
+    //https://bryceboe.com/2006/10/23/line-segment-intersection-algorithm/
+    return (
+      TriangleUv.isCounterClockwise(p1, q1, q2) != TriangleUv.isCounterClockwise(p2, q1, q2) &&
+      TriangleUv.isCounterClockwise(p1, p2, q1) != TriangleUv.isCounterClockwise(p1, p2, q2)
+    );
+  }
+
+  private static isCounterClockwise(p1: PointUvInterface, p2: PointUvInterface, p3: PointUvInterface) {
+    return (p3.v - p1.v) * (p2.u - p1.u) > (p2.v - p1.v) * (p3.u - p1.u);
+  }
+
+  private static getMaxOf2(first: number, second: number): number {
     if (first >= second) {
       return first;
     }
     return second;
   }
-  private getMaxOf3(first: number, second: number, third: number): number {
-    return this.getMaxOf2(this.getMaxOf2(first, second), third);
+
+  private static getMaxOf3(first: number, second: number, third: number): number {
+    return TriangleUv.getMaxOf2(TriangleUv.getMaxOf2(first, second), third);
   }
-  private getMinOf2(first: number, second: number): number {
+
+  private static getMinOf2(first: number, second: number): number {
     if (first <= second) {
       return first;
     }
     return second;
   }
-  private getMinOf3(first: number, second: number, third: number): number {
-    return this.getMinOf2(this.getMinOf2(first, second), third);
+
+  private static getMinOf3(first: number, second: number, third: number): number {
+    return TriangleUv.getMinOf2(TriangleUv.getMinOf2(first, second), third);
   }
+
   private loadMinMax() {
-    this.maxU = this.getMaxOf3(this.a.u, this.b.u, this.c.u);
-    this.maxV = this.getMaxOf3(this.a.v, this.b.v, this.c.v);
-    this.minU = this.getMinOf3(this.a.u, this.b.u, this.c.u);
-    this.minV = this.getMinOf3(this.a.v, this.b.v, this.c.v);
+    this.maxU = TriangleUv.getMaxOf3(this.a.u, this.b.u, this.c.u);
+    this.maxV = TriangleUv.getMaxOf3(this.a.v, this.b.v, this.c.v);
+    this.minU = TriangleUv.getMinOf3(this.a.u, this.b.u, this.c.u);
+    this.minV = TriangleUv.getMinOf3(this.a.v, this.b.v, this.c.v);
   }
 }

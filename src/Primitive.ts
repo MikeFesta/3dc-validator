@@ -61,7 +61,7 @@ export class Primitive implements PrimitiveInterface {
         }
         if (uvData) {
           uvTriangles.push(
-            new TriangleUv([
+            new TriangleUv(i / 3, [
               uvData[indexA * 2],
               uvData[indexA * 2 + 1],
               uvData[indexB * 2],
