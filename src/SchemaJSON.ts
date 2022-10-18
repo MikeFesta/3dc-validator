@@ -32,6 +32,10 @@ export interface SchemaJSONInterface {
       width: number;
       height: number;
     };
+    pbrColorRange?: {
+      maximum?: number;
+      minimum?: number;
+    };
     requireDimensionsBePowersOfTwo?: boolean;
     requireDimensionsBeQuadratic?: boolean;
   };

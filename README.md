@@ -31,10 +31,10 @@ This package is used for both a command line interface, as well as a front-end w
 - Texture Density
 - Inverted UVs
 - UV Overlaps
+- PBR Safe Colors
 
 #### Checks to be added
 
-- PBR Safe Colors
 - UV Margin Size
 - Hard Edges
 - Non-Manifold Edges

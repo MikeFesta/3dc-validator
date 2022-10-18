@@ -8,8 +8,8 @@ import { VertexBuffer } from '@babylonjs/core/Buffers/buffer.js';
 
 export interface PrimitiveInterface {
   material: MaterialInterface;
-  maxDensity: LoadableAttributeInterface;
-  minDensity: LoadableAttributeInterface;
+  maxDensity: LoadableAttributeInterface; // TODO: rename to densityMax
+  minDensity: LoadableAttributeInterface; // TODO: not sure this needs to be a LoadableAttribute
   name: string;
   triangles: TriangleXyzInterface[];
   uv: UVInterface;

@@ -8,6 +8,8 @@ export interface ReportInterface {
   materialCount: ReportItemInterface;
   meshCount: ReportItemInterface;
   nodeCount: ReportItemInterface;
+  pbrColorMax: ReportItemInterface;
+  pbrColorMin: ReportItemInterface;
   pixelsPerMeterMax: ReportItemInterface;
   pixelsPerMeterMin: ReportItemInterface;
   primitiveCount: ReportItemInterface;
@@ -51,6 +53,14 @@ export class Report implements ReportInterface {
   nodeCount = new ReportItem(
     'Node Count',
     'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec99_PublishingTargets/PublishingTargets.md#maximum-number-of-draw-calls-and-triangles',
+  );
+  pbrColorMax = new ReportItem(
+    'Maximum HSV color value for PBR safe colors',
+    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec05_MaterialsAndTextures/MaterialsAndTextures.md#pbr-colors-and-values',
+  );
+  pbrColorMin = new ReportItem(
+    'Minimum HSV color value for PBR safe colors',
+    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec05_MaterialsAndTextures/MaterialsAndTextures.md#pbr-colors-and-values',
   );
   pixelsPerMeterMax = new ReportItem(
     'Maximum Pixels per Meter',
@@ -127,6 +137,8 @@ export class Report implements ReportInterface {
       this.textureDimensionsMinHeight,
       this.textureDimensionsMaxWidth,
       this.textureDimensionsMinWidth,
+      this.pbrColorMax,
+      this.pbrColorMin,
       this.dimensionsMax,
       this.dimensionsMin,
       this.productDimensionsWithinTolerance,

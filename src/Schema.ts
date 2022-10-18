@@ -26,6 +26,8 @@ export interface SchemaInterface {
   minWidth: LoadableAttributeInterface;
   notInvertedUVs: LoadableAttributeInterface;
   notOverlappingUVs: LoadableAttributeInterface;
+  pbrColorMax: LoadableAttributeInterface;
+  pbrColorMin: LoadableAttributeInterface;
   percentToleranceHeight: LoadableAttributeInterface;
   percentToleranceLength: LoadableAttributeInterface;
   percentToleranceWidth: LoadableAttributeInterface;
@@ -63,6 +65,8 @@ export class Schema implements SchemaInterface {
   minWidth = new LoadableAttribute('Min Width (x)', 0.01); // Not specified in Asset Creation Guidelines, 1cm seems reasonable for products
   notInvertedUVs = new LoadableAttribute('No Inverted UVs', true); // Inverted UVs are not recommended
   notOverlappingUVs = new LoadableAttribute('No Overlapping UVs', true); // Overlapping UVs are not recommended
+  pbrColorMax = new LoadableAttribute('Color max value is PBR safe', 243); // 243 per Asset Creation Guidelines
+  pbrColorMin = new LoadableAttribute('Color min value is PBR safe', 30); // 30 per Asset Creation Guidelines
   percentToleranceHeight = new LoadableAttribute('Percent Tolerance Height (z)', 3); // 3% per RFP Specifications
   percentToleranceLength = new LoadableAttribute('Percent Tolerance Length (y)', 3); // 3% per RFP Specifications
   percentToleranceWidth = new LoadableAttribute('Percent Tolerance Width (x)', 3); // 3% per RFP Specifications
@@ -91,6 +95,8 @@ export class Schema implements SchemaInterface {
       this.maxTextureHeight,
       this.requireTextureDimensionsBePowersOfTwo,
       this.requireTextureDimensionsBeQuadratic,
+      this.pbrColorMax,
+      this.pbrColorMin,
       this.minLength,
       this.maxLength,
       this.minWidth,
@@ -149,6 +155,14 @@ export class Schema implements SchemaInterface {
       if (obj.textures.minimum !== undefined) {
         this.minTextureWidth.loadValue(obj.textures.minimum.width);
         this.minTextureHeight.loadValue(obj.textures.minimum.height);
+      }
+      if (obj.textures.pbrColorRange !== undefined) {
+        if (obj.textures.pbrColorRange.maximum !== undefined) {
+          this.pbrColorMax.loadValue(obj.textures.pbrColorRange.maximum);
+        }
+        if (obj.textures.pbrColorRange.minimum !== undefined) {
+          this.pbrColorMin.loadValue(obj.textures.pbrColorRange.minimum);
+        }
       }
       if (obj.textures.requireDimensionsBePowersOfTwo !== undefined) {
         this.requireTextureDimensionsBePowersOfTwo.loadValue(obj.textures.requireDimensionsBePowersOfTwo);

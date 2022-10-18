@@ -20,7 +20,7 @@ export class Validator implements ValidatorInterface {
   report = new Report();
   reportReady = false;
   schema = new Schema();
-  version = '1.0.0-alpha.16';
+  version = '1.0.0-alpha.17';
 
   public generateReport() {
     if (!this.model.loaded) {
@@ -498,6 +498,28 @@ export class Validator implements ValidatorInterface {
       this.report.texturesQuadratic.test(
         this.model.texturesQuadratic.value as boolean,
         '', // TODO: R.8 Improved - report which textures failed (if any)
+      );
+    }
+
+    // PBR safe colors
+    if (this.schema.pbrColorMax.value === -1) {
+      this.report.pbrColorMax.skipTestWithMessage((this.model.colorValueMax.value as number).toLocaleString());
+    } else {
+      this.report.pbrColorMax.test(
+        this.model.colorValueMax.value <= this.schema.pbrColorMax.value,
+        (this.model.colorValueMax.value as number).toLocaleString() +
+          (this.model.colorValueMax.value <= this.schema.pbrColorMax.value ? ' <= ' : ' > ') +
+          (this.schema.pbrColorMax.value as number).toLocaleString(),
+      );
+    }
+    if (this.schema.pbrColorMin.value === -1) {
+      this.report.pbrColorMin.skipTestWithMessage((this.model.colorValueMin.value as number).toLocaleString());
+    } else {
+      this.report.pbrColorMin.test(
+        this.model.colorValueMin.value >= this.schema.pbrColorMin.value,
+        (this.model.colorValueMin.value as number).toLocaleString() +
+          (this.model.colorValueMin.value >= this.schema.pbrColorMin.value ? ' >= ' : ' < ') +
+          (this.schema.pbrColorMin.value as number).toLocaleString(),
       );
     }
   }

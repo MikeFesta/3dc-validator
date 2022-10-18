@@ -22,6 +22,8 @@ import '@babylonjs/loaders/glTF/2.0/glTFLoader.js';
 import { GLTFLoader } from '@babylonjs/loaders/glTF/2.0/glTFLoader.js';
 
 export interface ModelInterface {
+  colorValueMax: LoadableAttributeInterface;
+  colorValueMin: LoadableAttributeInterface;
   gltfJson: GltfJsonInterface;
   gltfValidatorReport: GltfValidatorReportInterface;
   fileSizeInKb: LoadableAttributeInterface;
@@ -61,6 +63,8 @@ export interface ModelInterface {
 }
 
 export class Model implements ModelInterface {
+  colorValueMax = new LoadableAttribute('Max HSV color value', 0);
+  colorValueMin = new LoadableAttribute('Min HSV color value', 0);
   gltfJson = null as unknown as GltfJsonInterface;
   gltfValidatorReport = null as unknown as GltfValidatorReportInterface;
   fileSizeInKb = new LoadableAttribute('File size in Kb', 0);
@@ -77,6 +81,7 @@ export class Model implements ModelInterface {
   primitives = [] as PrimitiveInterface[];
   primitiveCount = new LoadableAttribute('Primitive Count', 0);
   rootNodeTransform = new NodeTransform();
+  // TODO: add an images array to hold data from the glb   images: [ { bufferView: 4, mimeType: 'image/png', name: 'pbr-30-240' } ],
   texturesMaxHeight = new LoadableAttribute('Max Texture Height', 0);
   texturesMaxWidth = new LoadableAttribute('Max Texture Width', 0);
   texturesMinHeight = new LoadableAttribute('Min Texture Height', 0);
@@ -108,6 +113,8 @@ export class Model implements ModelInterface {
       this.texturesMinWidth,
       this.texturesPowerOfTwo,
       this.texturesQuadratic,
+      this.colorValueMax,
+      this.colorValueMin,
       this.length,
       this.width,
       this.height,
@@ -230,6 +237,25 @@ export class Model implements ModelInterface {
       this.height.loadValue(+(max.y - min.y).toFixed(6) as number);
       this.length.loadValue(+(max.x - min.x).toFixed(6) as number);
       this.width.loadValue(+(max.z - min.z).toFixed(6) as number);
+    }
+  }
+
+  private calculateTextureValues(primitives: PrimitiveInterface[]) {
+    let max = undefined as unknown as number;
+    let min = undefined as unknown as number;
+    primitives.forEach((primitive: PrimitiveInterface) => {
+      if (max === undefined || primitive.material.colorValueMax > max) {
+        max = primitive.material.colorValueMax;
+      }
+      if (min === undefined || primitive.material.colorValueMin > min) {
+        min = primitive.material.colorValueMin;
+      }
+    });
+    if (max !== undefined) {
+      this.colorValueMax.loadValue(max);
+    }
+    if (min !== undefined) {
+      this.colorValueMin.loadValue(min);
     }
   }
 
@@ -371,6 +397,7 @@ export class Model implements ModelInterface {
     this.loadObjectCountsFromJson(this.gltfJson);
     this.loadRootNodeTransform(scene);
     this.loadPrimitives(scene);
+    this.calculateTextureValues(this.primitives);
     this.calculateUvValues(this.primitives);
   }
 
