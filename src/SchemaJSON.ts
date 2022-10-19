@@ -1,36 +1,59 @@
 export interface SchemaJSONInterface {
   version: string;
   fileSizeInKb?: {
-    min: number;
-    max: number;
+    maximum?: number;
+    minimum?: number;
   };
-  maxTriangleCount?: number;
-  maxMaterialCount?: number;
-  dimensions?: {
-    maximum?: {
-      length: number;
-      width: number;
-      height: number;
+  materials?: {
+    maximum?: number;
+    minimum?: number;
+  };
+  model?: {
+    objectCount?: {
+      nodes?: {
+        maximum?: number;
+        minimum?: number;
+      };
+      meshes?: {
+        maximum?: number;
+        minimum?: number;
+      };
+      primitives?: {
+        maximum?: number;
+        minimum?: number;
+      };
     };
-    minimum?: {
-      length: number;
-      width: number;
-      height: number;
+    requireBeveledEdges?: boolean;
+    requireCleanRootNodeTransform?: boolean;
+    requireManifoldEdges?: boolean;
+    triangles?: {
+      maximum?: number;
+      minimum?: number;
     };
-    percentTolerance?: {
-      length: number;
-      width: number;
-      height: number;
+  };
+  product?: {
+    dimensions?: {
+      height?: {
+        maximum?: number;
+        minimum?: number;
+        percentTolerance?: number;
+      };
+      length?: {
+        maximum?: number;
+        minimum?: number;
+        percentTolerance?: number;
+      };
+      width?: {
+        maximum?: number;
+        minimum?: number;
+        percentTolerance?: number;
+      };
     };
   };
   textures?: {
-    maximum?: {
-      width: number;
-      height: number;
-    };
-    minimum?: {
-      width: number;
-      height: number;
+    height?: {
+      maximum?: number;
+      minimum?: number;
     };
     pbrColorRange?: {
       maximum?: number;
@@ -38,26 +61,25 @@ export interface SchemaJSONInterface {
     };
     requireDimensionsBePowersOfTwo?: boolean;
     requireDimensionsBeQuadratic?: boolean;
-  };
-  objectCount?: {
-    meshes?: {
-      maximum: number;
-    };
-    nodes?: {
-      maximum: number;
-    };
-    primitives?: {
-      maximum: number;
+    width?: {
+      maximum?: number;
+      minimum?: number;
     };
   };
-  requireCleanRootNodeTransform?: boolean;
   uvs?: {
+    gutterWidth?: {
+      resolution256?: number;
+      resolution512?: number;
+      resolution1024?: number;
+      resolution2048?: number;
+      resolution4096?: number;
+    };
     notInverted?: boolean;
     notOverlapping?: boolean;
     pixelsPerMeter?: {
       maximum?: number;
       minimum?: number;
     };
-    requireRangeZeroToOne: boolean;
+    requireRangeZeroToOne?: boolean;
   };
 }

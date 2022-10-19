@@ -121,40 +121,116 @@ export class Schema implements SchemaInterface {
 
     // Optional Attributes (default values will be used if not provided)
     if (obj.fileSizeInKb !== undefined) {
-      this.minFileSizeInKb.loadValue(obj.fileSizeInKb.min);
-      this.maxFileSizeInKb.loadValue(obj.fileSizeInKb.max);
-    }
-    if (obj.maxTriangleCount !== undefined) {
-      this.maxTriangleCount.loadValue(obj.maxTriangleCount);
-    }
-    if (obj.maxMaterialCount !== undefined) {
-      this.maxMaterialCount.loadValue(obj.maxMaterialCount);
-    }
-    if (obj.dimensions !== undefined) {
-      if (obj.dimensions.maximum !== undefined) {
-        this.maxLength.loadValue(obj.dimensions.maximum.length);
-        this.maxWidth.loadValue(obj.dimensions.maximum.width);
-        this.maxHeight.loadValue(obj.dimensions.maximum.height);
+      if (obj.fileSizeInKb.maximum) {
+        this.maxFileSizeInKb.loadValue(obj.fileSizeInKb.maximum);
       }
-      if (obj.dimensions.minimum !== undefined) {
-        this.minLength.loadValue(obj.dimensions.minimum.length);
-        this.minWidth.loadValue(obj.dimensions.minimum.width);
-        this.minHeight.loadValue(obj.dimensions.minimum.height);
+      if (obj.fileSizeInKb.minimum) {
+        this.minFileSizeInKb.loadValue(obj.fileSizeInKb.minimum);
       }
-      if (obj.dimensions.percentTolerance !== undefined) {
-        this.percentToleranceLength.loadValue(obj.dimensions.percentTolerance.length);
-        this.percentToleranceWidth.loadValue(obj.dimensions.percentTolerance.width);
-        this.percentToleranceHeight.loadValue(obj.dimensions.percentTolerance.height);
+    }
+    if (obj.materials !== undefined) {
+      if (obj.materials.maximum !== undefined) {
+        this.maxMaterialCount.loadValue(obj.materials.maximum);
+      }
+      if (obj.materials.minimum !== undefined) {
+        // TODO: new param minMaterialCount
+        //this.maxMaterialCount.loadValue(obj.materials.minimum);
+      }
+    }
+    if (obj.model !== undefined) {
+      if (obj.model.objectCount !== undefined) {
+        if (obj.model.objectCount.meshes !== undefined) {
+          if (obj.model.objectCount.meshes.maximum !== undefined) {
+            this.maxMeshCount.loadValue(obj.model.objectCount.meshes.maximum);
+          }
+          if (obj.model.objectCount.meshes.minimum !== undefined) {
+            // TODO: new param minMeshCount
+            //this.maxMeshCount.loadValue(obj.model.objectCount.meshes.minimum);
+          }
+        }
+        if (obj.model.objectCount.nodes !== undefined) {
+          if (obj.model.objectCount.nodes.maximum !== undefined) {
+            this.maxNodeCount.loadValue(obj.model.objectCount.nodes.maximum);
+          }
+          if (obj.model.objectCount.nodes.minimum !== undefined) {
+            // TODO: new param minNodeCount
+            //this.maxNodeCount.loadValue(obj.model.objectCount.nodes.minimum);
+          }
+        }
+        if (obj.model.objectCount.primitives !== undefined) {
+          if (obj.model.objectCount.primitives.maximum !== undefined) {
+            this.maxPrimitiveCount.loadValue(obj.model.objectCount.primitives.maximum);
+          }
+          if (obj.model.objectCount.primitives.minimum !== undefined) {
+            // TODO: minPrimitiveCount
+            //this.maxPrimitiveCount.loadValue(obj.model.objectCount.primitives.minimum);
+          }
+        }
+      }
+      if (obj.model.requireBeveledEdges !== undefined) {
+        // TODO: new param beveled edges
+      }
+      if (obj.model.requireCleanRootNodeTransform !== undefined) {
+        this.requireCleanRootNodeTransform.loadValue(obj.model.requireCleanRootNodeTransform);
+      }
+      if (obj.model.requireManifoldEdges !== undefined) {
+        // TODO: new param manifold edges
+      }
+      if (obj.model.triangles !== undefined) {
+        if (obj.model.triangles.maximum) {
+          this.maxTriangleCount.loadValue(obj.model.triangles.maximum);
+        }
+        if (obj.model.triangles.minimum) {
+          // TODO: new param minTriangleCount
+          //this.maxTriangleCount.loadValue(obj.model.triangles.minimum);
+        }
+      }
+    }
+    if (obj.product !== undefined) {
+      if (obj.product.dimensions !== undefined) {
+        if (obj.product.dimensions.height !== undefined) {
+          if (obj.product.dimensions.height.maximum !== undefined) {
+            this.maxHeight.loadValue(obj.product.dimensions.height.maximum);
+          }
+          if (obj.product.dimensions.height.minimum !== undefined) {
+            this.minHeight.loadValue(obj.product.dimensions.height.minimum);
+          }
+          if (obj.product.dimensions.height.percentTolerance !== undefined) {
+            this.percentToleranceHeight.loadValue(obj.product.dimensions.height.percentTolerance);
+          }
+        }
+        if (obj.product.dimensions.length !== undefined) {
+          if (obj.product.dimensions.length.maximum !== undefined) {
+            this.maxLength.loadValue(obj.product.dimensions.length.maximum);
+          }
+          if (obj.product.dimensions.length.minimum !== undefined) {
+            this.minLength.loadValue(obj.product.dimensions.length.minimum);
+          }
+          if (obj.product.dimensions.length.percentTolerance !== undefined) {
+            this.percentToleranceLength.loadValue(obj.product.dimensions.length.percentTolerance);
+          }
+        }
+        if (obj.product.dimensions.width !== undefined) {
+          if (obj.product.dimensions.width.maximum !== undefined) {
+            this.maxWidth.loadValue(obj.product.dimensions.width.maximum);
+          }
+          if (obj.product.dimensions.width.minimum !== undefined) {
+            this.minWidth.loadValue(obj.product.dimensions.width.minimum);
+          }
+          if (obj.product.dimensions.width.percentTolerance !== undefined) {
+            this.percentToleranceWidth.loadValue(obj.product.dimensions.width.percentTolerance);
+          }
+        }
       }
     }
     if (obj.textures !== undefined) {
-      if (obj.textures.maximum !== undefined) {
-        this.maxTextureWidth.loadValue(obj.textures.maximum.width);
-        this.maxTextureHeight.loadValue(obj.textures.maximum.height);
-      }
-      if (obj.textures.minimum !== undefined) {
-        this.minTextureWidth.loadValue(obj.textures.minimum.width);
-        this.minTextureHeight.loadValue(obj.textures.minimum.height);
+      if (obj.textures.height !== undefined) {
+        if (obj.textures.height.maximum !== undefined) {
+          this.maxTextureHeight.loadValue(obj.textures.height.maximum);
+        }
+        if (obj.textures.height.minimum !== undefined) {
+          this.minTextureHeight.loadValue(obj.textures.height.minimum);
+        }
       }
       if (obj.textures.pbrColorRange !== undefined) {
         if (obj.textures.pbrColorRange.maximum !== undefined) {
@@ -170,30 +246,38 @@ export class Schema implements SchemaInterface {
       if (obj.textures.requireDimensionsBeQuadratic !== undefined) {
         this.requireTextureDimensionsBeQuadratic.loadValue(obj.textures.requireDimensionsBeQuadratic);
       }
-    }
-    if (obj.objectCount !== undefined) {
-      if (obj.objectCount.meshes !== undefined) {
-        this.maxMeshCount.loadValue(obj.objectCount.meshes.maximum);
+      if (obj.textures.width !== undefined) {
+        if (obj.textures.width.maximum !== undefined) {
+          this.maxTextureWidth.loadValue(obj.textures.width.maximum);
+        }
+        if (obj.textures.width.minimum !== undefined) {
+          this.minTextureWidth.loadValue(obj.textures.width.minimum);
+        }
       }
-      if (obj.objectCount.nodes !== undefined) {
-        this.maxNodeCount.loadValue(obj.objectCount.nodes.maximum);
-      }
-      if (obj.objectCount.primitives !== undefined) {
-        this.maxPrimitiveCount.loadValue(obj.objectCount.primitives.maximum);
-      }
-    }
-    if (obj.requireCleanRootNodeTransform !== undefined) {
-      this.requireCleanRootNodeTransform.loadValue(obj.requireCleanRootNodeTransform);
     }
     if (obj.uvs !== undefined) {
+      if (obj.uvs.gutterWidth !== undefined) {
+        if (obj.uvs.gutterWidth.resolution256 !== undefined) {
+          // TODO: param for gutterWidth
+        }
+        if (obj.uvs.gutterWidth.resolution512 !== undefined) {
+          // TODO: param for gutterWidth
+        }
+        if (obj.uvs.gutterWidth.resolution1024 !== undefined) {
+          // TODO: param for gutterWidth
+        }
+        if (obj.uvs.gutterWidth.resolution2048 !== undefined) {
+          // TODO: param for gutterWidth
+        }
+        if (obj.uvs.gutterWidth.resolution4096 !== undefined) {
+          // TODO: param for gutterWidth
+        }
+      }
       if (obj.uvs.notInverted !== undefined) {
         this.notInvertedUVs.loadValue(obj.uvs.notInverted);
       }
       if (obj.uvs.notOverlapping !== undefined) {
         this.notOverlappingUVs.loadValue(obj.uvs.notOverlapping);
-      }
-      if (obj.uvs.requireRangeZeroToOne !== undefined) {
-        this.requireUVRangeZeroToOne.loadValue(obj.uvs.requireRangeZeroToOne);
       }
       if (obj.uvs.pixelsPerMeter !== undefined) {
         if (obj.uvs.pixelsPerMeter?.maximum !== undefined) {
@@ -202,6 +286,9 @@ export class Schema implements SchemaInterface {
         if (obj.uvs.pixelsPerMeter?.minimum !== undefined) {
           this.minPixelsPerMeter.loadValue(obj.uvs.pixelsPerMeter.minimum);
         }
+      }
+      if (obj.uvs.requireRangeZeroToOne !== undefined) {
+        this.requireUVRangeZeroToOne.loadValue(obj.uvs.requireRangeZeroToOne);
       }
     }
 
