@@ -262,32 +262,10 @@ export class TriangleUv implements TriangleUvInterface {
     return (p3.v - p1.v) * (p2.u - p1.u) > (p2.v - p1.v) * (p3.u - p1.u);
   }
 
-  private static getMaxOf2(first: number, second: number): number {
-    if (first >= second) {
-      return first;
-    }
-    return second;
-  }
-
-  private static getMaxOf3(first: number, second: number, third: number): number {
-    return TriangleUv.getMaxOf2(TriangleUv.getMaxOf2(first, second), third);
-  }
-
-  private static getMinOf2(first: number, second: number): number {
-    if (first <= second) {
-      return first;
-    }
-    return second;
-  }
-
-  private static getMinOf3(first: number, second: number, third: number): number {
-    return TriangleUv.getMinOf2(TriangleUv.getMinOf2(first, second), third);
-  }
-
   private loadMinMax() {
-    this.maxU = TriangleUv.getMaxOf3(this.a.u, this.b.u, this.c.u);
-    this.maxV = TriangleUv.getMaxOf3(this.a.v, this.b.v, this.c.v);
-    this.minU = TriangleUv.getMinOf3(this.a.u, this.b.u, this.c.u);
-    this.minV = TriangleUv.getMinOf3(this.a.v, this.b.v, this.c.v);
+    this.maxU = Math.max(this.a.u, this.b.u, this.c.u);
+    this.maxV = Math.max(this.a.v, this.b.v, this.c.v);
+    this.minU = Math.min(this.a.u, this.b.u, this.c.u);
+    this.minV = Math.min(this.a.v, this.b.v, this.c.v);
   }
 }

@@ -1,8 +1,6 @@
 import { BaseTexture, Material as BabylonMaterial } from '@babylonjs/core';
 import { Texture } from './Texture.js';
 export interface MaterialInterface {
-  colorValueMax: number;
-  colorValueMin: number;
   name: string;
   textures: Texture[];
 }
@@ -11,8 +9,6 @@ export interface MaterialInterface {
 // TODO: R.9 Improved - texel density calculation per material
 
 export class Material implements MaterialInterface {
-  colorValueMax = undefined as unknown as number;
-  colorValueMin = undefined as unknown as number;
   name = '';
   textures = [] as Texture[];
 
@@ -21,20 +17,9 @@ export class Material implements MaterialInterface {
     material.getActiveTextures().forEach((texture: BaseTexture) => {
       this.textures.push(new Texture(texture));
     });
-    this.calculateColorValueMaxMin();
   }
 
   ///////////////////////
   // PRIVATE FUNCTIONS //
   ///////////////////////
-  private calculateColorValueMaxMin = () => {
-    this.textures.forEach((texture: Texture) => {
-      if (this.colorValueMax === undefined || texture.colorValueMax > this.colorValueMax) {
-        this.colorValueMax = texture.colorValueMax;
-      }
-      if (this.colorValueMin === undefined || texture.colorValueMin < this.colorValueMin) {
-        this.colorValueMin = texture.colorValueMin;
-      }
-    });
-  };
 }

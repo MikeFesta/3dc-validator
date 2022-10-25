@@ -1,12 +1,14 @@
-import { LoadableAttribute, LoadableAttributeInterface } from './LoadableAttribute.js';
-import { NodeTransform, NodeTransformInterface } from './NodeTransform.js';
-import { Primitive, PrimitiveInterface } from './Primitive.js';
+import { GltfBinInterface } from './GltfBin.js';
 import { GltfJsonInterface, GltfJsonMeshInterface } from './GltfJson.js';
 import {
   GltfValidatorReportInterface,
   GltfValidatorReportInfoInterface,
   GltfValidatorReportInfoResourceInterface,
 } from './GltfValidatorReport.js';
+import { Image, ImageInterface } from './Image.js';
+import { LoadableAttribute, LoadableAttributeInterface } from './LoadableAttribute.js';
+import { NodeTransform, NodeTransformInterface } from './NodeTransform.js';
+import { Primitive, PrimitiveInterface } from './Primitive.js';
 import { readFile, stat } from 'fs/promises';
 //@ts-ignore
 import { validateBytes } from 'gltf-validator';
@@ -19,16 +21,17 @@ import { EncodeArrayBufferToBase64 } from '@babylonjs/core/Misc/stringTools.js';
 import { Scene } from '@babylonjs/core/scene.js';
 import { GLTFFileLoader } from '@babylonjs/loaders';
 import '@babylonjs/loaders/glTF/2.0/glTFLoader.js';
-import { GLTFLoader } from '@babylonjs/loaders/glTF/2.0/glTFLoader.js';
+import { GLTFLoader } from '@babylonjs/loaders/glTF/2.0/glTFLoader.js'; // VS code marks this as not in use, but it is required
 
 export interface ModelInterface {
+  bin: GltfBinInterface;
   colorValueMax: LoadableAttributeInterface;
   colorValueMin: LoadableAttributeInterface;
-  gltfJson: GltfJsonInterface;
-  gltfValidatorReport: GltfValidatorReportInterface;
   fileSizeInKb: LoadableAttributeInterface;
+  gltfValidatorReport: GltfValidatorReportInterface;
   height: LoadableAttributeInterface;
   invertedTriangleCount: LoadableAttributeInterface;
+  json: GltfJsonInterface;
   length: LoadableAttributeInterface;
   loaded: boolean;
   materialCount: LoadableAttributeInterface;
@@ -63,13 +66,15 @@ export interface ModelInterface {
 }
 
 export class Model implements ModelInterface {
+  bin = undefined as unknown as GltfBinInterface;
   colorValueMax = new LoadableAttribute('Max HSV color value', 0);
   colorValueMin = new LoadableAttribute('Min HSV color value', 0);
-  gltfJson = null as unknown as GltfJsonInterface;
-  gltfValidatorReport = null as unknown as GltfValidatorReportInterface;
   fileSizeInKb = new LoadableAttribute('File size in Kb', 0);
+  gltfValidatorReport = null as unknown as GltfValidatorReportInterface;
   height = new LoadableAttribute('Height in Meters', 0);
+  images = [] as ImageInterface[];
   invertedTriangleCount = new LoadableAttribute('Inverted Faces', 0);
+  json = null as unknown as GltfJsonInterface;
   length = new LoadableAttribute('Length in Meters', 0);
   loaded = false;
   materialCount = new LoadableAttribute('Material Count', 0);
@@ -240,15 +245,15 @@ export class Model implements ModelInterface {
     }
   }
 
-  private calculateTextureValues(primitives: PrimitiveInterface[]) {
+  private calculateColorValues(images: ImageInterface[]) {
     let max = undefined as unknown as number;
     let min = undefined as unknown as number;
-    primitives.forEach((primitive: PrimitiveInterface) => {
-      if (max === undefined || primitive.material.colorValueMax > max) {
-        max = primitive.material.colorValueMax;
+    images.forEach((image: ImageInterface) => {
+      if (max === undefined || image.maxValue > max) {
+        max = image.maxValue;
       }
-      if (min === undefined || primitive.material.colorValueMin > min) {
-        min = primitive.material.colorValueMin;
+      if (min === undefined || image.minValue < min) {
+        min = image.minValue;
       }
     });
     if (max !== undefined) {
@@ -362,14 +367,42 @@ export class Model implements ModelInterface {
     return { maxHeight, minHeight, maxWidth, minWidth };
   }
 
-  private async loadGltfJson(scene: Scene, data: string | File): Promise<GltfJsonInterface> {
+  // Loads the binary data into Image objects with node-canvas. NullEngine does not load images.
+  private async loadImages(json: GltfJsonInterface, data: GltfBinInterface) {
+    if (json.images !== undefined) {
+      // Note: can't use forEach because we need to await
+      for (let i = 0; i < json.images.length; i++) {
+        try {
+          const imageJson = json.images[i];
+          const bufferView = json.bufferViews[imageJson.bufferView];
+          // NOTE: their can be multiple buffers when there are external files
+          const arrayBuffer = await this.bin.readAsync(bufferView.byteOffset, bufferView.byteLength);
+          const buffer = Buffer.alloc(bufferView.byteLength, undefined, 'utf-8');
+          const binaryData = new Uint8Array(arrayBuffer);
+          for (let j = 0; j < buffer.length; j++) {
+            buffer[j] = binaryData[j];
+          }
+          const image = new Image(imageJson);
+          await image.init(buffer);
+          this.images.push(image);
+        } catch (err) {
+          console.log('error creating image named: ' + json.images[i].name);
+          console.log(err);
+        }
+      }
+    }
+  }
+
+  private async loadGltfJsonBin(scene: Scene, data: string | File): Promise<void> {
     return await new Promise((resolve, reject) => {
       const fileLoader = new GLTFFileLoader();
       fileLoader.loadFile(
         scene,
         data,
         data => {
-          resolve(data.json);
+          this.json = data.json;
+          this.bin = data.bin;
+          resolve();
         },
         ev => {
           // progress. nothing to do
@@ -384,21 +417,29 @@ export class Model implements ModelInterface {
 
   private async loadWithBabylon(data: string | File) {
     Logger.LogLevels = Logger.WarningLogLevel; // supress NullEngine welcome message in CLI / unit tests
-    const engine = new NullEngine();
-    const scene = new Scene(engine);
+    try {
+      const engine = new NullEngine();
+      const scene = new Scene(engine);
 
-    this.gltfJson = await this.loadGltfJson(scene, data);
-    // Note: the file was already loaded to extract the JSON, but now
-    // gets loaded a 2nd time by SceneLoader. There might be a more
-    // efficient way to import what's already loaded into the scene.
-    await SceneLoader.AppendAsync('', data, scene);
+      // populates this.json and this.bin
+      await this.loadGltfJsonBin(scene, data);
 
-    this.calculateDimensions(scene);
-    this.loadObjectCountsFromJson(this.gltfJson);
-    this.loadRootNodeTransform(scene);
-    this.loadPrimitives(scene);
-    this.calculateTextureValues(this.primitives);
-    this.calculateUvValues(this.primitives);
+      // Note: the file was already loaded to extract the JSON, but now
+      // gets loaded a 2nd time by SceneLoader. There might be a more
+      // efficient way to import what's already loaded into the scene.
+      await SceneLoader.AppendAsync('', data, scene);
+
+      this.calculateDimensions(scene);
+      await this.loadImages(this.json, this.bin);
+      this.calculateColorValues(this.images); // after images are loaded
+      this.loadObjectCountsFromJson(this.json);
+      this.loadRootNodeTransform(scene);
+      this.loadPrimitives(scene);
+      this.calculateUvValues(this.primitives);
+    } catch (err) {
+      console.log('error loading model / creating engine');
+      console.log(err);
+    }
   }
 
   private loadPrimitives(scene: Scene) {

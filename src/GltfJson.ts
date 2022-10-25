@@ -1,3 +1,15 @@
+export interface GltfJsonBufferViewInterface {
+  buffer: number;
+  byteLength: number;
+  byteOffset: number;
+}
+
+export interface GltfJsonImageInterface {
+  bufferView: number;
+  mimeType: string;
+  name: string;
+}
+
 export interface GltfJsonMeshInterface {
   name: string;
   primitives: GltfJsonPrimitiveInterface[];
@@ -16,10 +28,10 @@ export interface GltfJsonInterface {
     generator: string;
     version: string;
   };
-  bufferViews: object[];
+  bufferViews: GltfJsonBufferViewInterface[];
   buffers: object[];
   extensionsUsed: string[];
-  images: object[];
+  images: GltfJsonImageInterface[];
   materials: object[];
   meshes: GltfJsonMeshInterface[];
   nodes: object[];
