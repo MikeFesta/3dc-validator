@@ -1,4 +1,4 @@
-export interface PointXyzInterface {
+export interface VertexInterface {
   x: number;
   y: number;
   z: number;
