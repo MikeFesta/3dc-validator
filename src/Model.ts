@@ -281,7 +281,7 @@ export class Model implements ModelInterface {
     let maxDensity = undefined as unknown as number;
     let minDensity = undefined as unknown as number;
 
-    this.primitives.forEach((primitive: Primitive) => {
+    this.primitives.forEach((primitive: PrimitiveInterface) => {
       // 1.
       if (maxU === undefined || primitive.uv.u.max.value > maxU) {
         maxU = primitive.uv.u.max.value as number;
