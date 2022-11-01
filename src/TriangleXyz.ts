@@ -1,36 +1,31 @@
 // This represents a 3D triangle of a primitive
-import { PointXyzInterface } from './PointXyz.js';
 import { TriangleUvInterface } from './TriangleUv.js';
+import { VertexInterface } from './Vertex.js';
 import { Vector3 } from '@babylonjs/core';
 
 export interface TriangleXyzInterface {
-  a: PointXyzInterface;
+  a: VertexInterface;
   area: number;
-  b: PointXyzInterface;
-  c: PointXyzInterface;
+  b: VertexInterface;
+  c: VertexInterface;
+  normal: Vector3;
   uv: TriangleUvInterface;
 }
 
 export class TriangleXyz implements TriangleXyzInterface {
-  a = { x: 0, y: 0, z: 0 };
+  a = null as unknown as VertexInterface;
   area = 0;
-  b = { x: 0, y: 0, z: 0 };
-  c = { x: 0, y: 0, z: 0 };
+  b = null as unknown as VertexInterface;
+  c = null as unknown as VertexInterface;
+  normal = null as unknown as Vector3;
   uv = null as unknown as TriangleUvInterface;
 
-  constructor(pointArray: number[]) {
-    if (pointArray.length == 9) {
-      this.a.x = pointArray[0];
-      this.a.y = pointArray[1];
-      this.a.z = pointArray[2];
-      this.b.x = pointArray[3];
-      this.b.y = pointArray[4];
-      this.b.z = pointArray[5];
-      this.c.x = pointArray[6];
-      this.c.y = pointArray[7];
-      this.c.z = pointArray[8];
-      this.calculateArea();
-    }
+  constructor(a: VertexInterface, b: VertexInterface, c: VertexInterface) {
+    this.a = a;
+    this.b = b;
+    this.c = c;
+    this.calculateArea();
+    this.calculateNormal();
   }
 
   ///////////////////////
@@ -52,5 +47,11 @@ export class TriangleXyz implements TriangleXyzInterface {
         (positionHalfPerimeter - positionBC) *
         (positionHalfPerimeter - positionAC),
     );
+  }
+
+  private calculateNormal() {
+    const positionBminusA = new Vector3(this.b.x - this.a.x, this.b.y - this.a.y, this.b.z - this.a.z);
+    const positionCminusA = new Vector3(this.c.x - this.a.x, this.c.y - this.a.y, this.c.z - this.a.z);
+    this.normal = Vector3.Normalize(Vector3.Cross(positionBminusA, positionCminusA));
   }
 }
