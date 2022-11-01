@@ -70,6 +70,8 @@ export class Schema implements SchemaInterface {
   percentToleranceHeight = new LoadableAttribute('Percent Tolerance Height (z)', 3); // 3% per RFP Specifications
   percentToleranceLength = new LoadableAttribute('Percent Tolerance Length (y)', 3); // 3% per RFP Specifications
   percentToleranceWidth = new LoadableAttribute('Percent Tolerance Width (x)', 3); // 3% per RFP Specifications
+  requireBeveledEdges = new LoadableAttribute('Require Beveled Edges', false); // Not required, edge computation is a little slow
+  requireManifoldEdges = new LoadableAttribute('Require Manifold Edges', false); // Not required, edge computation is a little slow
   requireTextureDimensionsBePowersOfTwo = new LoadableAttribute('Require Texture Dimensions be Powers of 2', true);
   requireTextureDimensionsBeQuadratic = new LoadableAttribute(
     'Require Texture Dimensions be Quadratic (height = width)',
@@ -168,13 +170,13 @@ export class Schema implements SchemaInterface {
         }
       }
       if (obj.model.requireBeveledEdges !== undefined) {
-        // TODO: new param beveled edges
+        this.requireBeveledEdges.loadValue(obj.model.requireBeveledEdges);
       }
       if (obj.model.requireCleanRootNodeTransform !== undefined) {
         this.requireCleanRootNodeTransform.loadValue(obj.model.requireCleanRootNodeTransform);
       }
       if (obj.model.requireManifoldEdges !== undefined) {
-        // TODO: new param manifold edges
+        this.requireManifoldEdges.loadValue(obj.model.requireManifoldEdges);
       }
       if (obj.model.triangles !== undefined) {
         if (obj.model.triangles.maximum) {

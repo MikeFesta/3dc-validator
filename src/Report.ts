@@ -14,6 +14,8 @@ export interface ReportInterface {
   pixelsPerMeterMin: ReportItemInterface;
   primitiveCount: ReportItemInterface;
   productDimensionsWithinTolerance: ReportItemInterface;
+  requireBeveledEdges: ReportItemInterface;
+  requireManifoldEdges: ReportItemInterface;
   rootNodeCleanTransform: ReportItemInterface;
   textureDimensionsMaxHeight: ReportItemInterface;
   textureDimensionsMaxWidth: ReportItemInterface;
@@ -78,6 +80,14 @@ export class Report implements ReportInterface {
     'Dimensions Match Product',
     'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec02_CoordinateSystemAndScaleUnit/CoordinateSystemAndScaleUnit.md',
   );
+  requireBeveledEdges = new ReportItem(
+    'Require Beveled Edges',
+    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec03_Geometry/Geometry.md#topology--mesh-optimization',
+  );
+  requireManifoldEdges = new ReportItem(
+    'Require Manifold Edges',
+    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec03_Geometry/Geometry.md#watertight-vs-open-mesh-geometry',
+  );
   rootNodeCleanTransform = new ReportItem(
     'Root Node has Clean Transform',
     'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec03_Geometry/Geometry.md#best-practice',
@@ -131,6 +141,8 @@ export class Report implements ReportInterface {
       this.meshCount,
       this.nodeCount,
       this.primitiveCount,
+      this.requireBeveledEdges,
+      this.requireManifoldEdges,
       this.texturesPowerOfTwo,
       this.texturesQuadratic,
       this.textureDimensionsMaxHeight,

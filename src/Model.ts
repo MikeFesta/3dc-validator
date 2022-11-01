@@ -29,6 +29,7 @@ export interface ModelInterface {
   colorValueMin: LoadableAttributeInterface;
   fileSizeInKb: LoadableAttributeInterface;
   gltfValidatorReport: GltfValidatorReportInterface;
+  hardEdgeCount: LoadableAttributeInterface;
   height: LoadableAttributeInterface;
   invertedTriangleCount: LoadableAttributeInterface;
   json: GltfJsonInterface;
@@ -40,6 +41,7 @@ export interface ModelInterface {
   minUvDensity: LoadableAttributeInterface;
   overlappingUvCount: LoadableAttributeInterface;
   nodeCount: LoadableAttributeInterface;
+  nonManifoldEdgeCount: LoadableAttributeInterface;
   primitives: PrimitiveInterface[];
   primitiveCount: LoadableAttributeInterface;
   rootNodeTransform: NodeTransformInterface;
@@ -71,6 +73,7 @@ export class Model implements ModelInterface {
   colorValueMin = new LoadableAttribute('Min HSV color value', 0);
   fileSizeInKb = new LoadableAttribute('File size in Kb', 0);
   gltfValidatorReport = null as unknown as GltfValidatorReportInterface;
+  hardEdgeCount = new LoadableAttribute('Hard Edges (angle > 90)', 0);
   height = new LoadableAttribute('Height in Meters', 0);
   images = [] as ImageInterface[];
   invertedTriangleCount = new LoadableAttribute('Inverted Faces', 0);
@@ -81,6 +84,7 @@ export class Model implements ModelInterface {
   maxUvDensity = new LoadableAttribute('Max UV Density', 0);
   meshCount = new LoadableAttribute('Mesh Count', 0);
   minUvDensity = new LoadableAttribute('Min UV Density', 0);
+  nonManifoldEdgeCount = new LoadableAttribute('Non-Manifold Edges', 0);
   nodeCount = new LoadableAttribute('Node Count', 0);
   overlappingUvCount = new LoadableAttribute('Overlapping UVs', 0);
   primitives = [] as PrimitiveInterface[];
@@ -112,6 +116,8 @@ export class Model implements ModelInterface {
       this.meshCount,
       this.nodeCount,
       this.primitiveCount,
+      this.hardEdgeCount,
+      this.nonManifoldEdgeCount,
       this.texturesMaxHeight,
       this.texturesMinHeight,
       this.texturesMaxWidth,
@@ -262,6 +268,17 @@ export class Model implements ModelInterface {
     if (min !== undefined) {
       this.colorValueMin.loadValue(min);
     }
+  }
+
+  private calculateEdgeValues(primitives: PrimitiveInterface[]) {
+    let hardEdges = 0;
+    let nonManifoldEdges = 0;
+    this.primitives.forEach((primitive: PrimitiveInterface) => {
+      hardEdges += primitive.hardEdgeCount;
+      nonManifoldEdges += primitive.nonManifoldEdgeCount;
+    });
+    this.hardEdgeCount.loadValue(hardEdges);
+    this.nonManifoldEdgeCount.loadValue(nonManifoldEdges);
   }
 
   private calculateUvValues(primitives: PrimitiveInterface[]) {
@@ -435,6 +452,7 @@ export class Model implements ModelInterface {
       this.loadObjectCountsFromJson(this.json);
       this.loadRootNodeTransform(scene);
       this.loadPrimitives(scene);
+      this.calculateEdgeValues(this.primitives);
       this.calculateUvValues(this.primitives);
     } catch (err) {
       console.log('error loading model / creating engine');

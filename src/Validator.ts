@@ -36,6 +36,7 @@ export class Validator implements ValidatorInterface {
     this.testMaterialCount();
     this.testTextures();
     this.testDimensions();
+    this.testEdges();
     this.testObjectCount();
     this.testRootNodeTransform();
     this.testUVs();
@@ -122,6 +123,25 @@ export class Validator implements ValidatorInterface {
       }
       dimensionsMinMessage += ') Min';
       this.report.dimensionsMin.test(dimensionsMinOK, dimensionsMinMessage);
+    }
+  }
+
+  private testEdges() {
+    if (this.schema.requireBeveledEdges.value === false) {
+      this.report.requireBeveledEdges.skipTestWithMessage('Not Required');
+    } else {
+      this.report.requireBeveledEdges.test(
+        this.model.hardEdgeCount.value === 0,
+        (this.model.hardEdgeCount.value as number).toLocaleString() + ' hard edges (>= 90 degrees)',
+      );
+    }
+    if (this.schema.requireManifoldEdges.value === false) {
+      this.report.requireManifoldEdges.skipTestWithMessage('Not Required');
+    } else {
+      this.report.requireManifoldEdges.test(
+        this.model.nonManifoldEdgeCount.value === 0,
+        (this.model.nonManifoldEdgeCount.value as number).toLocaleString() + ' non-manifold edges',
+      );
     }
   }
 

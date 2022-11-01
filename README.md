@@ -32,9 +32,9 @@ This package is used for both a command line interface, as well as a front-end w
 - Inverted UVs
 - UV Overlaps
 - PBR Safe Colors
-- Hard Edges
+- Beveled Edges (no hard edges >= 90 degrees)
+- Non-Manifold Edges
 
 #### Checks to be added
 
-- Non-Manifold Edges
 - UV Margin Size

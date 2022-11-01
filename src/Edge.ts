@@ -28,16 +28,25 @@ export default class Edge implements EdgeInterface {
 
   public calculateAttributes(): void {
     if (this.triangles.length === 2) {
-      // Compute the angle between the triangle normal vectors
+      // Compute the angle between the normal vectors (used to check beveled edges vs hard edges)
       this.faceAngleInRadians = Vector3.GetAngleBetweenVectors(
         this.triangles[0].normal,
         this.triangles[1].normal,
         Vector3.Cross(this.triangles[0].normal, this.triangles[1].normal),
       );
-      // TODO: may be other factors to check for manifoldness
+      // Currently, having only 2 faces for the edge is enough to consider it manifold
+      // Other factors to check for manifoldness (reserved for a future update):
+      // - Opposite facing normals
+      // - Surfaces connected to one vertex
       // https://cgtyphoon.com/fundamentals/types-of-non-manifold-geometry/
       this.nonManifold = false;
+    } else if (this.triangles.length === 1) {
+      // Open Geometry (2-manifold with boundries) - OK to have
+      this.nonManifold = false;
     } else {
+      // More than 2 faces can indicate these non-manifold conditions:
+      // - T-type
+      // - Internal Faces
       this.nonManifold = true;
     }
   }
