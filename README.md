@@ -6,14 +6,9 @@
 
 This is a typescript package that contains classes for checking a 3D file, currently only in glTF format, against a 3D Commerce use case schema definition in JSON.
 
-This package is used for both a command line interface, as well as a front-end web interface, published seperately.
+This package can be used by both a command line interface (node), as well as a front-end web interface. See 3dc-validator-cli and 3dc-validator-web for integration examples.
 
-## Dependencies
-
-- https://www.babylonjs.com/
-- https://github.com/KhronosGroup/glTF-Validator
-
-#### Checks currently available
+## Checks currently available
 
 - File Size (min/max)
 - Triangle Count (max)
