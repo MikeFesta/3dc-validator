@@ -20,7 +20,7 @@ export class Validator implements ValidatorInterface {
   report = new Report();
   reportReady = false;
   schema = new Schema();
-  version = '1.0.0-alpha.20';
+  version = '1.0.0-alpha.21';
 
   public generateReport() {
     if (!this.model.loaded) {
