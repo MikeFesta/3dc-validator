@@ -1,6 +1,5 @@
 import { LoadableAttribute, LoadableAttributeInterface } from './LoadableAttribute.js';
 import { ProductInfoJSONInterface } from './ProductInfoJSON.js';
-import { readFile } from 'fs/promises';
 
 export interface ProductInfoInterface {
   height: LoadableAttributeInterface;
@@ -52,7 +51,7 @@ export class ProductInfo implements ProductInfoInterface {
 
   // This version is for node.js and the file comes from the file system
   public async loadFromFileSystem(filepath: string): Promise<void> {
-    const schemaText = await readFile(filepath, 'utf-8');
+    const schemaText = await eval('require')('fs/promises').readFile(filepath, 'utf-8');
     const obj = JSON.parse(schemaText) as ProductInfoJSONInterface;
     this.loadFromProductInfoObject(obj);
   }
