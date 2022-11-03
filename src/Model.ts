@@ -183,12 +183,13 @@ export class Model implements ModelInterface {
   // This version is for node.js and the file comes from the file system
   public async loadFromFileSystem(filepath: string): Promise<void> {
     try {
-      const fileStats = await eval('require')('fs/promises').stat(filepath);
+      const { promises } = await import('fs');
+      const fileStats = await promises.stat(filepath);
       this.fileSizeInKb.loadValue(Number((fileStats.size / 1024).toFixed(0)));
       if (this.fileSizeInKb.value === 0) {
         throw new Error('File size is zero');
       }
-      const fileDataBuffer = await eval('require')('fs/promises').readFile(filepath);
+      const fileDataBuffer = await promises.readFile(filepath);
       await this.loadWithGltfValidator(fileDataBuffer);
       const data = 'data:;base64,' + EncodeArrayBufferToBase64(fileDataBuffer);
       await this.loadWithBabylon(data);

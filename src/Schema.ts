@@ -318,7 +318,8 @@ export class Schema implements SchemaInterface {
 
   // This version is for node.js and the file comes from the file system
   public async loadFromFileSystem(filepath: string): Promise<void> {
-    const schemaText = await eval('require')('fs/promises').readFile(filepath, 'utf-8');
+    const { promises } = await import('fs');
+    const schemaText = await promises.readFile(filepath, 'utf-8');
     const schemaObj = JSON.parse(schemaText) as SchemaJSONInterface;
     this.loadFromSchemaObject(schemaObj);
   }

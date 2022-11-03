@@ -51,7 +51,8 @@ export class ProductInfo implements ProductInfoInterface {
 
   // This version is for node.js and the file comes from the file system
   public async loadFromFileSystem(filepath: string): Promise<void> {
-    const schemaText = await eval('require')('fs/promises').readFile(filepath, 'utf-8');
+    const { promises } = await import('fs');
+    const schemaText = await promises.readFile(filepath, 'utf-8');
     const obj = JSON.parse(schemaText) as ProductInfoJSONInterface;
     this.loadFromProductInfoObject(obj);
   }
