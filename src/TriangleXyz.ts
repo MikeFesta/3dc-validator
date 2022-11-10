@@ -1,26 +1,26 @@
 // This represents a 3D triangle of a primitive
 import { TriangleUvInterface } from './TriangleUv.js';
-import { VertexInterface } from './Vertex.js';
+import { VertexXyzInterface } from './VertexXyz.js';
 import { Vector3 } from '@babylonjs/core';
 
 export interface TriangleXyzInterface {
-  a: VertexInterface;
+  a: VertexXyzInterface;
   area: number;
-  b: VertexInterface;
-  c: VertexInterface;
+  b: VertexXyzInterface;
+  c: VertexXyzInterface;
   normal: Vector3;
   uv: TriangleUvInterface;
 }
 
 export class TriangleXyz implements TriangleXyzInterface {
-  a = null as unknown as VertexInterface;
+  a = null as unknown as VertexXyzInterface;
   area = 0;
-  b = null as unknown as VertexInterface;
-  c = null as unknown as VertexInterface;
+  b = null as unknown as VertexXyzInterface;
+  c = null as unknown as VertexXyzInterface;
   normal = null as unknown as Vector3;
   uv = null as unknown as TriangleUvInterface;
 
-  constructor(a: VertexInterface, b: VertexInterface, c: VertexInterface) {
+  constructor(a: VertexXyzInterface, b: VertexXyzInterface, c: VertexXyzInterface) {
     this.a = a;
     this.b = b;
     this.c = c;

@@ -1,27 +1,27 @@
 import { float, Vector3 } from '@babylonjs/core';
 import { TriangleXyzInterface } from './TriangleXyz';
-import { VertexInterface } from './Vertex';
+import { VertexXyzInterface } from './VertexXyz';
 
-export interface EdgeInterface {
+export interface EdgeXyzInterface {
   faceAngleInRadians: float;
   index: number;
   nonManifold: boolean;
   triangles: TriangleXyzInterface[];
-  vertexA: VertexInterface;
-  vertexB: VertexInterface;
+  vertexA: VertexXyzInterface;
+  vertexB: VertexXyzInterface;
   calculateAttributes(): void;
-  checkForMatch(edge: EdgeInterface): boolean;
+  checkForMatch(edge: EdgeXyzInterface): boolean;
 }
 
-export default class Edge implements EdgeInterface {
+export default class EdgeXyz implements EdgeXyzInterface {
   faceAngleInRadians = undefined as unknown as number;
   index = undefined as unknown as number;
   nonManifold = undefined as unknown as boolean;
   triangles = [] as TriangleXyzInterface[];
-  vertexA = null as unknown as VertexInterface;
-  vertexB = null as unknown as VertexInterface;
+  vertexA = null as unknown as VertexXyzInterface;
+  vertexB = null as unknown as VertexXyzInterface;
 
-  constructor(a: VertexInterface, b: VertexInterface) {
+  constructor(a: VertexXyzInterface, b: VertexXyzInterface) {
     this.vertexA = a;
     this.vertexB = b;
   }
@@ -51,7 +51,7 @@ export default class Edge implements EdgeInterface {
     }
   }
 
-  public checkForMatch(edge: EdgeInterface): boolean {
+  public checkForMatch(edge: EdgeXyzInterface): boolean {
     // Treat AB and BA as equal by testing min/max of the index
     if (
       Math.min(this.vertexA.index, this.vertexB.index) === Math.min(edge.vertexA.index, edge.vertexB.index) &&

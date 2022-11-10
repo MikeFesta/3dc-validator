@@ -1,15 +1,15 @@
-import Edge, { EdgeInterface } from './Edge.js';
+import EdgeXyz, { EdgeXyzInterface } from './EdgeXyz.js';
 import { LoadableAttribute, LoadableAttributeInterface } from './LoadableAttribute.js';
 import { Material, MaterialInterface } from './Material.js';
 import { TriangleUv } from './TriangleUv.js';
 import { TriangleXyz, TriangleXyzInterface } from './TriangleXyz.js';
 import { UV, UVInterface } from './UV.js';
-import Vertex, { VertexInterface } from './Vertex.js';
+import VertexXyz, { VertexXyzInterface } from './VertexXyz.js';
 import { AbstractMesh } from '@babylonjs/core';
 import { VertexBuffer } from '@babylonjs/core/Buffers/buffer.js';
 
 export interface PrimitiveInterface {
-  edges: EdgeInterface[];
+  edges: EdgeXyzInterface[];
   hardEdgeCount: number;
   material: MaterialInterface;
   maxDensity: LoadableAttributeInterface; // TODO: rename to densityMax
@@ -19,11 +19,11 @@ export interface PrimitiveInterface {
   nonManifoldEdgeCount: number;
   triangles: TriangleXyzInterface[];
   uv: UVInterface;
-  verticies: VertexInterface[];
+  verticies: VertexXyzInterface[];
 }
 
 export class Primitive implements PrimitiveInterface {
-  edges = [] as EdgeInterface[];
+  edges = [] as EdgeXyzInterface[];
   hardEdgeCount = 0;
   material = null as unknown as MaterialInterface;
   maxDensity = new LoadableAttribute('Highest pixel density', 0);
@@ -33,7 +33,7 @@ export class Primitive implements PrimitiveInterface {
   nonManifoldEdgeCount = 0;
   triangles = [] as TriangleXyzInterface[];
   uv = null as unknown as UVInterface;
-  verticies = [] as VertexInterface[];
+  verticies = [] as VertexXyzInterface[];
 
   constructor(mesh: AbstractMesh) {
     if (mesh.material) {
@@ -86,9 +86,9 @@ export class Primitive implements PrimitiveInterface {
           // edges, I need to reconstruct shared vertices and track new indices
           // WARNING: This might get really slow with a lot of vertices.
           // TODO: only compute vertex indices and edges if needed (ie for hard edge and/or non-manifold count)
-          let vertexA = new Vertex(xyzData[indexA * 3], xyzData[indexA * 3 + 1], xyzData[indexA * 3 + 2]);
-          let vertexB = new Vertex(xyzData[indexB * 3], xyzData[indexB * 3 + 1], xyzData[indexB * 3 + 2]);
-          let vertexC = new Vertex(xyzData[indexC * 3], xyzData[indexC * 3 + 1], xyzData[indexC * 3 + 2]);
+          let vertexA = new VertexXyz(xyzData[indexA * 3], xyzData[indexA * 3 + 1], xyzData[indexA * 3 + 2]);
+          let vertexB = new VertexXyz(xyzData[indexB * 3], xyzData[indexB * 3 + 1], xyzData[indexB * 3 + 2]);
+          let vertexC = new VertexXyz(xyzData[indexC * 3], xyzData[indexC * 3 + 1], xyzData[indexC * 3 + 2]);
 
           if (this.verticies.length === 0) {
             // Assume that these 3 vertices are distinct
@@ -133,9 +133,9 @@ export class Primitive implements PrimitiveInterface {
           this.triangles.push(triangle);
 
           // Edges
-          let edgeAB = new Edge(vertexA, vertexB);
-          let edgeBC = new Edge(vertexB, vertexC);
-          let edgeCA = new Edge(vertexC, vertexA);
+          let edgeAB = new EdgeXyz(vertexA, vertexB);
+          let edgeBC = new EdgeXyz(vertexB, vertexC);
+          let edgeCA = new EdgeXyz(vertexC, vertexA);
 
           // Only record edges once
           if (this.edges.length === 0) {

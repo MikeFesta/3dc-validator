@@ -1,6 +1,7 @@
 import { LoadableAttribute, LoadableAttributeInterface } from './LoadableAttribute.js';
-import { TriangleUvInterface } from './TriangleUv.js';
 import { Svg, SvgInterface } from './Svg.js';
+import { TriangleUvInterface } from './TriangleUv.js';
+import { UvIslandInterface } from './UvIsland.js';
 
 export interface MaxMinLoadableAttributeInterface {
   max: LoadableAttributeInterface;
@@ -9,6 +10,7 @@ export interface MaxMinLoadableAttributeInterface {
 
 export interface UVInterface {
   invertedTriangleCount: LoadableAttributeInterface;
+  islands: UvIslandInterface[];
   name: string;
   overlapCount: LoadableAttributeInterface;
   svgInvertedTriangles: SvgInterface;
@@ -21,6 +23,7 @@ export interface UVInterface {
 
 export class UV implements UVInterface {
   invertedTriangleCount = new LoadableAttribute('Number of inverted triangles', 0);
+  islands = [] as UvIslandInterface[];
   svgInvertedTriangles = null as unknown as Svg;
   svgLayout = null as unknown as Svg;
   name = '';
@@ -41,7 +44,8 @@ export class UV implements UVInterface {
     this.svgLayout = new Svg(name + '-uvs');
     this.triangles = triangles;
 
-    this.calculateInvertedTriangleCount();
+    this.calculateUvIslands(this.triangles);
+    this.calculateInvertedTriangleCount(); // TODO: pass triangles to each of these as well. it make it more clear that they need to be initialized
     this.calculateMaxMinExtents();
     this.calculateOverlapCount();
     this.generateSvgs();
@@ -122,6 +126,13 @@ export class UV implements UVInterface {
       }
     });
     this.overlapCount.loadValue(overlappingTrianglesCount);
+  };
+
+  private calculateUvIslands = (triangles: TriangleUvInterface[]) => {
+    // vertex indices
+    triangles.forEach((triangle: TriangleUvInterface) => {
+      //console.log('check triangle UV verts for match');
+    });
   };
 
   private generateSvgs = () => {

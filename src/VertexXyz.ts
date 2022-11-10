@@ -1,12 +1,12 @@
-export interface VertexInterface {
+export interface VertexXyzInterface {
   index: number;
   x: number;
   y: number;
   z: number;
-  checkForMatch(vertex: VertexInterface): boolean;
+  checkForMatch(vertex: VertexXyzInterface): boolean;
 }
 
-export default class Vertex implements VertexInterface {
+export default class VertexXyz implements VertexXyzInterface {
   index = undefined as unknown as number;
   x = undefined as unknown as number;
   y = undefined as unknown as number;
@@ -18,7 +18,7 @@ export default class Vertex implements VertexInterface {
     this.z = z;
   }
 
-  public checkForMatch(vertex: VertexInterface): boolean {
+  public checkForMatch(vertex: VertexXyzInterface): boolean {
     const precision = 6;
     const e = 10 ^ precision;
     if (
