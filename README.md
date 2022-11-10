@@ -29,7 +29,4 @@ This package can be used by both a command line interface (node), as well as a f
 - PBR Safe Colors
 - Beveled Edges (no hard edges >= 90 degrees)
 - Non-Manifold Edges
-
-#### Checks to be added
-
 - UV Margin Size
