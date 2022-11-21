@@ -19,8 +19,9 @@ export default class VertexXyz implements VertexXyzInterface {
   }
 
   public checkForMatch(vertex: VertexXyzInterface): boolean {
-    const precision = 6;
-    const e = 10 ^ precision;
+    // See VertexUv.checkForMatch for an explaination of why this value is 5
+    const precision = 5;
+    const e = 10 ** precision; // don't use caret ^ because it's XOR
     if (
       Math.round(vertex.x * e) == Math.round(this.x * e) &&
       Math.round(vertex.y * e) == Math.round(this.y * e) &&

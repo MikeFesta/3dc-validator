@@ -1,4 +1,5 @@
 import { Model, ModelInterface } from './Model.js';
+import { PrimitiveInterface } from './Primitive.js';
 import { ProductInfo, ProductInfoInterface } from './ProductInfo.js';
 import { Report, ReportInterface } from './Report.js';
 import { Schema, SchemaInterface } from './Schema.js';
@@ -618,5 +619,18 @@ export class Validator implements ValidatorInterface {
           (this.schema.minPixelsPerMeter.value as number).toLocaleString(),
       );
     }
+
+    // Island Margin
+    // For each primitive, see if there is enough margin at the specified resolution
+    // This process rasterizes the island margins at the given resolution and if two or more
+    // islands try to set the same pixel, it will return false.
+    // This is the lowest MIP level without collisions
+    // TODO: In Progress - need to update the JSON schema to specify this value as such
+    let hasEnoughMargin = true;
+    this.model.primitives.every((primitive: PrimitiveInterface) => {
+      hasEnoughMargin = hasEnoughMargin && primitive.uv.hasEnoughMarginAtResolution(16);
+      return hasEnoughMargin; // .every stops looping when a falsy value is returned. no need to keep checking
+    });
+    // TODO: In Progress - need to add this to the report
   }
 }

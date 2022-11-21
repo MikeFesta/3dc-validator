@@ -3,40 +3,25 @@ import { TriangleUvInterface } from './TriangleUv.js';
 import { VertexUvInterface } from './VertexUv.js';
 
 export interface UvIslandInterface {
+  index: number;
   outerEdges: EdgeXyzInterface[];
   triangles: TriangleUvInterface[];
   vertices: VertexUvInterface[];
   hasOverlapWithIslandAtResolution: (island: UvIslandInterface, resolution: number) => boolean;
 }
 
-export class UvIslandInterface implements UvIslandInterface {
-  outerEdges = [] as EdgeXyzInterface[];
+export default class UvIsland implements UvIslandInterface {
+  index = undefined as unknown as number;
+  outerEdges = [] as EdgeXyzInterface[]; // TODO: I don't think I need to keep track of this, but if we want it, look for single edges
   triangles = [] as TriangleUvInterface[];
-  vertices = [] as VertexUvInterface[];
+  vertices = [] as VertexUvInterface[]; // not needed
 
-  constructor(triangles: TriangleUvInterface[]) {
-    this.triangles = triangles;
-    this.calculateVertexIndices();
-    this.calculateOuterEdges();
+  constructor(triangle: TriangleUvInterface) {
+    this.index = triangle.islandIndex;
+    this.triangles = [triangle];
   }
 
   hasOverlapWithIslandAtResolution = (island: UvIslandInterface, resolution: number) => {
     return false;
-  };
-
-  ///////////////////////
-  // PRIVATE FUNCTIONS //
-  ///////////////////////
-  private calculateOuterEdges = () => {
-    // TODO
-    this.triangles.forEach((triangle: TriangleUvInterface) => {
-      // TODO: check for matching vertices in the UV space
-    });
-  };
-  private calculateVertexIndices = () => {
-    // TODO
-    this.triangles.forEach((triangle: TriangleUvInterface) => {
-      // TODO: check for matching vertices in the UV space
-    });
   };
 }

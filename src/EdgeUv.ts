@@ -7,6 +7,7 @@ export interface EdgeUvInterface {
   triangles: TriangleUvInterface[];
   vertexA: VertexUvInterface;
   vertexB: VertexUvInterface;
+  zeroLength: boolean;
   calculateAttributes(): void;
   checkForMatch(edge: EdgeUvInterface): boolean;
 }
@@ -17,6 +18,7 @@ export default class EdgeUv implements EdgeUvInterface {
   triangles = [] as TriangleUvInterface[];
   vertexA = null as unknown as VertexUvInterface;
   vertexB = null as unknown as VertexUvInterface;
+  zeroLength = false;
 
   constructor(a: VertexUvInterface, b: VertexUvInterface) {
     this.vertexA = a;
@@ -25,6 +27,9 @@ export default class EdgeUv implements EdgeUvInterface {
 
   public calculateAttributes(): void {
     this.shared = this.triangles.length > 1;
+    // if both vertices are in the same position, it has zero length
+    // TODO: V2 Report zero length UV edges
+    this.zeroLength = this.vertexA.index === this.vertexB.index;
   }
 
   public checkForMatch(edge: EdgeUvInterface): boolean {

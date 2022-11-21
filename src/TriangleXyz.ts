@@ -12,7 +12,7 @@ export interface TriangleXyzInterface {
   uv: TriangleUvInterface;
 }
 
-export class TriangleXyz implements TriangleXyzInterface {
+export default class TriangleXyz implements TriangleXyzInterface {
   a = null as unknown as VertexXyzInterface;
   area = 0;
   b = null as unknown as VertexXyzInterface;
