@@ -506,7 +506,7 @@ export class Validator implements ValidatorInterface {
     } else {
       this.report.texturesPowerOfTwo.test(
         this.model.texturesPowerOfTwo.value as boolean,
-        '', // TODO: R.8 Improved - report which textures failed (if any)
+        '', // TODO: Optional - report which textures failed (if any)
       );
     }
 
@@ -518,7 +518,7 @@ export class Validator implements ValidatorInterface {
     } else {
       this.report.texturesQuadratic.test(
         this.model.texturesQuadratic.value as boolean,
-        '', // TODO: R.8 Improved - report which textures failed (if any)
+        '', // TODO: Optional - report which textures failed (if any)
       );
     }
 
@@ -567,7 +567,7 @@ export class Validator implements ValidatorInterface {
     if (this.schema.notInvertedUVs.value === false) {
       this.report.uvsInverted.skipTestWithMessage(this.model.invertedTriangleCount.value.toLocaleString());
     } else {
-      // TODO: O.15 Improved - report which primitives have inverted normals
+      // TODO: Optional - report which primitives have inverted normals
       this.report.uvsInverted.test(
         this.model.invertedTriangleCount.value === 0,
         this.model.invertedTriangleCount.value.toLocaleString(),
@@ -578,7 +578,7 @@ export class Validator implements ValidatorInterface {
     if (this.schema.notOverlappingUVs.value === false) {
       this.report.uvsOverlap.skipTestWithMessage(this.model.overlappingUvCount.value.toLocaleString());
     } else {
-      // TODO: O.13 Improved - report which primitives have overlapping uvs
+      // TODO: Optional - report which primitives have overlapping uvs
       this.report.uvsOverlap.test(
         this.model.overlappingUvCount.value === 0,
         this.model.overlappingUvCount.value.toLocaleString(),
@@ -586,7 +586,7 @@ export class Validator implements ValidatorInterface {
     }
 
     // Pixels per Meter (Texel Density)
-    // TODO: R.9 Improved - texel density calculation per material (move this to Primitive.ts)
+    // TODO: Optional - texel density calculation per material (move this to Primitive.ts)
     const maxResolutionSquared =
       (this.model.texturesMaxWidth.value as number) * (this.model.texturesMaxHeight.value as number);
     const minResolutionSquared =

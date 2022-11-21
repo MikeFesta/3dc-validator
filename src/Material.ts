@@ -5,8 +5,8 @@ export interface MaterialInterface {
   textures: Texture[];
 }
 
-// TODO: R.8 Improved - report which textures are not power of 2
-// TODO: R.9 Improved - texel density calculation per material
+// TODO: Optional Improvement - report which textures are not power of 2
+// TODO: Optional Improvement - texel density calculation per material
 
 export class Material implements MaterialInterface {
   name = '';

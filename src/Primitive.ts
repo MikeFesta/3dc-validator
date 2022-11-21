@@ -17,9 +17,11 @@ export interface PrimitiveInterface {
   edgesXyz: EdgeXyzInterface[];
   hardEdgeCount: number;
   material: MaterialInterface;
-  maxDensity: LoadableAttributeInterface; // TODO: rename to densityMax
+  // TODO: Cleanup - rename to densityMax
+  maxDensity: LoadableAttributeInterface;
   mesh: AbstractMesh;
-  minDensity: LoadableAttributeInterface; // TODO: not sure this needs to be a LoadableAttribute
+  // TODO: Cleanup - this may not need to be a LoadableAttribute
+  minDensity: LoadableAttributeInterface;
   name: string;
   nonManifoldEdgeCount: number;
   svgIslands: SvgInterface;
@@ -98,7 +100,7 @@ export class Primitive implements PrimitiveInterface {
           // To validate certain features, such as hard edges and non-manifold
           // edges, I need to reconstruct shared vertices and track new indices
           // WARNING: This might get really slow with a lot of vertices.
-          // TODO: only compute vertex indices and edges if needed (ie for hard edge and/or non-manifold count)
+          // TODO: Optimize - only compute vertex indices and edges if needed (ie for hard edge and/or non-manifold count)
           let vertexA = new VertexXyz(xyzData[indexA * 3], xyzData[indexA * 3 + 1], xyzData[indexA * 3 + 2]);
           let vertexB = new VertexXyz(xyzData[indexB * 3], xyzData[indexB * 3 + 1], xyzData[indexB * 3 + 2]);
           let vertexC = new VertexXyz(xyzData[indexC * 3], xyzData[indexC * 3 + 1], xyzData[indexC * 3 + 2]);
@@ -145,7 +147,7 @@ export class Primitive implements PrimitiveInterface {
           // Triangle
           const triangle = new TriangleXyz(vertexA, vertexB, vertexC);
           this.trianglesXyz.push(triangle);
-          // TODO: may want to push the triangle to the VertexXyz, as is being done for EdgeXyz and VertexUv
+          // TODO: Optional - push the triangle to the VertexXyz, as is being done for EdgeXyz and VertexUv
 
           // Edges
           let edgeAB = new EdgeXyz(vertexA, vertexB);
@@ -306,7 +308,7 @@ export class Primitive implements PrimitiveInterface {
         }
         if (xyzData && uvData) {
           // Calculate min/max density
-          // TODO: R.9 Improved - use texture resolution here instead of Validator.ts
+          // TODO: Optional - use texture resolution of the assigned material (instead of all textures, as in Validator.ts)
           // Unfortunately mesh.material.getActiveTextures()[0].getSize() always returns 512x512 because of NullEngine
           // Materials can have more than one texture and they can be different resolutions.
           // QUESTION: Should we use the biggest for max, smallest for min or always use the diffuse texture when available?

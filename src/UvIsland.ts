@@ -12,9 +12,10 @@ export interface UvIslandInterface {
 
 export default class UvIsland implements UvIslandInterface {
   index = undefined as unknown as number;
-  outerEdges = [] as EdgeXyzInterface[]; // TODO: I don't think I need to keep track of this, but if we want it, look for single edges
   triangles = [] as TriangleUvInterface[];
-  vertices = [] as VertexUvInterface[]; // not needed
+  // TODO: Cleanup - These didn't end up being needed
+  outerEdges = [] as EdgeXyzInterface[]; // remove
+  vertices = [] as VertexUvInterface[]; // remove
 
   constructor(triangle: TriangleUvInterface) {
     this.index = triangle.islandIndex;

@@ -89,7 +89,6 @@ export class Model implements ModelInterface {
   primitives = [] as PrimitiveInterface[];
   primitiveCount = new LoadableAttribute('Primitive Count', 0);
   rootNodeTransform = new NodeTransform();
-  // TODO: add an images array to hold data from the glb   images: [ { bufferView: 4, mimeType: 'image/png', name: 'pbr-30-240' } ],
   texturesMaxHeight = new LoadableAttribute('Max Texture Height', 0);
   texturesMaxWidth = new LoadableAttribute('Max Texture Width', 0);
   texturesMinHeight = new LoadableAttribute('Min Texture Height', 0);

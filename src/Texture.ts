@@ -4,8 +4,7 @@ export interface TextureInterface {
   texture: BaseTexture;
   url: string;
 
-  // TODO: R.8 Improved - report which textures are not power of 2
-  // TODO: R.9 Improved - texel density calculation per material
+  // TODO: Cleanup - compare this to Material.ts
 }
 
 export class Texture implements TextureInterface {
@@ -16,7 +15,7 @@ export class Texture implements TextureInterface {
   constructor(texture: BaseTexture) {
     // Note: NullEngine does not provide the correct texture resolution.
     // material.getActiveTextures()[0].getSize() always returns 512x512
-    // TODO: Link this to Image.ts, which has the actual image data and correct resolution
+    // TODO: Cleanup - Link this to Image.ts, which has the actual image data and correct resolution
     this.name = texture.name;
     this.texture = texture;
     const internalTexture = texture.getInternalTexture();

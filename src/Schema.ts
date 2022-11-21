@@ -134,7 +134,7 @@ export class Schema implements SchemaInterface {
         this.maxMaterialCount.loadValue(obj.materials.maximum);
       }
       if (obj.materials.minimum !== undefined) {
-        // TODO: new param minMaterialCount
+        // TODO: Cleanup - new param minMaterialCount
         //this.maxMaterialCount.loadValue(obj.materials.minimum);
       }
     }
@@ -145,7 +145,7 @@ export class Schema implements SchemaInterface {
             this.maxMeshCount.loadValue(obj.model.objectCount.meshes.maximum);
           }
           if (obj.model.objectCount.meshes.minimum !== undefined) {
-            // TODO: new param minMeshCount
+            // TODO: Cleanup - new param minMeshCount
             //this.maxMeshCount.loadValue(obj.model.objectCount.meshes.minimum);
           }
         }
@@ -154,7 +154,7 @@ export class Schema implements SchemaInterface {
             this.maxNodeCount.loadValue(obj.model.objectCount.nodes.maximum);
           }
           if (obj.model.objectCount.nodes.minimum !== undefined) {
-            // TODO: new param minNodeCount
+            // TODO: Cleanup - new param minNodeCount
             //this.maxNodeCount.loadValue(obj.model.objectCount.nodes.minimum);
           }
         }
@@ -163,7 +163,7 @@ export class Schema implements SchemaInterface {
             this.maxPrimitiveCount.loadValue(obj.model.objectCount.primitives.maximum);
           }
           if (obj.model.objectCount.primitives.minimum !== undefined) {
-            // TODO: minPrimitiveCount
+            // TODO: Cleanup - minPrimitiveCount
             //this.maxPrimitiveCount.loadValue(obj.model.objectCount.primitives.minimum);
           }
         }
@@ -182,7 +182,7 @@ export class Schema implements SchemaInterface {
           this.maxTriangleCount.loadValue(obj.model.triangles.maximum);
         }
         if (obj.model.triangles.minimum) {
-          // TODO: new param minTriangleCount
+          // TODO: Cleanup - new param minTriangleCount
           //this.maxTriangleCount.loadValue(obj.model.triangles.minimum);
         }
       }
@@ -257,22 +257,14 @@ export class Schema implements SchemaInterface {
       }
     }
     if (obj.uvs !== undefined) {
+      // TODO: In Progress - Change this to a single parameter. Perhaps pixel gutter width at 1024?
+      // or have it be the number passed to the validation function (ie. 256) lowest MIP level without overlaps
       if (obj.uvs.gutterWidth !== undefined) {
-        if (obj.uvs.gutterWidth.resolution256 !== undefined) {
-          // TODO: param for gutterWidth
-        }
-        if (obj.uvs.gutterWidth.resolution512 !== undefined) {
-          // TODO: param for gutterWidth
-        }
-        if (obj.uvs.gutterWidth.resolution1024 !== undefined) {
-          // TODO: param for gutterWidth
-        }
-        if (obj.uvs.gutterWidth.resolution2048 !== undefined) {
-          // TODO: param for gutterWidth
-        }
-        if (obj.uvs.gutterWidth.resolution4096 !== undefined) {
-          // TODO: param for gutterWidth
-        }
+        //if (obj.uvs.gutterWidth.resolution256 !== undefined) { }
+        //if (obj.uvs.gutterWidth.resolution512 !== undefined) { }
+        //if (obj.uvs.gutterWidth.resolution1024 !== undefined) { }
+        //if (obj.uvs.gutterWidth.resolution2048 !== undefined) { }
+        //if (obj.uvs.gutterWidth.resolution4096 !== undefined) { }
       }
       if (obj.uvs.notInverted !== undefined) {
         this.notInvertedUVs.loadValue(obj.uvs.notInverted);
