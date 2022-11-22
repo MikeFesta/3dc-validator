@@ -34,6 +34,7 @@ export interface SchemaInterface {
   requireTextureDimensionsBePowersOfTwo: LoadableAttributeInterface;
   requireTextureDimensionsBeQuadratic: LoadableAttributeInterface;
   requireUVRangeZeroToOne: LoadableAttributeInterface;
+  resolutionNeededForUvMargin: LoadableAttributeInterface;
   version: LoadableAttributeInterface;
 
   getAttributes: () => LoadableAttributeInterface[];
@@ -76,9 +77,10 @@ export class Schema implements SchemaInterface {
     'Require Texture Dimensions be Quadratic (height = width)',
     false,
   );
-  version = new LoadableAttribute('Version', '1.0.0');
   requireCleanRootNodeTransform = new LoadableAttribute('Require Root Node Have a Clean Transform', false);
   requireUVRangeZeroToOne = new LoadableAttribute('Require UV range 0 to 1', false);
+  resolutionNeededForUvMargin = new LoadableAttribute('UV Gutter Wide Enough', -1);
+  version = new LoadableAttribute('Version', '1.0.0');
 
   getAttributes() {
     return [
@@ -113,6 +115,7 @@ export class Schema implements SchemaInterface {
       this.minPixelsPerMeter,
       this.notInvertedUVs,
       this.notOverlappingUVs,
+      this.resolutionNeededForUvMargin,
     ];
   }
 
@@ -257,14 +260,39 @@ export class Schema implements SchemaInterface {
       }
     }
     if (obj.uvs !== undefined) {
-      // TODO: In Progress - Change this to a single parameter. Perhaps pixel gutter width at 1024?
-      // or have it be the number passed to the validation function (ie. 256) lowest MIP level without overlaps
       if (obj.uvs.gutterWidth !== undefined) {
-        //if (obj.uvs.gutterWidth.resolution256 !== undefined) { }
-        //if (obj.uvs.gutterWidth.resolution512 !== undefined) { }
-        //if (obj.uvs.gutterWidth.resolution1024 !== undefined) { }
-        //if (obj.uvs.gutterWidth.resolution2048 !== undefined) { }
-        //if (obj.uvs.gutterWidth.resolution4096 !== undefined) { }
+        let minResolutionNeeded = undefined as unknown as number;
+        if (obj.uvs.gutterWidth.resolution256 !== undefined) {
+          minResolutionNeeded = 256 / obj.uvs.gutterWidth.resolution256;
+        }
+        if (obj.uvs.gutterWidth.resolution512 !== undefined) {
+          const resolution = 512 / obj.uvs.gutterWidth.resolution512;
+          if (minResolutionNeeded === undefined || resolution < minResolutionNeeded) {
+            minResolutionNeeded = resolution;
+          }
+        }
+        if (obj.uvs.gutterWidth.resolution1024 !== undefined) {
+          const resolution = 1024 / obj.uvs.gutterWidth.resolution1024;
+          if (minResolutionNeeded === undefined || resolution < minResolutionNeeded) {
+            minResolutionNeeded = resolution;
+          }
+        }
+        if (obj.uvs.gutterWidth.resolution2048 !== undefined) {
+          const resolution = 2048 / obj.uvs.gutterWidth.resolution2048;
+          if (minResolutionNeeded === undefined || resolution < minResolutionNeeded) {
+            minResolutionNeeded = resolution;
+          }
+        }
+        if (obj.uvs.gutterWidth.resolution4096 !== undefined) {
+          const resolution = 4096 / obj.uvs.gutterWidth.resolution4096;
+          if (minResolutionNeeded === undefined || resolution < minResolutionNeeded) {
+            minResolutionNeeded = resolution;
+          }
+        }
+        if (minResolutionNeeded === undefined) {
+          minResolutionNeeded = -1; // skip this test
+        }
+        this.resolutionNeededForUvMargin.loadValue(minResolutionNeeded);
       }
       if (obj.uvs.notInverted !== undefined) {
         this.notInvertedUVs.loadValue(obj.uvs.notInverted);

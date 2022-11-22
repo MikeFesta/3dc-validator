@@ -24,6 +24,7 @@ export interface ReportInterface {
   texturesPowerOfTwo: ReportItemInterface;
   texturesQuadratic: ReportItemInterface;
   triangleCount: ReportItemInterface;
+  uvGutterWideEnough: ReportItemInterface;
   uvsInverted: ReportItemInterface;
   uvsInZeroToOneRange: ReportItemInterface;
   uvsOverlap: ReportItemInterface;
@@ -120,6 +121,11 @@ export class Report implements ReportInterface {
     'Triangle Count',
     'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec03_Geometry/Geometry.md#polygonal-count',
   );
+  // TODO: External - a section explaining gutter width needs to be added to the guidelines
+  uvGutterWideEnough = new ReportItem(
+    'UV Gutter Wide Enough',
+    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec04_UVCoordinates/UVCoordinates.md',
+  );
   uvsInverted = new ReportItem(
     'Inverted UVs',
     'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec04_UVCoordinates/UVCoordinates.md',
@@ -160,6 +166,7 @@ export class Report implements ReportInterface {
       this.pixelsPerMeterMin,
       this.uvsInverted,
       this.uvsOverlap,
+      this.uvGutterWideEnough,
     ];
   }
 }

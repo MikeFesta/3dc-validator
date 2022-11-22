@@ -16,6 +16,7 @@ export interface UVInterface {
   islands: UvIslandInterface[];
   name: string;
   overlapCount: LoadableAttributeInterface;
+  svgGutterOverlaps: SvgInterface;
   svgInvertedTriangles: SvgInterface;
   svgLayout: SvgInterface;
   triangles: TriangleUvInterface[];
@@ -31,6 +32,7 @@ export class UV implements UVInterface {
   edges = [] as EdgeUvInterface[];
   invertedTriangleCount = new LoadableAttribute('Number of inverted triangles', 0);
   islands = [] as UvIslandInterface[];
+  svgGutterOverlaps = null as unknown as SvgInterface;
   svgInvertedTriangles = null as unknown as Svg;
   svgLayout = null as unknown as Svg;
   name = '';
@@ -78,6 +80,18 @@ export class UV implements UVInterface {
     // there is a collision and therefore not enough margin
     // TODO: Optimize - Triangle overlaps square would be faster than 2x triangle overlaps triangle check
     // Triangle vs Square would also generate more accurate results in the case where left and right triangles are different islands
+    // TODO: Question - as-is, this doesn't really measure the gutter width. It could be near
+    // zero if the two islands are divided by a grid line. ie left and right of u=0.5
+    // +--+ | +--+
+    // | /  |  \ |
+    // |/   |   \|
+    // +   0.5   +
+    // These won't overlap even at 2x2 pixels
+    // Is that a problem? Maybe ... ? It's probably closer to how the MIP mapping actually works
+    // just a bit confusing on the wording for the schema
+
+    // New idea, change from triangles to squares and enlarge each square by 1.5x or 2x, which will extend over neighbors
+
     this.trianglePixelGrid = new Array(2 * resolution * resolution);
     const pixelSize = 1 / resolution;
     for (let i = 0; i < this.trianglePixelGrid.length; i = i + 2) {
@@ -126,6 +140,17 @@ export class UV implements UVInterface {
           }
         }
       });
+    });
+
+    // SVG here
+    this.svgGutterOverlaps = new Svg('gutter-overlaps');
+
+    this.trianglePixelGrid.forEach((triangle: TriangleUvInterface) => {
+      let svgColor = Math.floor((triangle.islandIndex / 10) * 16777215).toString(16);
+      if (triangle.inverted) {
+        svgColor = 'ff0000';
+      }
+      this.svgGutterOverlaps.pathData += triangle.getSvgPath('#' + svgColor);
     });
 
     return pixelCollisions === 0;

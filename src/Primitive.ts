@@ -339,6 +339,16 @@ export class Primitive implements PrimitiveInterface {
 
       // Create the UV object. The triangles should already have island indices
       this.uv = new UV(mesh.name, this.trianglesUv);
+
+      // TODO: Remove after testing
+      this.svgIslands = new Svg('islands');
+
+      this.uv.islands.forEach((island: UvIslandInterface) => {
+        const svgColor = Math.floor(Math.random() * 16777215).toString(16);
+        island.triangles.forEach((triangle: TriangleUvInterface) => {
+          this.svgIslands.pathData += triangle.getSvgPath('#' + svgColor);
+        });
+      });
     }
   };
 }

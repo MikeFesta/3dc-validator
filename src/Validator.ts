@@ -624,13 +624,19 @@ export class Validator implements ValidatorInterface {
     // For each primitive, see if there is enough margin at the specified resolution
     // This process rasterizes the island margins at the given resolution and if two or more
     // islands try to set the same pixel, it will return false.
-    // This is the lowest MIP level without collisions
-    // TODO: In Progress - need to update the JSON schema to specify this value as such
-    let hasEnoughMargin = true;
-    this.model.primitives.every((primitive: PrimitiveInterface) => {
-      hasEnoughMargin = hasEnoughMargin && primitive.uv.hasEnoughMarginAtResolution(16);
-      return hasEnoughMargin; // .every stops looping when a falsy value is returned. no need to keep checking
-    });
-    // TODO: In Progress - need to add this to the report
+    if (this.schema.resolutionNeededForUvMargin.value === -1) {
+      this.report.uvGutterWideEnough.skipTestWithMessage('');
+    } else {
+      let hasEnoughMargin = true;
+      const resolution = this.schema.resolutionNeededForUvMargin.value as number;
+      this.model.primitives.every((primitive: PrimitiveInterface) => {
+        hasEnoughMargin = hasEnoughMargin && primitive.uv.hasEnoughMarginAtResolution(resolution);
+        return hasEnoughMargin; // .every stops looping when a falsy value is returned. no need to keep checking
+      });
+      this.report.uvGutterWideEnough.test(
+        hasEnoughMargin,
+        'Checking for pixel collision at ' + resolution + 'x' + resolution,
+      );
+    }
   }
 }
