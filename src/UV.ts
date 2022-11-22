@@ -1,6 +1,7 @@
 import EdgeUv, { EdgeUvInterface } from './EdgeUv.js';
 import { LoadableAttribute, LoadableAttributeInterface } from './LoadableAttribute.js';
 import { Svg, SvgInterface } from './Svg.js';
+import SquareUv, { SquareUvInterface } from './SquareUv.js';
 import TriangleUv, { TriangleUvInterface } from './TriangleUv.js';
 import UvIsland, { UvIslandInterface } from './UvIsland.js';
 import VertexUv, { VertexUvInterface } from './VertexUv.js';
@@ -20,7 +21,7 @@ export interface UVInterface {
   svgInvertedTriangles: SvgInterface;
   svgLayout: SvgInterface;
   triangles: TriangleUvInterface[];
-  trianglePixelGrid: TriangleUvInterface[];
+  pixelGrid: SquareUvInterface[];
   u: MaxMinLoadableAttributeInterface;
   v: MaxMinLoadableAttributeInterface;
   vertices: VertexUvInterface[];
@@ -38,7 +39,7 @@ export class UV implements UVInterface {
   name = '';
   overlapCount = new LoadableAttribute('Number of overlapping triangles', 0);
   triangles = [] as TriangleUvInterface[];
-  trianglePixelGrid = [] as TriangleUvInterface[];
+  pixelGrid = [] as SquareUvInterface[];
   u = {
     max: new LoadableAttribute('Max U value', 0),
     min: new LoadableAttribute('Min U value', 0),
@@ -75,85 +76,64 @@ export class UV implements UVInterface {
 
   public hasEnoughMarginAtResolution = (resolution: number): boolean => {
     // Quantize the UV area based on the given resolution in pixels.
-    // Each pixel can be split into two triangles that can be checked for overlaps.
-    // If a pixel grid triangle is overlapped more than once,
-    // there is a collision and therefore not enough margin
-    // TODO: Optimize - Triangle overlaps square would be faster than 2x triangle overlaps triangle check
-    // Triangle vs Square would also generate more accurate results in the case where left and right triangles are different islands
-    // TODO: Question - as-is, this doesn't really measure the gutter width. It could be near
-    // zero if the two islands are divided by a grid line. ie left and right of u=0.5
+    // If a pixel grid is overlapped more than once, there is a collision and therefore not enough margin
+
+    // TODO: Edge Case - try enlarging the pixel grid 2x to catch close triangles
+    // that are separated by a grid line. ie left and right of u=0.5
     // +--+ | +--+
     // | /  |  \ |
     // |/   |   \|
     // +   0.5   +
     // These won't overlap even at 2x2 pixels
-    // Is that a problem? Maybe ... ? It's probably closer to how the MIP mapping actually works
-    // just a bit confusing on the wording for the schema
 
-    // New idea, change from triangles to squares and enlarge each square by 1.5x or 2x, which will extend over neighbors
-
-    this.trianglePixelGrid = new Array(2 * resolution * resolution);
+    this.pixelGrid = new Array(resolution * resolution);
     const pixelSize = 1 / resolution;
-    for (let i = 0; i < this.trianglePixelGrid.length; i = i + 2) {
+    for (let i = 0; i < this.pixelGrid.length; i++) {
       // a---b
-      // | / |
+      // | + |
       // c---d
-      const row = Math.floor(i / 2 / resolution);
-      const column = (i / 2) % resolution;
-      const minX = column * pixelSize;
-      const maxX = minX + pixelSize;
-      const minY = row * pixelSize;
-      const maxY = minY + pixelSize;
-      const a = { u: minX, v: minY };
-      const b = { u: maxX, v: minY };
-      const c = { u: minX, v: maxY };
-      const d = { u: maxX, v: maxY };
-      // These wind counter-clockwise so they are not inverted (A -> C -> B) and (B -> C -> D)
-      this.trianglePixelGrid[i] = new TriangleUv(
-        i,
-        new VertexUv(a.u, a.v),
-        new VertexUv(c.u, c.v),
-        new VertexUv(b.u, b.v),
-      );
-      this.trianglePixelGrid[i + 1] = new TriangleUv(
-        i,
-        new VertexUv(b.u, b.v),
-        new VertexUv(c.u, c.v),
-        new VertexUv(d.u, d.v),
-      );
+      const row = Math.floor(i / resolution);
+      const column = i % resolution;
+      const uCenter = row * pixelSize + pixelSize / 2;
+      const vCenter = column * pixelSize + pixelSize / 2;
+      this.pixelGrid[i] = new SquareUv(uCenter, vCenter, pixelSize);
     }
 
-    let pixelCollisions = 0;
+    let collisionFound = false; // TODO: Cleanup - can be removed
 
     // check each triangle for overlaps
     this.triangles.forEach((triangle: TriangleUvInterface) => {
       // TODO: Optimization - only check pixels within the triangle's min/max instead of the whole pixel grid
-      this.trianglePixelGrid.forEach((gridTriangle: TriangleUvInterface) => {
-        if (gridTriangle.doesOverlapTriangle(triangle)) {
-          if (gridTriangle.islandIndex === undefined) {
-            gridTriangle.islandIndex = triangle.islandIndex;
-          } else if (gridTriangle.islandIndex != triangle.islandIndex) {
-            // TODO: Cleanup - no need to set inverted (was just for svg used in debugging)
-            gridTriangle.inverted = true; // temp to test
-            // TODO: Cleanup - can return once a collision is found
-            pixelCollisions++;
+      this.pixelGrid.forEach((gridPixel: SquareUvInterface) => {
+        if (gridPixel.overlapsTriangle(triangle)) {
+          if (gridPixel.islandIndex === undefined) {
+            gridPixel.islandIndex = triangle.islandIndex;
+          } else if (gridPixel.islandIndex != triangle.islandIndex) {
+            gridPixel.overlapping = true;
+            // TODO: Optimization - can return once a collision is found
+            collisionFound = true; // change to 'return' after testing with svgs
           }
         }
       });
     });
 
-    // SVG here
+    // TODO: Cleanup - remove svg after testing
     this.svgGutterOverlaps = new Svg('gutter-overlaps');
 
-    this.trianglePixelGrid.forEach((triangle: TriangleUvInterface) => {
-      let svgColor = Math.floor((triangle.islandIndex / 10) * 16777215).toString(16);
-      if (triangle.inverted) {
+    this.pixelGrid.forEach((pixel: SquareUvInterface) => {
+      // just trying to get a consistent, different color for each island
+      let svgColor = 'eeeeee';
+      if (pixel.overlapping) {
         svgColor = 'ff0000';
+      } else if (pixel.islandIndex !== undefined) {
+        const uniqueColor = ((pixel.islandIndex + 1) * 1983) % 16777215;
+        svgColor = uniqueColor.toString(16);
+        svgColor = svgColor.padStart(6, '0');
       }
-      this.svgGutterOverlaps.pathData += triangle.getSvgPath('#' + svgColor);
+      this.svgGutterOverlaps.pathData += pixel.getSvgPath('#' + svgColor);
     });
 
-    return pixelCollisions === 0;
+    return !collisionFound;
   };
 
   ///////////////////////
@@ -262,7 +242,7 @@ export class UV implements UVInterface {
     // could also stop counting after 100 overlaps found
     this.triangles.forEach((triangle: TriangleUvInterface) => {
       this.triangles.forEach((triangleToCompare: TriangleUvInterface) => {
-        if (triangle.doesOverlapTriangle(triangleToCompare)) {
+        if (triangle.overlapsTriangle(triangleToCompare)) {
           triangle.overlapping = true;
           triangleToCompare.overlapping = true;
         }

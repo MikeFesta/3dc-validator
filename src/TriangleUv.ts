@@ -17,9 +17,10 @@ export interface TriangleUvInterface {
   overlapping: boolean;
   calculateIslandIndex(): void;
   getSvgPath(color: string): string;
+  lineIntersects(p1: VertexUvInterface, p2: VertexUvInterface): boolean;
+  overlapsTriangle(triagle: TriangleUvInterface): boolean;
   pointInside(u: number, v: number): boolean;
   vertexInside(point: VertexUvInterface): boolean;
-  doesOverlapTriangle(triagle: TriangleUvInterface): boolean;
 }
 
 export default class TriangleUv implements TriangleUvInterface {
@@ -99,10 +100,19 @@ export default class TriangleUv implements TriangleUvInterface {
   }
 
   public init(): void {
+    // TODO: Cleanup - move this back to the constructor
     // This is outside of the constructor because not all TriangleUv objects need these values
     this.calculateArea();
     this.calculateInverted();
     this.loadMinMax();
+  }
+
+  public lineIntersects(p1: VertexUvInterface, p2: VertexUvInterface): boolean {
+    return (
+      TriangleUv.edgesIntersect(this.a, this.b, p1, p2) ||
+      TriangleUv.edgesIntersect(this.b, this.c, p1, p2) ||
+      TriangleUv.edgesIntersect(this.c, this.a, p1, p2)
+    );
   }
 
   public pointInside(u: number, v: number): boolean {
@@ -118,7 +128,7 @@ export default class TriangleUv implements TriangleUvInterface {
     return this.pointInside(point.u, point.v);
   }
 
-  public doesOverlapTriangle(otherTriangle: TriangleUvInterface): boolean {
+  public overlapsTriangle(otherTriangle: TriangleUvInterface): boolean {
     // TODO: Cleanup - The first two checks need to be turned off for pixel grid test - reenable after refactor
     // Step 1 - skip if it is the same triangle (fastest)
     //if (this.id === otherTriangle.id) {
