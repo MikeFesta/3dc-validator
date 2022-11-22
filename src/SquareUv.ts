@@ -61,21 +61,21 @@ export default class SquareUv implements SquareUvInterface {
       '<path fill="' +
       color +
       '" d="m ' +
-      (1000 * this.a.u).toFixed(3) +
+      (1000 * (this.a.u + this.size / 3)).toFixed(3) +
       ' ' +
-      (1000 * this.a.v).toFixed(3) +
+      (1000 * (this.a.v + this.size / 3)).toFixed(3) +
       ' L ' +
-      (1000 * this.b.u).toFixed(3) +
+      (1000 * (this.b.u - this.size / 3)).toFixed(3) +
       ' ' +
-      (1000 * this.b.v).toFixed(3) +
+      (1000 * (this.b.v + this.size / 3)).toFixed(3) +
       ' ' +
-      (1000 * this.d.u).toFixed(3) +
+      (1000 * (this.d.u - this.size / 3)).toFixed(3) +
       ' ' +
-      (1000 * this.d.v).toFixed(3) +
+      (1000 * (this.d.v - this.size / 3)).toFixed(3) +
       ' ' +
-      (1000 * this.c.u).toFixed(3) +
+      (1000 * (this.c.u + this.size / 3)).toFixed(3) +
       ' ' +
-      (1000 * this.c.v).toFixed(3) +
+      (1000 * (this.c.v - this.size / 3)).toFixed(3) +
       'Z"/>'
     );
   }

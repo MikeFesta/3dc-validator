@@ -77,26 +77,39 @@ export class UV implements UVInterface {
   public hasEnoughMarginAtResolution = (resolution: number): boolean => {
     // Quantize the UV area based on the given resolution in pixels.
     // If a pixel grid is overlapped more than once, there is a collision and therefore not enough margin
-
-    // TODO: Edge Case - try enlarging the pixel grid 2x to catch close triangles
-    // that are separated by a grid line. ie left and right of u=0.5
-    // +--+ | +--+
-    // | /  |  \ |
-    // |/   |   \|
-    // +   0.5   +
-    // These won't overlap even at 2x2 pixels
-
+    // [+][+][+][+]
+    // [+][+][+][+]
+    // [+][+][+][+]
+    // [+][+][+][+]
     this.pixelGrid = new Array(resolution * resolution);
     const pixelSize = 1 / resolution;
     for (let i = 0; i < this.pixelGrid.length; i++) {
-      // a---b
-      // | + |
-      // c---d
       const row = Math.floor(i / resolution);
       const column = i % resolution;
       const uCenter = row * pixelSize + pixelSize / 2;
       const vCenter = column * pixelSize + pixelSize / 2;
-      this.pixelGrid[i] = new SquareUv(uCenter, vCenter, pixelSize);
+      this.pixelGrid[i] = new SquareUv(uCenter, vCenter, pixelSize * 2);
+      // Pixel size is 2x the grid spacing to catch cases where triangles are separated by a grid line
+      // a---b
+      // |[+]|
+      // c---d
+
+      // a---b
+      // |[+]|+][+][+]
+      // c---d+][+][+]
+      //  [+][+][+][+]
+      //  [+][+][+][+]
+
+      // [+a---b+][+]
+      // [+|[+]|+][+]
+      // [+c---d+][+]
+      // [+][+][+][+]
+
+      // Without upscaling, close triangles separated at a grid line boundry (such as 0.5) wouldn't be caught
+      // +--+ | +--+
+      // | /  |  \ |
+      // |/   |   \|
+      // +   0.5   +
     }
 
     let collisionFound = false; // TODO: Cleanup - can be removed
@@ -126,9 +139,10 @@ export class UV implements UVInterface {
       if (pixel.overlapping) {
         svgColor = 'ff0000';
       } else if (pixel.islandIndex !== undefined) {
-        const uniqueColor = ((pixel.islandIndex + 1) * 1983) % 16777215;
+        const uniqueColor = ((pixel.islandIndex + 1) * 100000) % 16777215;
         svgColor = uniqueColor.toString(16);
         svgColor = svgColor.padStart(6, '0');
+        svgColor = '00' + svgColor.substring(2, 6); // remove red to make overlaps stand out
       }
       this.svgGutterOverlaps.pathData += pixel.getSvgPath('#' + svgColor);
     });

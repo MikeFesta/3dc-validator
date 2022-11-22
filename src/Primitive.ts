@@ -344,7 +344,10 @@ export class Primitive implements PrimitiveInterface {
       this.svgIslands = new Svg('islands');
 
       this.uv.islands.forEach((island: UvIslandInterface) => {
-        const svgColor = Math.floor(Math.random() * 16777215).toString(16);
+        const uniqueColor = ((island.index + 1) * 100000) % 16777215;
+        let svgColor = uniqueColor.toString(16).padStart(6, '0');
+        // avoid red to make errors stand out more
+        svgColor = '00' + svgColor.substring(2, 6);
         island.triangles.forEach((triangle: TriangleUvInterface) => {
           this.svgIslands.pathData += triangle.getSvgPath('#' + svgColor);
         });
