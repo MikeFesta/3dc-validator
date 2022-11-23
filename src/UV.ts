@@ -116,18 +116,38 @@ export class UV implements UVInterface {
 
     // check each triangle for overlaps
     this.triangles.forEach((triangle: TriangleUvInterface) => {
-      // TODO: Optimization - only check pixels within the triangle's min/max instead of the whole pixel grid
-      this.pixelGrid.forEach((gridPixel: SquareUvInterface) => {
-        if (gridPixel.overlapsTriangle(triangle)) {
-          if (gridPixel.islandIndex === undefined) {
-            gridPixel.islandIndex = triangle.islandIndex;
-          } else if (gridPixel.islandIndex != triangle.islandIndex) {
-            gridPixel.overlapping = true;
-            // TODO: Optimization - can return once a collision is found
-            collisionFound = true; // change to 'return' after testing with svgs
+      // only check pixels within the triangle's min/max (+ margin)
+      let gridXStart = Math.floor((triangle.minU - pixelSize / 2) * resolution);
+      if (gridXStart < 0) {
+        gridXStart = 0;
+      }
+      let gridXEnd = Math.ceil((triangle.maxU + pixelSize / 2) * resolution);
+      if (gridXEnd > resolution) {
+        gridXEnd = resolution;
+      }
+      let gridYStart = Math.floor((triangle.minV - pixelSize / 2) * resolution);
+      if (gridYStart < 0) {
+        gridYStart = 0;
+      }
+      let gridYEnd = Math.ceil((triangle.maxV + pixelSize / 2) * resolution);
+      if (gridYEnd > resolution) {
+        gridYEnd = resolution;
+      }
+      for (let i = gridXStart; i < gridXEnd; i++) {
+        for (let j = gridYStart; j < gridYEnd; j++) {
+          const index = i * resolution + j;
+          const gridPixel = this.pixelGrid[index];
+          if (gridPixel.overlapsTriangle(triangle)) {
+            if (gridPixel.islandIndex === undefined) {
+              gridPixel.islandIndex = triangle.islandIndex;
+            } else if (gridPixel.islandIndex != triangle.islandIndex) {
+              gridPixel.overlapping = true;
+              // TODO: Optimization - can return once a collision is found
+              collisionFound = true; // change to 'return' after testing with svgs
+            }
           }
         }
-      });
+      }
     });
 
     // TODO: Cleanup - remove svg after testing
