@@ -1,10 +1,10 @@
-import EdgeUv, { EdgeUvInterface } from './EdgeUv.js';
+import { EdgeUvInterface } from './EdgeUv.js';
 import { LoadableAttribute, LoadableAttributeInterface } from './LoadableAttribute.js';
 import { Svg, SvgInterface } from './Svg.js';
 import SquareUv, { SquareUvInterface } from './SquareUv.js';
-import TriangleUv, { TriangleUvInterface } from './TriangleUv.js';
+import { TriangleUvInterface } from './TriangleUv.js';
 import UvIsland, { UvIslandInterface } from './UvIsland.js';
-import VertexUv, { VertexUvInterface } from './VertexUv.js';
+import { VertexUvInterface } from './VertexUv.js';
 
 export interface MaxMinLoadableAttributeInterface {
   max: LoadableAttributeInterface;
@@ -174,57 +174,6 @@ export class UV implements UVInterface {
   // PRIVATE FUNCTIONS //
   ///////////////////////
 
-  private calculateEdges = (triangles: TriangleUvInterface[], vertices: VertexUvInterface[]): EdgeUvInterface[] => {
-    // TODO: Cleanup - this is not is use, moved to Primitive. Confirm nothing is missing
-    let edges = [] as EdgeUvInterface[];
-
-    triangles.forEach((triangle: TriangleUvInterface) => {
-      let edgeAB = new EdgeUv(triangle.a, triangle.b);
-      let edgeBC = new EdgeUv(triangle.b, triangle.c);
-      let edgeCA = new EdgeUv(triangle.c, triangle.a);
-
-      if (edges.length === 0) {
-        // assume initial edges are not the same
-        edgeAB.index = 0;
-        edges.push(edgeAB);
-        edgeBC.index = 1;
-        edges.push(edgeBC);
-        edgeCA.index = 2;
-        edges.push(edgeCA);
-      } else {
-        for (let i = 0; i < edges.length; i++) {
-          if (edgeAB.index === undefined && edges[i].checkForMatch(edgeAB)) {
-            edgeAB = edges[i];
-          }
-          if (edgeBC.index === undefined && edges[i].checkForMatch(edgeBC)) {
-            edgeBC = edges[i];
-          }
-          if (edgeCA.index === undefined && edges[i].checkForMatch(edgeCA)) {
-            edgeCA = edges[i];
-          }
-        }
-
-        let nextIndex = edges.length;
-        if (edgeAB.index === undefined) {
-          edgeAB.index = nextIndex;
-          edges.push(edgeAB);
-          nextIndex++;
-        }
-        if (edgeBC.index === undefined) {
-          edgeBC.index = nextIndex;
-          edges.push(edgeBC);
-          nextIndex++;
-        }
-        if (edgeCA.index === undefined) {
-          edgeCA.index = nextIndex;
-          edges.push(edgeCA);
-        }
-      }
-    });
-
-    return edges;
-  };
-
   private calculateInvertedTriangleCount = () => {
     let invertedTriangles = 0;
     this.triangles.forEach((triangle: TriangleUvInterface) => {
@@ -265,7 +214,7 @@ export class UV implements UVInterface {
   };
 
   private calculateOverlapCount = () => {
-    // TODO: Testing - may not working correctly. most triangles in diffuser.glb were marked overlapping, but there should be zero
+    // TODO: Optimize - see if this can be sped up
     // Test each triangle against each other - O(n*n)
     // This will be too slow for large models. tried testing a photogrammetry scan with 250k tris and had to cancel.
     // would have been about 10 hours
@@ -304,58 +253,6 @@ export class UV implements UVInterface {
         this.islands.push(new UvIsland(triangle));
       }
     });
-  };
-
-  private calculateVertices = (triangles: TriangleUvInterface[]): VertexUvInterface[] => {
-    // TODO: Cleanup - this is not is use, moved to Primitive. Confirm nothing is missing
-    let vertices = [] as VertexUvInterface[];
-
-    triangles.forEach((triangle: TriangleUvInterface) => {
-      let vertexA = new VertexUv(triangle.a.u, triangle.a.v);
-      let vertexB = new VertexUv(triangle.a.u, triangle.a.v);
-      let vertexC = new VertexUv(triangle.a.u, triangle.a.v);
-
-      if (vertices.length === 0) {
-        // Assume the first triangle has 3 distinct points
-        vertexA.index = 0;
-        vertices.push(vertexA);
-        vertexB.index = 1;
-        vertices.push(vertexB);
-        vertexC.index = 2;
-        vertices.push(vertexC);
-      } else {
-        // search all existing points for duplicates O(n * log(n))
-        for (let i = 0; i < vertices.length; i++) {
-          if (vertexA.index === undefined && vertices[i].checkForMatch(vertexA)) {
-            vertexA = vertices[i];
-          }
-          if (vertexB.index === undefined && vertices[i].checkForMatch(vertexB)) {
-            vertexB = vertices[i];
-          }
-          if (vertexC.index === undefined && vertices[i].checkForMatch(vertexC)) {
-            vertexC = vertices[i];
-          }
-        }
-        // Insert new vertices if they are unique
-        let nextIndex = vertices.length;
-        if (vertexA.index === undefined) {
-          vertexA.index = nextIndex;
-          vertices.push(vertexA);
-          nextIndex++;
-        }
-        if (vertexB.index === undefined) {
-          vertexB.index = nextIndex;
-          vertices.push(vertexB);
-          nextIndex++;
-        }
-        if (vertexC.index === undefined) {
-          vertexC.index = nextIndex;
-          vertices.push(vertexC);
-        }
-      }
-    });
-
-    return vertices;
   };
 
   private generateSvgs = () => {

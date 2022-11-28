@@ -42,6 +42,10 @@ export default class TriangleUv implements TriangleUvInterface {
     this.a = a;
     this.b = b;
     this.c = c;
+
+    this.calculateArea();
+    this.calculateInverted();
+    this.loadMinMax();
   }
 
   public calculateIslandIndex(): void {
@@ -99,14 +103,6 @@ export default class TriangleUv implements TriangleUvInterface {
     );
   }
 
-  public init(): void {
-    // TODO: Cleanup - move this back to the constructor
-    // This is outside of the constructor because not all TriangleUv objects need these values
-    this.calculateArea();
-    this.calculateInverted();
-    this.loadMinMax();
-  }
-
   public lineIntersects(p1: VertexUvInterface, p2: VertexUvInterface): boolean {
     return (
       TriangleUv.edgesIntersect(this.a, this.b, p1, p2) ||
@@ -129,15 +125,14 @@ export default class TriangleUv implements TriangleUvInterface {
   }
 
   public overlapsTriangle(otherTriangle: TriangleUvInterface): boolean {
-    // TODO: Cleanup - The first two checks need to be turned off for pixel grid test - reenable after refactor
     // Step 1 - skip if it is the same triangle (fastest)
-    //if (this.id === otherTriangle.id) {
-    //  return false; // not overlapping
-    //}
-    //// Step 2 - skip any triangle with no area. ensures all 3 points are different
-    //if (this.area === 0 || otherTriangle.area === 0) {
-    //  return false; // not overlapping
-    //}
+    if (this.id === otherTriangle.id) {
+      return false; // not overlapping
+    }
+    // Step 2 - skip any triangle with no area. ensures all 3 points are different
+    if (this.area === 0 || otherTriangle.area === 0) {
+      return false; // not overlapping
+    }
     // Step 3 - rectangle check using min/max values from each (fast)
     if (
       this.minU >= otherTriangle.maxU || // right

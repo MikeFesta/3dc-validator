@@ -243,7 +243,6 @@ export class Primitive implements PrimitiveInterface {
           }
 
           const triangle = new TriangleUv(i / 3, vertexA, vertexB, vertexC);
-          triangle.init(); // compute area, inverted, min/max limits
           this.trianglesUv.push(triangle);
 
           // Link the triange to the vertices (used for island computation)
@@ -257,6 +256,7 @@ export class Primitive implements PrimitiveInterface {
 
           if (this.edgesUv.length === 0) {
             // assume initial edges are not the same
+            // TODO: Test this assumption
             edgeAB.index = 0;
             edgeAB.triangles.push(triangle);
             this.edgesUv.push(edgeAB);
