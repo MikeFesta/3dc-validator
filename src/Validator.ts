@@ -274,14 +274,7 @@ export class Validator implements ValidatorInterface {
 
   // Check the number of meshes, nodes, and primitives
   private testObjectCount() {
-    if (this.schema.maxMeshCount.value === -1) {
-      this.report.meshCount.skipTestWithMessage(this.model.meshCount.value.toLocaleString());
-    } else {
-      const meshCountOK = this.model.meshCount.value <= this.schema.maxMeshCount.value;
-      const meshCountMessage =
-        this.model.meshCount.value + (meshCountOK ? ' <= ' : ' > ') + this.schema.maxMeshCount.value;
-      this.report.meshCount.test(meshCountOK, meshCountMessage);
-    }
+    // Nodes
     if (this.schema.maxNodeCount.value === -1) {
       this.report.nodeCount.skipTestWithMessage(this.model.nodeCount.value.toLocaleString());
     } else {
@@ -290,6 +283,41 @@ export class Validator implements ValidatorInterface {
         this.model.nodeCount.value + (nodeCountOK ? ' <= ' : ' > ') + this.schema.maxNodeCount.value;
       this.report.nodeCount.test(nodeCountOK, nodeCountMessage);
     }
+
+    // Meshes
+    if (this.schema.maxMeshCount.value === -1 && this.schema.minMeshCount.value === -1) {
+      // Skip the test, but still report the mesh count
+      this.report.meshCount.skipTestWithMessage(this.model.meshCount.value.toLocaleString());
+    } else if (this.schema.maxMeshCount.value === -1) {
+      // Check only the min mesh count
+      const meshCountOK = this.model.meshCount.value >= this.schema.minMeshCount.value;
+      const meshCountMessage =
+        this.model.meshCount.value + (meshCountOK ? ' >= ' : ' < ') + this.schema.minMeshCount.value;
+      this.report.meshCount.test(meshCountOK, meshCountMessage);
+    } else if (this.schema.minMeshCount.value === -1) {
+      // Check only the max mesh count
+      const meshCountOK = this.model.meshCount.value <= this.schema.maxMeshCount.value;
+      const meshCountMessage =
+        this.model.meshCount.value + (meshCountOK ? ' <= ' : ' > ') + this.schema.maxMeshCount.value;
+      this.report.meshCount.test(meshCountOK, meshCountMessage);
+    } else {
+      // Check that the mesh count is within range
+      const meshCountOK =
+        (this.model.meshCount.value as number) >= (this.schema.minMeshCount.value as number) &&
+        (this.model.meshCount.value as number) <= (this.schema.maxMeshCount.value as number);
+      let meshCountMessage =
+        this.schema.minMeshCount.value + ' <= ' + this.model.meshCount.value + ' <= ' + this.schema.maxMeshCount.value;
+      if (!meshCountOK) {
+        if ((this.model.meshCount.value as number) < (this.schema.minMeshCount.value as number)) {
+          meshCountMessage = this.model.meshCount.value + ' < ' + this.schema.minMeshCount.value;
+        } else if ((this.model.meshCount.value as number) > (this.schema.maxMeshCount.value as number)) {
+          meshCountMessage = this.model.meshCount.value + ' > ' + this.schema.maxMeshCount.value;
+        }
+      }
+      this.report.meshCount.test(meshCountOK, meshCountMessage);
+    }
+
+    // Primitives
     if (this.schema.maxPrimitiveCount.value === -1) {
       this.report.primitiveCount.skipTestWithMessage(this.model.primitiveCount.value.toLocaleString());
     } else {

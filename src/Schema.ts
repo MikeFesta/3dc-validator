@@ -19,6 +19,7 @@ export interface SchemaInterface {
   minHeight: LoadableAttributeInterface;
   minLength: LoadableAttributeInterface;
   minMaterialCount: LoadableAttributeInterface;
+  minMeshCount: LoadableAttributeInterface;
   minPixelsPerMeter: LoadableAttributeInterface;
   minTextureHeight: LoadableAttributeInterface;
   minTextureWidth: LoadableAttributeInterface;
@@ -60,6 +61,7 @@ export class Schema implements SchemaInterface {
   minHeight = new LoadableAttribute('Min Height (z)', 0.01); // Not specified in Asset Creation Guidelines, 1cm seems reasonable for products
   minLength = new LoadableAttribute('Min Length (y)', 0.01); // Not specified in Asset Creation Guidelines, 1cm seems reasonable for products
   minMaterialCount = new LoadableAttribute('Min Material Count', -1); // No minimum required
+  minMeshCount = new LoadableAttribute('Min Mesh Count', -1); // Not specified in Asset Creation Guidelines. -1 to ignore
   minPixelsPerMeter = new LoadableAttribute('Min Pixels per Meter', -1); // Not specified in Asset Creation Guidelines
   minTextureHeight = new LoadableAttribute('Max Texture Height', 512); // 512 is the smallest mentioned in the Asset Creation Guidelines
   minTextureWidth = new LoadableAttribute('Max Texture Width', 512); // 512 is the smallest mentioned in the Asset Creation Guidelines
@@ -92,6 +94,7 @@ export class Schema implements SchemaInterface {
       this.maxMaterialCount,
       this.minMaterialCount,
       this.maxMeshCount,
+      this.minMeshCount,
       this.maxNodeCount,
       this.maxPrimitiveCount,
       this.minTextureWidth,
@@ -149,8 +152,7 @@ export class Schema implements SchemaInterface {
             this.maxMeshCount.loadValue(obj.model.objectCount.meshes.maximum);
           }
           if (obj.model.objectCount.meshes.minimum !== undefined) {
-            // TODO: Cleanup - new param minMeshCount
-            //this.maxMeshCount.loadValue(obj.model.objectCount.meshes.minimum);
+            this.minMeshCount.loadValue(obj.model.objectCount.meshes.minimum);
           }
         }
         if (obj.model.objectCount.nodes !== undefined) {
