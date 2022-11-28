@@ -3,7 +3,6 @@ import { SchemaJSONInterface } from './SchemaJSON.js';
 
 export interface SchemaInterface {
   loaded: boolean;
-
   maxFileSizeInKb: LoadableAttributeInterface;
   maxHeight: LoadableAttributeInterface;
   maxLength: LoadableAttributeInterface;
@@ -19,6 +18,7 @@ export interface SchemaInterface {
   minFileSizeInKb: LoadableAttributeInterface;
   minHeight: LoadableAttributeInterface;
   minLength: LoadableAttributeInterface;
+  minMaterialCount: LoadableAttributeInterface;
   minPixelsPerMeter: LoadableAttributeInterface;
   minTextureHeight: LoadableAttributeInterface;
   minTextureWidth: LoadableAttributeInterface;
@@ -56,9 +56,10 @@ export class Schema implements SchemaInterface {
   maxTextureWidth = new LoadableAttribute('Max Texture Width', 2048); // 2048 per Asset Creation Guidelines
   maxTriangleCount = new LoadableAttribute('Max Triangle Count', 100000); // 100k per Asset Creation Guidelines
   maxWidth = new LoadableAttribute('Max Width (x)', 10); // Not specified in Asset Creation Guidelines, 10m seems reasonable for products
-  minFileSizeInKb = new LoadableAttribute('Min file size in Kb', -1); // No minimum in Asset Creation Guidelines, -1 means not tested
+  minFileSizeInKb = new LoadableAttribute('Min file size in Kb', 1); // 1kb to check that the file is not empty
   minHeight = new LoadableAttribute('Min Height (z)', 0.01); // Not specified in Asset Creation Guidelines, 1cm seems reasonable for products
   minLength = new LoadableAttribute('Min Length (y)', 0.01); // Not specified in Asset Creation Guidelines, 1cm seems reasonable for products
+  minMaterialCount = new LoadableAttribute('Min Material Count', -1); // No minimum required
   minPixelsPerMeter = new LoadableAttribute('Min Pixels per Meter', -1); // Not specified in Asset Creation Guidelines
   minTextureHeight = new LoadableAttribute('Max Texture Height', 512); // 512 is the smallest mentioned in the Asset Creation Guidelines
   minTextureWidth = new LoadableAttribute('Max Texture Width', 512); // 512 is the smallest mentioned in the Asset Creation Guidelines
@@ -89,6 +90,7 @@ export class Schema implements SchemaInterface {
       this.maxFileSizeInKb,
       this.maxTriangleCount,
       this.maxMaterialCount,
+      this.minMaterialCount,
       this.maxMeshCount,
       this.maxNodeCount,
       this.maxPrimitiveCount,
@@ -137,8 +139,7 @@ export class Schema implements SchemaInterface {
         this.maxMaterialCount.loadValue(obj.materials.maximum);
       }
       if (obj.materials.minimum !== undefined) {
-        // TODO: Cleanup - new param minMaterialCount
-        //this.maxMaterialCount.loadValue(obj.materials.minimum);
+        this.minMaterialCount.loadValue(obj.materials.minimum);
       }
     }
     if (obj.model !== undefined) {

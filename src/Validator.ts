@@ -21,7 +21,7 @@ export class Validator implements ValidatorInterface {
   report = new Report();
   reportReady = false;
   schema = new Schema();
-  version = '1.0.0-alpha.22';
+  version = '1.0.0-rc.1';
 
   public generateReport() {
     if (!this.model.loaded) {
@@ -33,8 +33,8 @@ export class Validator implements ValidatorInterface {
 
     this.testGltfValidator();
     this.testFileSize();
-    this.testTriangleCount();
     this.testMaterialCount();
+    this.testTriangleCount();
     this.testTextures();
     this.testDimensions();
     this.testEdges();
@@ -233,13 +233,41 @@ export class Validator implements ValidatorInterface {
 
   // The number of materials should be less than or equal to the max, unless the max is -1
   private testMaterialCount() {
-    if (this.schema.maxMaterialCount.value === -1) {
+    if (this.schema.maxMaterialCount.value === -1 && this.schema.minMaterialCount.value === -1) {
+      // Skip the test, but still report the material count
       this.report.materialCount.skipTestWithMessage(this.model.materialCount.value.toLocaleString());
-    } else {
+    } else if (this.schema.maxMaterialCount.value === -1) {
+      // Check only the min material count
+      const materialCountOK =
+        (this.model.materialCount.value as number) >= (this.schema.minMaterialCount.value as number);
+      const materialCountMessage =
+        this.model.materialCount.value + (materialCountOK ? ' >= ' : ' < ') + this.schema.minMaterialCount.value;
+      this.report.materialCount.test(materialCountOK, materialCountMessage);
+    } else if (this.schema.minMaterialCount.value === -1) {
+      // Check only the max material count
       const materialCountOK =
         (this.model.materialCount.value as number) <= (this.schema.maxMaterialCount.value as number);
       const materialCountMessage =
         this.model.materialCount.value + (materialCountOK ? ' <= ' : ' > ') + this.schema.maxMaterialCount.value;
+      this.report.materialCount.test(materialCountOK, materialCountMessage);
+    } else {
+      // Check that the material count is within range
+      const materialCountOK =
+        (this.model.materialCount.value as number) >= (this.schema.minMaterialCount.value as number) &&
+        (this.model.materialCount.value as number) <= (this.schema.maxMaterialCount.value as number);
+      let materialCountMessage =
+        this.schema.minMaterialCount.value +
+        ' <= ' +
+        this.model.materialCount.value +
+        ' <= ' +
+        this.schema.maxMaterialCount.value;
+      if (!materialCountOK) {
+        if ((this.model.materialCount.value as number) < (this.schema.minMaterialCount.value as number)) {
+          materialCountMessage = this.model.materialCount.value + ' < ' + this.schema.minMaterialCount.value;
+        } else if ((this.model.materialCount.value as number) > (this.schema.maxMaterialCount.value as number)) {
+          materialCountMessage = this.model.materialCount.value + ' > ' + this.schema.maxMaterialCount.value;
+        }
+      }
       this.report.materialCount.test(materialCountOK, materialCountMessage);
     }
   }
