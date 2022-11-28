@@ -1,6 +1,5 @@
 import { EdgeUvInterface } from './EdgeUv.js';
 import { LoadableAttribute, LoadableAttributeInterface } from './LoadableAttribute.js';
-import { Svg, SvgInterface } from './Svg.js';
 import SquareUv, { SquareUvInterface } from './SquareUv.js';
 import { TriangleUvInterface } from './TriangleUv.js';
 import UvIsland, { UvIslandInterface } from './UvIsland.js';
@@ -17,9 +16,6 @@ export interface UVInterface {
   islands: UvIslandInterface[];
   name: string;
   overlapCount: LoadableAttributeInterface;
-  svgGutterOverlaps: SvgInterface;
-  svgInvertedTriangles: SvgInterface;
-  svgLayout: SvgInterface;
   triangles: TriangleUvInterface[];
   pixelGrid: SquareUvInterface[];
   u: MaxMinLoadableAttributeInterface;
@@ -33,9 +29,6 @@ export class UV implements UVInterface {
   edges = [] as EdgeUvInterface[];
   invertedTriangleCount = new LoadableAttribute('Number of inverted triangles', 0);
   islands = [] as UvIslandInterface[];
-  svgGutterOverlaps = null as unknown as SvgInterface;
-  svgInvertedTriangles = null as unknown as Svg;
-  svgLayout = null as unknown as Svg;
   name = '';
   overlapCount = new LoadableAttribute('Number of overlapping triangles', 0);
   triangles = [] as TriangleUvInterface[];
@@ -52,9 +45,6 @@ export class UV implements UVInterface {
 
   constructor(name: string, triangles: TriangleUvInterface[]) {
     this.name = name;
-    // TODO: Cleanup - take out svgs for V1
-    this.svgInvertedTriangles = new Svg(name + '-uvs-inverted');
-    this.svgLayout = new Svg(name + '-uvs');
     this.triangles = triangles;
 
     // TODO: Cleanup - have these functions take in and return data instead of using this.
@@ -62,7 +52,6 @@ export class UV implements UVInterface {
     this.calculateInvertedTriangleCount(); // TODO: pass triangles to each of these as well. it make it more clear that they need to be initialized
     this.calculateMaxMinExtents();
     this.calculateOverlapCount();
-    this.generateSvgs();
   }
 
   public isInRangeZeroToOne = () => {
@@ -141,33 +130,15 @@ export class UV implements UVInterface {
             if (gridPixel.islandIndex === undefined) {
               gridPixel.islandIndex = triangle.islandIndex;
             } else if (gridPixel.islandIndex != triangle.islandIndex) {
-              gridPixel.overlapping = true;
-              // TODO: Optimization - can return once a collision is found
-              collisionFound = true; // change to 'return' after testing with svgs
+              // A collision was found, no need to continue checking
+              return false;
             }
           }
         }
       }
     });
 
-    // TODO: Cleanup - remove svg after testing
-    this.svgGutterOverlaps = new Svg('gutter-overlaps');
-
-    this.pixelGrid.forEach((pixel: SquareUvInterface) => {
-      // just trying to get a consistent, different color for each island
-      let svgColor = 'eeeeee';
-      if (pixel.overlapping) {
-        svgColor = 'ff0000';
-      } else if (pixel.islandIndex !== undefined) {
-        const uniqueColor = ((pixel.islandIndex + 1) * 100000) % 16777215;
-        svgColor = uniqueColor.toString(16);
-        svgColor = svgColor.padStart(6, '0');
-        svgColor = '00' + svgColor.substring(2, 6); // remove red to make overlaps stand out
-      }
-      this.svgGutterOverlaps.pathData += pixel.getSvgPath('#' + svgColor);
-    });
-
-    return !collisionFound;
+    return true; // made it here without finding a collision
   };
 
   ///////////////////////
@@ -251,16 +222,6 @@ export class UV implements UVInterface {
       });
       if (!existingIsland) {
         this.islands.push(new UvIsland(triangle));
-      }
-    });
-  };
-
-  private generateSvgs = () => {
-    // TODO: Cleanup - remove SVGs until V2
-    this.triangles.forEach((triangle: TriangleUvInterface) => {
-      this.svgLayout.pathData += triangle.getSvgPath('#000');
-      if (triangle.inverted) {
-        this.svgInvertedTriangles.pathData += triangle.getSvgPath('#f00');
       }
     });
   };

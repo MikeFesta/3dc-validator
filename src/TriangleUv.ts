@@ -16,7 +16,6 @@ export interface TriangleUvInterface {
   minV: number;
   overlapping: boolean;
   calculateIslandIndex(): void;
-  getSvgPath(color: string): string;
   lineIntersects(p1: VertexUvInterface, p2: VertexUvInterface): boolean;
   overlapsTriangle(triagle: TriangleUvInterface): boolean;
   pointInside(u: number, v: number): boolean;
@@ -81,26 +80,6 @@ export default class TriangleUv implements TriangleUvInterface {
         return this.c.computeIslandIndexForTriangles();
       }
     }
-  }
-
-  public getSvgPath(color: string): string {
-    return (
-      '<path fill="' +
-      color +
-      '" d="m ' +
-      (1000 * this.a.u).toFixed(3) +
-      ' ' +
-      (1000 * this.a.v).toFixed(3) +
-      ' L ' +
-      (1000 * this.b.u).toFixed(3) +
-      ' ' +
-      (1000 * this.b.v).toFixed(3) +
-      ' ' +
-      (1000 * this.c.u).toFixed(3) +
-      ' ' +
-      (1000 * this.c.v).toFixed(3) +
-      'Z"/>'
-    );
   }
 
   public lineIntersects(p1: VertexUvInterface, p2: VertexUvInterface): boolean {

@@ -15,9 +15,7 @@ export interface SquareUvInterface {
   vCenter: number;
   vMax: number;
   vMin: number;
-  overlapping: boolean;
   size: number;
-  getSvgPath(color: string): string;
   overlapsTriangle(triagle: TriangleUvInterface): boolean;
   pointInside(u: number, v: number): boolean;
   vertexInside(point: VertexUvInterface): boolean;
@@ -35,7 +33,6 @@ export default class SquareUv implements SquareUvInterface {
   vCenter = undefined as unknown as number;
   vMax = undefined as unknown as number;
   vMin = undefined as unknown as number;
-  overlapping = false;
   size = undefined as unknown as number;
 
   constructor(uCenter: number, vCenter: number, size: number) {
@@ -51,33 +48,6 @@ export default class SquareUv implements SquareUvInterface {
     this.b = new VertexUv(this.uMax, this.vMin);
     this.c = new VertexUv(this.uMin, this.vMax);
     this.d = new VertexUv(this.uMax, this.vMax);
-  }
-
-  public getSvgPath(color: string): string {
-    // a>>>b
-    // ^   v
-    // c<<<d
-    return (
-      '<path fill="' +
-      color +
-      '" d="m ' +
-      (1000 * (this.a.u + this.size / 3)).toFixed(3) +
-      ' ' +
-      (1000 * (this.a.v + this.size / 3)).toFixed(3) +
-      ' L ' +
-      (1000 * (this.b.u - this.size / 3)).toFixed(3) +
-      ' ' +
-      (1000 * (this.b.v + this.size / 3)).toFixed(3) +
-      ' ' +
-      (1000 * (this.d.u - this.size / 3)).toFixed(3) +
-      ' ' +
-      (1000 * (this.d.v - this.size / 3)).toFixed(3) +
-      ' ' +
-      (1000 * (this.c.u + this.size / 3)).toFixed(3) +
-      ' ' +
-      (1000 * (this.c.v - this.size / 3)).toFixed(3) +
-      'Z"/>'
-    );
   }
 
   public overlapsTriangle(triangle: TriangleUvInterface): boolean {

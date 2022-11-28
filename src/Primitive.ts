@@ -8,8 +8,6 @@ import VertexUv, { VertexUvInterface } from './VertexUv.js';
 import VertexXyz, { VertexXyzInterface } from './VertexXyz.js';
 import { AbstractMesh } from '@babylonjs/core';
 import { VertexBuffer } from '@babylonjs/core/Buffers/buffer.js';
-import { UvIslandInterface } from './UvIsland.js';
-import { Svg, SvgInterface } from './Svg.js';
 
 export interface PrimitiveInterface {
   densityMax: LoadableAttributeInterface;
@@ -20,7 +18,6 @@ export interface PrimitiveInterface {
   mesh: AbstractMesh;
   name: string;
   nonManifoldEdgeCount: number;
-  svgIslands: SvgInterface;
   trianglesUv: TriangleUvInterface[];
   trianglesXyz: TriangleXyzInterface[];
   uv: UVInterface;
@@ -37,7 +34,6 @@ export class Primitive implements PrimitiveInterface {
   mesh = null as unknown as AbstractMesh;
   name = '';
   nonManifoldEdgeCount = 0;
-  svgIslands = null as unknown as SvgInterface;
   trianglesUv = [] as TriangleUvInterface[];
   trianglesXyz = [] as TriangleXyzInterface[];
   uv = null as unknown as UVInterface;
@@ -329,19 +325,6 @@ export class Primitive implements PrimitiveInterface {
 
       // Create the UV object. The triangles should already have island indices
       this.uv = new UV(mesh.name, this.trianglesUv);
-
-      // TODO: Remove after testing
-      this.svgIslands = new Svg('islands');
-
-      this.uv.islands.forEach((island: UvIslandInterface) => {
-        const uniqueColor = ((island.index + 1) * 100000) % 16777215;
-        let svgColor = uniqueColor.toString(16).padStart(6, '0');
-        // avoid red to make errors stand out more
-        svgColor = '00' + svgColor.substring(2, 6);
-        island.triangles.forEach((triangle: TriangleUvInterface) => {
-          this.svgIslands.pathData += triangle.getSvgPath('#' + svgColor);
-        });
-      });
     }
   };
 }
