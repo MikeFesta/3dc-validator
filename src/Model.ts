@@ -383,7 +383,7 @@ export class Model implements ModelInterface {
     return { maxHeight, minHeight, maxWidth, minWidth };
   }
 
-  // Loads the binary data into Image objects with node-canvas. NullEngine does not load images.
+  // Loads the binary data into Image objects using node-canvas. NullEngine does not load images.
   private async loadImages(json: GltfJsonInterface, data: GltfBinInterface) {
     if (json.images !== undefined) {
       // Note: can't use forEach because we need to await
@@ -391,7 +391,7 @@ export class Model implements ModelInterface {
         try {
           const imageJson = json.images[i];
           const bufferView = json.bufferViews[imageJson.bufferView];
-          // NOTE: their can be multiple buffers when there are external files
+          // Note: there can be multiple buffers when there are external files
           const arrayBuffer = await this.bin.readAsync(bufferView.byteOffset, bufferView.byteLength);
           const buffer = Buffer.alloc(bufferView.byteLength, undefined, 'utf-8');
           const binaryData = new Uint8Array(arrayBuffer);

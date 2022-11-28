@@ -1,7 +1,6 @@
 import EdgeUv, { EdgeUvInterface } from './EdgeUv.js';
 import EdgeXyz, { EdgeXyzInterface } from './EdgeXyz.js';
 import { LoadableAttribute, LoadableAttributeInterface } from './LoadableAttribute.js';
-import { Material, MaterialInterface } from './Material.js';
 import TriangleUv, { TriangleUvInterface } from './TriangleUv.js';
 import TriangleXyz, { TriangleXyzInterface } from './TriangleXyz.js';
 import { UV, UVInterface } from './UV.js';
@@ -18,7 +17,6 @@ export interface PrimitiveInterface {
   edgesUv: EdgeUvInterface[];
   edgesXyz: EdgeXyzInterface[];
   hardEdgeCount: number;
-  material: MaterialInterface;
   mesh: AbstractMesh;
   name: string;
   nonManifoldEdgeCount: number;
@@ -36,7 +34,6 @@ export class Primitive implements PrimitiveInterface {
   edgesUv = [] as EdgeUvInterface[];
   edgesXyz = [] as EdgeXyzInterface[];
   hardEdgeCount = 0;
-  material = null as unknown as MaterialInterface;
   mesh = null as unknown as AbstractMesh;
   name = '';
   nonManifoldEdgeCount = 0;
@@ -48,9 +45,6 @@ export class Primitive implements PrimitiveInterface {
   verticesXyz = [] as VertexXyzInterface[];
 
   constructor(mesh: AbstractMesh) {
-    if (mesh.material) {
-      this.material = new Material(mesh.material);
-    }
     this.mesh = mesh;
     this.name = mesh.name;
 
@@ -305,11 +299,9 @@ export class Primitive implements PrimitiveInterface {
           vertexC.edges.push(edgeBC, edgeCA);
         }
         if (xyzData && uvData) {
-          // Calculate min/max density
-          // TODO: Optional - use texture resolution of the assigned material (instead of all textures, as in Validator.ts)
-          // Unfortunately mesh.material.getActiveTextures()[0].getSize() always returns 512x512 because of NullEngine
-          // Materials can have more than one texture and they can be different resolutions.
-          // QUESTION: Should we use the biggest for max, smallest for min or always use the diffuse texture when available?
+          // Calculate min/max density as 0-1 UV percentage per meter.
+          // The pixel density depends on the texture resolution and is computed in Validator.ts vs all image files.
+          // V2: It would be preferable to compute pixels here using only images linked to this primitive's material
           const meshArea = this.trianglesXyz[this.trianglesXyz.length - 1].area;
           const uvArea = this.trianglesUv[this.trianglesUv.length - 1].area;
           const density = meshArea == 0 ? 0 : uvArea / meshArea;

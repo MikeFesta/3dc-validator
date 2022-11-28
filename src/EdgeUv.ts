@@ -28,7 +28,7 @@ export default class EdgeUv implements EdgeUvInterface {
   public calculateAttributes(): void {
     this.shared = this.triangles.length > 1;
     // if both vertices are in the same position, it has zero length
-    // TODO: V2 - Report zero length UV edges
+    // V2: Add zero length UV edges to the report
     this.zeroLength = this.vertexA.index === this.vertexB.index;
   }
 

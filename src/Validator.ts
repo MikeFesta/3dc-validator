@@ -722,7 +722,9 @@ export class Validator implements ValidatorInterface {
     }
 
     // Pixels per Meter (Texel Density)
-    // TODO: Optional - texel density calculation per material (move this to Primitive.ts)
+    // V2: texel density should ideally be calculated per material, rather than the min/max of all images in the file.
+    // Computing density per material requires linking the canvas images to textures and linking those to materials
+    // and linking the gltf material indices to the babylon meshes because NullEngine does not load images.
     const maxResolutionSquared =
       (this.model.texturesMaxWidth.value as number) * (this.model.texturesMaxHeight.value as number);
     const minResolutionSquared =

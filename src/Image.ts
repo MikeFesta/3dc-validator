@@ -14,12 +14,12 @@ export interface ImageInterface {
 
 export class Image implements ImageInterface {
   canvasImage = undefined as unknown as CanvasImage;
-  height = 0;
+  height = undefined as unknown as number;
   maxValue = undefined as unknown as number;
   minValue = undefined as unknown as number;
   mimeType = '';
   name = '';
-  width = 0;
+  width = undefined as unknown as number;
 
   constructor(imageJson: GltfJsonImageInterface) {
     this.name = imageJson.name;
