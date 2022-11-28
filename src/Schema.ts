@@ -13,14 +13,16 @@ export interface SchemaInterface {
   maxPrimitiveCount: LoadableAttributeInterface;
   maxTextureHeight: LoadableAttributeInterface;
   maxTextureWidth: LoadableAttributeInterface;
-  maxTriangleCount: LoadableAttributeInterface;
+  maxTriangleCount: LoadableAttributeInterface; // TODO: rename maxMin
   maxWidth: LoadableAttributeInterface;
   minFileSizeInKb: LoadableAttributeInterface;
   minHeight: LoadableAttributeInterface;
   minLength: LoadableAttributeInterface;
   minMaterialCount: LoadableAttributeInterface;
   minMeshCount: LoadableAttributeInterface;
+  minNodeCount: LoadableAttributeInterface;
   minPixelsPerMeter: LoadableAttributeInterface;
+  minPrimitiveCount: LoadableAttributeInterface;
   minTextureHeight: LoadableAttributeInterface;
   minTextureWidth: LoadableAttributeInterface;
   minWidth: LoadableAttributeInterface;
@@ -44,45 +46,49 @@ export interface SchemaInterface {
 }
 
 export class Schema implements SchemaInterface {
+  // TODO: I should probably change all the defaults to not run the test
   loaded = false;
-  maxFileSizeInKb = new LoadableAttribute('Max file size in Kb', 5120); // 5mb per Asset Creation Guidelines
-  maxHeight = new LoadableAttribute('Max Height (z)', 10); // Not specified in Asset Creation Guidelines, 10m seems reasonable for products
-  maxLength = new LoadableAttribute('Max Length (y)', 10); // Not specified in Asset Creation Guidelines, 10m seems reasonable for products
-  maxMaterialCount = new LoadableAttribute('Max Material Count', 5); // 5 per RFP Specifications
-  maxMeshCount = new LoadableAttribute('Max Mesh Count', -1); // Not specified in Asset Creation Guidelines. -1 to ignore
-  maxNodeCount = new LoadableAttribute('Max Node Count', -1); // Not specified in Asset Creation Guidelines. -1 to ignore
-  maxPixelsPerMeter = new LoadableAttribute('Max Pixels per Meter', -1); // Not specified in Asset Creation Guidelines
-  maxPrimitiveCount = new LoadableAttribute('Max Primitive Count', -1); // Not specified in Asset Creation Guidelines. -1 to ignore
-  maxTextureHeight = new LoadableAttribute('Max Texture Height', 2048); // 2048 per Asset Creation Guidelines
-  maxTextureWidth = new LoadableAttribute('Max Texture Width', 2048); // 2048 per Asset Creation Guidelines
-  maxTriangleCount = new LoadableAttribute('Max Triangle Count', 100000); // 100k per Asset Creation Guidelines
-  maxWidth = new LoadableAttribute('Max Width (x)', 10); // Not specified in Asset Creation Guidelines, 10m seems reasonable for products
-  minFileSizeInKb = new LoadableAttribute('Min file size in Kb', 1); // 1kb to check that the file is not empty
-  minHeight = new LoadableAttribute('Min Height (z)', 0.01); // Not specified in Asset Creation Guidelines, 1cm seems reasonable for products
-  minLength = new LoadableAttribute('Min Length (y)', 0.01); // Not specified in Asset Creation Guidelines, 1cm seems reasonable for products
-  minMaterialCount = new LoadableAttribute('Min Material Count', -1); // No minimum required
-  minMeshCount = new LoadableAttribute('Min Mesh Count', -1); // Not specified in Asset Creation Guidelines. -1 to ignore
-  minPixelsPerMeter = new LoadableAttribute('Min Pixels per Meter', -1); // Not specified in Asset Creation Guidelines
-  minTextureHeight = new LoadableAttribute('Max Texture Height', 512); // 512 is the smallest mentioned in the Asset Creation Guidelines
-  minTextureWidth = new LoadableAttribute('Max Texture Width', 512); // 512 is the smallest mentioned in the Asset Creation Guidelines
-  minWidth = new LoadableAttribute('Min Width (x)', 0.01); // Not specified in Asset Creation Guidelines, 1cm seems reasonable for products
-  notInvertedUVs = new LoadableAttribute('No Inverted UVs', true); // Inverted UVs are not recommended
-  notOverlappingUVs = new LoadableAttribute('No Overlapping UVs', true); // Overlapping UVs are not recommended
-  pbrColorMax = new LoadableAttribute('Color max value is PBR safe', 243); // 243 per Asset Creation Guidelines
-  pbrColorMin = new LoadableAttribute('Color min value is PBR safe', 30); // 30 per Asset Creation Guidelines
+  maxFileSizeInKb = new LoadableAttribute('Max file size in Kb', 5120); //    5mb per Asset Creation Guidelines
+  maxHeight = new LoadableAttribute('Max Height (z)', -1); //                 Not specified in Asset Creation Guidelines. -1 to ignore
+  maxLength = new LoadableAttribute('Max Length (y)', -1); //                 Not specified in Asset Creation Guidelines. -1 to ignore
+  maxMaterialCount = new LoadableAttribute('Max Material Count', 5); //       5 per RFP Specifications
+  maxMeshCount = new LoadableAttribute('Max Mesh Count', -1); //              Not specified in Asset Creation Guidelines. -1 to ignore
+  maxNodeCount = new LoadableAttribute('Max Node Count', -1); //              Not specified in Asset Creation Guidelines. -1 to ignore
+  maxPixelsPerMeter = new LoadableAttribute('Max Pixels per Meter', -1); //   Not specified in Asset Creation Guidelines
+  maxPrimitiveCount = new LoadableAttribute('Max Primitive Count', -1); //    Not specified in Asset Creation Guidelines. -1 to ignore
+  maxTextureHeight = new LoadableAttribute('Max Texture Height', 2048); //    2048 per Asset Creation Guidelines
+  maxTextureWidth = new LoadableAttribute('Max Texture Width', 2048); //      2048 per Asset Creation Guidelines
+  maxTriangleCount = new LoadableAttribute('Max Triangle Count', 100000); //  100k per Asset Creation Guidelines
+  maxWidth = new LoadableAttribute('Max Width (x)', -1); //                   Not specified in Asset Creation Guidelines. -1 to ignore
+  minFileSizeInKb = new LoadableAttribute('Min file size in Kb', 1); //       1kb to check that the file is not empty
+  minHeight = new LoadableAttribute('Min Height (z)', -1); //                 Not specified in Asset Creation Guidelines. -1 to ignore
+  minLength = new LoadableAttribute('Min Length (y)', -1); //                 Not specified in Asset Creation Guidelines. -1 to ignore
+  minMaterialCount = new LoadableAttribute('Min Material Count', -1); //      Not specified in Asset Creation Guidelines. -1 to ignore
+  minMeshCount = new LoadableAttribute('Min Mesh Count', -1); //              Not specified in Asset Creation Guidelines. -1 to ignore
+  minNodeCount = new LoadableAttribute('Min Node Count', -1); //              Not specified in Asset Creation Guidelines. -1 to ignore
+  minPixelsPerMeter = new LoadableAttribute('Min Pixels per Meter', -1); //   Not specified in Asset Creation Guidelines. -1 to ignore
+  minPrimitiveCount = new LoadableAttribute('Min Primitive Count', -1); //    Not specified in Asset Creation Guidelines. -1 to ignore
+  minTextureHeight = new LoadableAttribute('Min Texture Height', 512); //     512 is the smallest mentioned in the Asset Creation Guidelines
+  minTextureWidth = new LoadableAttribute('Min Texture Width', 512); //       512 is the smallest mentioned in the Asset Creation Guidelines
+  minTriangleCount = new LoadableAttribute('Min Triangle Count', -1); //      Not specified in Asset Creation Guidelines. -1 to ignore
+  minWidth = new LoadableAttribute('Min Width (x)', -1); //                   Not specified in Asset Creation Guidelines. -1 to ignore
+  notInvertedUVs = new LoadableAttribute('No Inverted UVs', true); //         Inverted UVs are not recommended, per the Asset Creation Guidelines
+  notOverlappingUVs = new LoadableAttribute('No Overlapping UVs', true); //   Overlapping UVs are not recommended, per the Asset Creation Guidelines
+  pbrColorMax = new LoadableAttribute('Color max value is PBR safe', 243); // 243, per Asset Creation Guidelines
+  pbrColorMin = new LoadableAttribute('Color min value is PBR safe', 30); //  30, per Asset Creation Guidelines
   percentToleranceHeight = new LoadableAttribute('Percent Tolerance Height (z)', 3); // 3% per RFP Specifications
   percentToleranceLength = new LoadableAttribute('Percent Tolerance Length (y)', 3); // 3% per RFP Specifications
-  percentToleranceWidth = new LoadableAttribute('Percent Tolerance Width (x)', 3); // 3% per RFP Specifications
-  requireBeveledEdges = new LoadableAttribute('Require Beveled Edges', false); // Not required, edge computation is a little slow
+  percentToleranceWidth = new LoadableAttribute('Percent Tolerance Width (x)', 3); //   3% per RFP Specifications
+  requireBeveledEdges = new LoadableAttribute('Require Beveled Edges', false); //   Not required, edge computation is a little slow
   requireManifoldEdges = new LoadableAttribute('Require Manifold Edges', false); // Not required, edge computation is a little slow
-  requireTextureDimensionsBePowersOfTwo = new LoadableAttribute('Require Texture Dimensions be Powers of 2', true);
+  requireTextureDimensionsBePowersOfTwo = new LoadableAttribute('Require Texture Dimensions be Powers of 2', true); // Recommended in the Asset Creation Guidelines
   requireTextureDimensionsBeQuadratic = new LoadableAttribute(
     'Require Texture Dimensions be Quadratic (height = width)',
     false,
-  );
-  requireCleanRootNodeTransform = new LoadableAttribute('Require Root Node Have a Clean Transform', false);
-  requireUVRangeZeroToOne = new LoadableAttribute('Require UV range 0 to 1', false);
-  resolutionNeededForUvMargin = new LoadableAttribute('UV Gutter Wide Enough', -1);
+  ); // Not specified in Asset Creation Guidelines
+  requireCleanRootNodeTransform = new LoadableAttribute('Require Root Node Have a Clean Transform', false); // Not specified in Asset Creation Guidelines
+  requireUVRangeZeroToOne = new LoadableAttribute('Require UV range 0 to 1', false); // Not specified in Asset Creation Guidelines
+  resolutionNeededForUvMargin = new LoadableAttribute('UV Gutter Wide Enough', -1); // Not specified in Asset Creation Guidelines. -1 to ignore
   version = new LoadableAttribute('Version', '1.0.0');
 
   getAttributes() {
@@ -160,8 +166,7 @@ export class Schema implements SchemaInterface {
             this.maxNodeCount.loadValue(obj.model.objectCount.nodes.maximum);
           }
           if (obj.model.objectCount.nodes.minimum !== undefined) {
-            // TODO: Cleanup - new param minNodeCount
-            //this.maxNodeCount.loadValue(obj.model.objectCount.nodes.minimum);
+            this.minNodeCount.loadValue(obj.model.objectCount.nodes.minimum);
           }
         }
         if (obj.model.objectCount.primitives !== undefined) {
@@ -169,8 +174,7 @@ export class Schema implements SchemaInterface {
             this.maxPrimitiveCount.loadValue(obj.model.objectCount.primitives.maximum);
           }
           if (obj.model.objectCount.primitives.minimum !== undefined) {
-            // TODO: Cleanup - minPrimitiveCount
-            //this.maxPrimitiveCount.loadValue(obj.model.objectCount.primitives.minimum);
+            this.minPrimitiveCount.loadValue(obj.model.objectCount.primitives.minimum);
           }
         }
       }
@@ -188,8 +192,7 @@ export class Schema implements SchemaInterface {
           this.maxTriangleCount.loadValue(obj.model.triangles.maximum);
         }
         if (obj.model.triangles.minimum) {
-          // TODO: Cleanup - new param minTriangleCount
-          //this.maxTriangleCount.loadValue(obj.model.triangles.minimum);
+          this.minTriangleCount.loadValue(obj.model.triangles.minimum);
         }
       }
     }
@@ -206,8 +209,11 @@ export class Schema implements SchemaInterface {
             this.percentToleranceHeight.loadValue(obj.product.dimensions.height.percentTolerance);
           }
         }
+        console.log('object product dimensions provided');
         if (obj.product.dimensions.length !== undefined) {
+          console.log('object product length dimensions provided');
           if (obj.product.dimensions.length.maximum !== undefined) {
+            console.log('object product MAX length dimensions provided');
             this.maxLength.loadValue(obj.product.dimensions.length.maximum);
           }
           if (obj.product.dimensions.length.minimum !== undefined) {

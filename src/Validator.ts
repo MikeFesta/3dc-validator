@@ -275,12 +275,35 @@ export class Validator implements ValidatorInterface {
   // Check the number of meshes, nodes, and primitives
   private testObjectCount() {
     // Nodes
-    if (this.schema.maxNodeCount.value === -1) {
+    if (this.schema.maxNodeCount.value === -1 && this.schema.minNodeCount.value === -1) {
+      // Skip the test, but still report the node count
       this.report.nodeCount.skipTestWithMessage(this.model.nodeCount.value.toLocaleString());
-    } else {
+    } else if (this.schema.maxNodeCount.value === -1) {
+      // Check only the min node count
+      const nodeCountOK = this.model.nodeCount.value >= this.schema.minNodeCount.value;
+      const nodeCountMessage =
+        this.model.nodeCount.value + (nodeCountOK ? ' >= ' : ' < ') + this.schema.minNodeCount.value;
+      this.report.nodeCount.test(nodeCountOK, nodeCountMessage);
+    } else if (this.schema.minNodeCount.value === -1) {
+      // Check only the max node count
       const nodeCountOK = this.model.nodeCount.value <= this.schema.maxNodeCount.value;
       const nodeCountMessage =
         this.model.nodeCount.value + (nodeCountOK ? ' <= ' : ' > ') + this.schema.maxNodeCount.value;
+      this.report.nodeCount.test(nodeCountOK, nodeCountMessage);
+    } else {
+      // Check that the node count is within range
+      const nodeCountOK =
+        (this.model.nodeCount.value as number) >= (this.schema.minNodeCount.value as number) &&
+        (this.model.nodeCount.value as number) <= (this.schema.maxNodeCount.value as number);
+      let nodeCountMessage =
+        this.schema.minNodeCount.value + ' <= ' + this.model.nodeCount.value + ' <= ' + this.schema.maxNodeCount.value;
+      if (!nodeCountOK) {
+        if ((this.model.nodeCount.value as number) < (this.schema.minNodeCount.value as number)) {
+          nodeCountMessage = this.model.nodeCount.value + ' < ' + this.schema.minNodeCount.value;
+        } else if ((this.model.nodeCount.value as number) > (this.schema.maxNodeCount.value as number)) {
+          nodeCountMessage = this.model.nodeCount.value + ' > ' + this.schema.maxNodeCount.value;
+        }
+      }
       this.report.nodeCount.test(nodeCountOK, nodeCountMessage);
     }
 
@@ -318,12 +341,39 @@ export class Validator implements ValidatorInterface {
     }
 
     // Primitives
-    if (this.schema.maxPrimitiveCount.value === -1) {
+    if (this.schema.maxPrimitiveCount.value === -1 && this.schema.minPrimitiveCount.value === -1) {
+      // Skip the test, but still report the primitive count
       this.report.primitiveCount.skipTestWithMessage(this.model.primitiveCount.value.toLocaleString());
-    } else {
+    } else if (this.schema.maxPrimitiveCount.value === -1) {
+      // Check only the min primitive count
+      const primitiveCountOK = this.model.primitiveCount.value >= this.schema.maxPrimitiveCount.value;
+      const primitiveCountMessage =
+        this.model.primitiveCount.value + (primitiveCountOK ? ' >= ' : ' < ') + this.schema.maxPrimitiveCount.value;
+      this.report.primitiveCount.test(primitiveCountOK, primitiveCountMessage);
+    } else if (this.schema.minPrimitiveCount.value === -1) {
+      // Check only the max mesh count
       const primitiveCountOK = this.model.primitiveCount.value <= this.schema.maxPrimitiveCount.value;
       const primitiveCountMessage =
         this.model.primitiveCount.value + (primitiveCountOK ? ' <= ' : ' > ') + this.schema.maxPrimitiveCount.value;
+      this.report.primitiveCount.test(primitiveCountOK, primitiveCountMessage);
+    } else {
+      // Check that the mesh count is within range
+      const primitiveCountOK =
+        (this.model.primitiveCount.value as number) >= (this.schema.minPrimitiveCount.value as number) &&
+        (this.model.primitiveCount.value as number) <= (this.schema.maxPrimitiveCount.value as number);
+      let primitiveCountMessage =
+        this.schema.minPrimitiveCount.value +
+        ' <= ' +
+        this.model.primitiveCount.value +
+        ' <= ' +
+        this.schema.maxPrimitiveCount.value;
+      if (!primitiveCountOK) {
+        if ((this.model.primitiveCount.value as number) < (this.schema.minPrimitiveCount.value as number)) {
+          primitiveCountMessage = this.model.primitiveCount.value + ' < ' + this.schema.minPrimitiveCount.value;
+        } else if ((this.model.primitiveCount.value as number) > (this.schema.maxPrimitiveCount.value as number)) {
+          primitiveCountMessage = this.model.primitiveCount.value + ' > ' + this.schema.maxPrimitiveCount.value;
+        }
+      }
       this.report.primitiveCount.test(primitiveCountOK, primitiveCountMessage);
     }
   }
@@ -495,15 +545,45 @@ export class Validator implements ValidatorInterface {
 
   // The number of triangles should be less than or equal to the max, unless the max is -1
   private testTriangleCount() {
-    if (this.schema.maxTriangleCount.value === -1) {
+    if (this.schema.maxTriangleCount.value === -1 && this.schema.minTriangleCount.value === -1) {
+      // Skip the test, but still report the triangle count
       this.report.triangleCount.skipTestWithMessage(this.model.triangleCount.value.toLocaleString());
-    } else {
+    } else if (this.schema.maxTriangleCount.value === -1) {
+      // Check only the min triangle count
+      const triangleCountOK =
+        (this.model.triangleCount.value as number) >= (this.schema.minTriangleCount.value as number);
+      const triangleCountMessage =
+        this.model.triangleCount.value.toLocaleString() +
+        (triangleCountOK ? ' >= ' : ' < ') +
+        this.schema.minTriangleCount.value.toLocaleString();
+      this.report.triangleCount.test(triangleCountOK, triangleCountMessage);
+    } else if (this.schema.minTriangleCount.value === -1) {
+      // Check only the max primitive count
       const triangleCountOK =
         (this.model.triangleCount.value as number) <= (this.schema.maxTriangleCount.value as number);
       const triangleCountMessage =
         this.model.triangleCount.value.toLocaleString() +
         (triangleCountOK ? ' <= ' : ' > ') +
         this.schema.maxTriangleCount.value.toLocaleString();
+      this.report.triangleCount.test(triangleCountOK, triangleCountMessage);
+    } else {
+      // Check that the mesh count is within range
+      const triangleCountOK =
+        (this.model.triangleCount.value as number) >= (this.schema.minTriangleCount.value as number) &&
+        (this.model.triangleCount.value as number) <= (this.schema.maxTriangleCount.value as number);
+      let triangleCountMessage =
+        this.schema.minTriangleCount.value +
+        ' <= ' +
+        this.model.triangleCount.value +
+        ' <= ' +
+        this.schema.maxTriangleCount.value;
+      if (!triangleCountOK) {
+        if ((this.model.triangleCount.value as number) < (this.schema.minTriangleCount.value as number)) {
+          triangleCountMessage = this.model.triangleCount.value + ' < ' + this.schema.minTriangleCount.value;
+        } else if ((this.model.triangleCount.value as number) > (this.schema.maxTriangleCount.value as number)) {
+          triangleCountMessage = this.model.triangleCount.value + ' > ' + this.schema.maxTriangleCount.value;
+        }
+      }
       this.report.triangleCount.test(triangleCountOK, triangleCountMessage);
     }
   }
