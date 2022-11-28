@@ -294,8 +294,8 @@ export class Model implements ModelInterface {
     let overlappingUvCount = 0;
 
     // 4. Find the min/max texel density
-    let maxDensity = undefined as unknown as number;
-    let minDensity = undefined as unknown as number;
+    let densityMax = undefined as unknown as number;
+    let densityMin = undefined as unknown as number;
 
     this.primitives.forEach((primitive: PrimitiveInterface) => {
       // 1.
@@ -319,11 +319,11 @@ export class Model implements ModelInterface {
       overlappingUvCount += primitive.uv.overlapCount.value as number;
 
       // 4.
-      if (maxDensity === undefined || primitive.maxDensity.value > maxDensity) {
-        maxDensity = primitive.maxDensity.value as number;
+      if (densityMax === undefined || primitive.densityMax.value > densityMax) {
+        densityMax = primitive.densityMax.value as number;
       }
-      if (minDensity === undefined || primitive.minDensity.value < minDensity) {
-        minDensity = primitive.minDensity.value as number;
+      if (densityMin === undefined || primitive.densityMin.value < densityMin) {
+        densityMin = primitive.densityMin.value as number;
       }
     });
 
@@ -348,11 +348,11 @@ export class Model implements ModelInterface {
     this.overlappingUvCount.loadValue(overlappingUvCount);
 
     // 4.
-    if (maxDensity !== undefined) {
-      this.maxUvDensity.loadValue(maxDensity);
+    if (densityMax !== undefined) {
+      this.maxUvDensity.loadValue(densityMax);
     }
-    if (minDensity !== undefined) {
-      this.minUvDensity.loadValue(minDensity);
+    if (densityMin !== undefined) {
+      this.minUvDensity.loadValue(densityMin);
     }
   }
 

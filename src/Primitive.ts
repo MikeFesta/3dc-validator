@@ -13,15 +13,13 @@ import { UvIslandInterface } from './UvIsland.js';
 import { Svg, SvgInterface } from './Svg.js';
 
 export interface PrimitiveInterface {
+  densityMax: LoadableAttributeInterface;
+  densityMin: LoadableAttributeInterface;
   edgesUv: EdgeUvInterface[];
   edgesXyz: EdgeXyzInterface[];
   hardEdgeCount: number;
   material: MaterialInterface;
-  // TODO: Cleanup - rename to densityMax
-  maxDensity: LoadableAttributeInterface;
   mesh: AbstractMesh;
-  // TODO: Cleanup - this may not need to be a LoadableAttribute
-  minDensity: LoadableAttributeInterface;
   name: string;
   nonManifoldEdgeCount: number;
   svgIslands: SvgInterface;
@@ -33,13 +31,13 @@ export interface PrimitiveInterface {
 }
 
 export class Primitive implements PrimitiveInterface {
+  densityMax = new LoadableAttribute('Highest pixel density', 0);
+  densityMin = new LoadableAttribute('Lowest pixel density', 0);
   edgesUv = [] as EdgeUvInterface[];
   edgesXyz = [] as EdgeXyzInterface[];
   hardEdgeCount = 0;
   material = null as unknown as MaterialInterface;
-  maxDensity = new LoadableAttribute('Highest pixel density', 0);
   mesh = null as unknown as AbstractMesh;
-  minDensity = new LoadableAttribute('Lowest pixel density', 0);
   name = '';
   nonManifoldEdgeCount = 0;
   svgIslands = null as unknown as SvgInterface;
@@ -81,8 +79,8 @@ export class Primitive implements PrimitiveInterface {
     const faceIndicies = mesh.getIndices();
 
     if (faceIndicies && faceIndicies.length > 0) {
-      let maxDensity = undefined as unknown as number;
-      let minDensity = undefined as unknown as number;
+      let densityMax = undefined as unknown as number;
+      let densityMin = undefined as unknown as number;
       const uvData = mesh.getVerticesData(VertexBuffer.UVKind);
       const xyzData = mesh.getVerticesData(VertexBuffer.PositionKind);
 
@@ -315,19 +313,19 @@ export class Primitive implements PrimitiveInterface {
           const meshArea = this.trianglesXyz[this.trianglesXyz.length - 1].area;
           const uvArea = this.trianglesUv[this.trianglesUv.length - 1].area;
           const density = meshArea == 0 ? 0 : uvArea / meshArea;
-          if (maxDensity === undefined || density > maxDensity) {
-            maxDensity = density;
+          if (densityMax === undefined || density > densityMax) {
+            densityMax = density;
           }
-          if (minDensity === undefined || density < minDensity) {
-            minDensity = density;
+          if (densityMin === undefined || density < densityMin) {
+            densityMin = density;
           }
         }
       }
-      if (maxDensity !== undefined) {
-        this.maxDensity.loadValue(maxDensity);
+      if (densityMax !== undefined) {
+        this.densityMax.loadValue(densityMax);
       }
-      if (minDensity !== undefined) {
-        this.minDensity.loadValue(minDensity);
+      if (densityMin !== undefined) {
+        this.densityMin.loadValue(densityMin);
       }
 
       // Group UVs into islands for the purpose of margin testing
