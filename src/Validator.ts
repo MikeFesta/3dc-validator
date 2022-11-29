@@ -51,6 +51,8 @@ export class Validator implements ValidatorInterface {
     if (this.productInfo.loaded) {
       // Additional checks that require product information to be made available
       this.testProductDimensions();
+    } else {
+      this.report.productDimensionsWithinTolerance.skipTestWithMessage('No Product Info Loaded');
     }
 
     this.reportReady = true;
@@ -596,88 +598,102 @@ export class Validator implements ValidatorInterface {
 
   // Texture dimensions should be within range, powers of 2, and (optionally) quadratic
   private testTextures() {
-    // Texture Size - Height (max)
-    if (this.schema.maxTextureHeight.value === -1) {
-      this.report.textureDimensionsMaxHeight.skipTestWithMessage(this.model.texturesMaxHeight.value.toLocaleString());
+    if (this.model.images.length === 0) {
+      // If there are no images, skip all of these tests
+      this.report.textureDimensionsMaxHeight.skipTestWithMessage('No Images');
+      this.report.textureDimensionsMinHeight.skipTestWithMessage('No Images');
+      this.report.textureDimensionsMaxWidth.skipTestWithMessage('No Images');
+      this.report.textureDimensionsMinWidth.skipTestWithMessage('No Images');
+      this.report.texturesPowerOfTwo.skipTestWithMessage('No Images');
+      this.report.texturesQuadratic.skipTestWithMessage('No Images');
+      this.report.pbrColorMax.skipTestWithMessage('No Images');
+      this.report.pbrColorMin.skipTestWithMessage('No Images');
+      this.report.pixelsPerMeterMax.skipTestWithMessage('No Images');
+      this.report.pixelsPerMeterMin.skipTestWithMessage('No Images');
     } else {
-      const maxHeightPasses = this.model.texturesMaxHeight.value <= this.schema.maxTextureHeight.value;
-      this.report.textureDimensionsMaxHeight.test(
-        maxHeightPasses,
-        this.model.texturesMaxHeight.value + (maxHeightPasses ? ' <= ' : ' > ') + this.schema.maxTextureHeight.value,
-      );
-    }
+      // Texture Size - Height (max)
+      if (this.schema.maxTextureHeight.value === -1) {
+        this.report.textureDimensionsMaxHeight.skipTestWithMessage(this.model.texturesMaxHeight.value.toLocaleString());
+      } else {
+        const maxHeightPasses = this.model.texturesMaxHeight.value <= this.schema.maxTextureHeight.value;
+        this.report.textureDimensionsMaxHeight.test(
+          maxHeightPasses,
+          this.model.texturesMaxHeight.value + (maxHeightPasses ? ' <= ' : ' > ') + this.schema.maxTextureHeight.value,
+        );
+      }
 
-    // Texture Size - Height (min)
-    if (this.schema.minTextureHeight.value === -1) {
-      this.report.textureDimensionsMinHeight.skipTestWithMessage(this.model.texturesMinHeight.value.toLocaleString());
-    } else {
-      const minHeightPasses = this.model.texturesMinHeight.value >= this.schema.minTextureHeight.value;
-      this.report.textureDimensionsMinHeight.test(
-        minHeightPasses,
-        this.model.texturesMinHeight.value + (minHeightPasses ? ' >= ' : ' < ') + this.schema.minTextureHeight.value,
-      );
-    }
+      // Texture Size - Height (min)
+      if (this.schema.minTextureHeight.value === -1) {
+        this.report.textureDimensionsMinHeight.skipTestWithMessage(this.model.texturesMinHeight.value.toLocaleString());
+      } else {
+        const minHeightPasses = this.model.texturesMinHeight.value >= this.schema.minTextureHeight.value;
+        this.report.textureDimensionsMinHeight.test(
+          minHeightPasses,
+          this.model.texturesMinHeight.value + (minHeightPasses ? ' >= ' : ' < ') + this.schema.minTextureHeight.value,
+        );
+      }
 
-    // Texture Size - Width (max)
-    if (this.schema.maxTextureWidth.value === -1) {
-      this.report.textureDimensionsMaxWidth.skipTestWithMessage(this.model.texturesMaxWidth.value.toLocaleString());
-    } else {
-      const maxWidthPasses = this.model.texturesMaxWidth.value <= this.schema.maxTextureWidth.value;
-      this.report.textureDimensionsMaxWidth.test(
-        maxWidthPasses,
-        this.model.texturesMaxWidth.value + (maxWidthPasses ? ' <= ' : ' > ') + this.schema.maxTextureWidth.value,
-      );
-    }
+      // Texture Size - Width (max)
+      if (this.schema.maxTextureWidth.value === -1) {
+        this.report.textureDimensionsMaxWidth.skipTestWithMessage(this.model.texturesMaxWidth.value.toLocaleString());
+      } else {
+        const maxWidthPasses = this.model.texturesMaxWidth.value <= this.schema.maxTextureWidth.value;
+        this.report.textureDimensionsMaxWidth.test(
+          maxWidthPasses,
+          this.model.texturesMaxWidth.value + (maxWidthPasses ? ' <= ' : ' > ') + this.schema.maxTextureWidth.value,
+        );
+      }
 
-    // Texture Size - Width (min)
-    if (this.schema.minTextureWidth.value === -1) {
-      this.report.textureDimensionsMinWidth.skipTestWithMessage(this.model.texturesMinWidth.value.toLocaleString());
-    } else {
-      const minWidthPasses = this.model.texturesMinWidth.value >= this.schema.minTextureWidth.value;
-      this.report.textureDimensionsMinWidth.test(
-        minWidthPasses,
-        this.model.texturesMinWidth.value + (minWidthPasses ? ' >= ' : ' < ') + this.schema.minTextureWidth.value,
-      );
-    }
+      // Texture Size - Width (min)
+      if (this.schema.minTextureWidth.value === -1) {
+        this.report.textureDimensionsMinWidth.skipTestWithMessage(this.model.texturesMinWidth.value.toLocaleString());
+      } else {
+        const minWidthPasses = this.model.texturesMinWidth.value >= this.schema.minTextureWidth.value;
+        this.report.textureDimensionsMinWidth.test(
+          minWidthPasses,
+          this.model.texturesMinWidth.value + (minWidthPasses ? ' >= ' : ' < ') + this.schema.minTextureWidth.value,
+        );
+      }
 
-    // Texture Size - Power of 2
-    if (this.schema.requireTextureDimensionsBePowersOfTwo.value === false) {
-      this.report.texturesPowerOfTwo.skipTestWithMessage(
-        (this.model.texturesPowerOfTwo.value as boolean) ? 'true' : 'false',
-      );
-    } else {
-      this.report.texturesPowerOfTwo.test(this.model.texturesPowerOfTwo.value as boolean, '');
-    }
+      // Texture Size - Power of 2
+      if (this.schema.requireTextureDimensionsBePowersOfTwo.value === false) {
+        this.report.texturesPowerOfTwo.skipTestWithMessage(
+          (this.model.texturesPowerOfTwo.value as boolean) ? 'true' : 'false',
+        );
+      } else {
+        this.report.texturesPowerOfTwo.test(this.model.texturesPowerOfTwo.value as boolean, '');
+      }
 
-    // Texture Size - Quadratic (width=height)
-    if (this.schema.requireTextureDimensionsBeQuadratic.value === false) {
-      this.report.texturesQuadratic.skipTestWithMessage(
-        (this.model.texturesQuadratic.value as boolean) ? 'true' : 'false',
-      );
-    } else {
-      this.report.texturesQuadratic.test(this.model.texturesQuadratic.value as boolean, '');
-    }
+      // Texture Size - Quadratic (width=height)
+      if (this.schema.requireTextureDimensionsBeQuadratic.value === false) {
+        this.report.texturesQuadratic.skipTestWithMessage(
+          (this.model.texturesQuadratic.value as boolean) ? 'true' : 'false',
+        );
+      } else {
+        this.report.texturesQuadratic.test(this.model.texturesQuadratic.value as boolean, '');
+      }
 
-    // PBR safe colors
-    if (this.schema.pbrColorMax.value === -1) {
-      this.report.pbrColorMax.skipTestWithMessage((this.model.colorValueMax.value as number).toLocaleString());
-    } else {
-      this.report.pbrColorMax.test(
-        this.model.colorValueMax.value <= this.schema.pbrColorMax.value,
-        (this.model.colorValueMax.value as number).toLocaleString() +
-          (this.model.colorValueMax.value <= this.schema.pbrColorMax.value ? ' <= ' : ' > ') +
-          (this.schema.pbrColorMax.value as number).toLocaleString(),
-      );
-    }
-    if (this.schema.pbrColorMin.value === -1) {
-      this.report.pbrColorMin.skipTestWithMessage((this.model.colorValueMin.value as number).toLocaleString());
-    } else {
-      this.report.pbrColorMin.test(
-        this.model.colorValueMin.value >= this.schema.pbrColorMin.value,
-        (this.model.colorValueMin.value as number).toLocaleString() +
-          (this.model.colorValueMin.value >= this.schema.pbrColorMin.value ? ' >= ' : ' < ') +
-          (this.schema.pbrColorMin.value as number).toLocaleString(),
-      );
+      // PBR safe colors
+      if (this.schema.pbrColorMax.value === -1) {
+        this.report.pbrColorMax.skipTestWithMessage((this.model.colorValueMax.value as number).toLocaleString());
+      } else {
+        this.report.pbrColorMax.test(
+          this.model.colorValueMax.value <= this.schema.pbrColorMax.value,
+          (this.model.colorValueMax.value as number).toLocaleString() +
+            (this.model.colorValueMax.value <= this.schema.pbrColorMax.value ? ' <= ' : ' > ') +
+            (this.schema.pbrColorMax.value as number).toLocaleString(),
+        );
+      }
+      if (this.schema.pbrColorMin.value === -1) {
+        this.report.pbrColorMin.skipTestWithMessage((this.model.colorValueMin.value as number).toLocaleString());
+      } else {
+        this.report.pbrColorMin.test(
+          this.model.colorValueMin.value >= this.schema.pbrColorMin.value,
+          (this.model.colorValueMin.value as number).toLocaleString() +
+            (this.model.colorValueMin.value >= this.schema.pbrColorMin.value ? ' >= ' : ' < ') +
+            (this.schema.pbrColorMin.value as number).toLocaleString(),
+        );
+      }
     }
   }
 
@@ -710,7 +726,9 @@ export class Validator implements ValidatorInterface {
     }
 
     // Overlapping UVs
-    if (this.schema.notOverlappingUVs.value === false) {
+    if (this.schema.checksRequireUvIndices === false) {
+      this.report.uvsOverlap.skipTestWithMessage('Not Computed (slow)');
+    } else if (this.schema.notOverlappingUVs.value === false) {
       this.report.uvsOverlap.skipTestWithMessage(this.model.overlappingUvCount.value.toLocaleString());
     } else {
       this.report.uvsOverlap.test(
@@ -723,44 +741,49 @@ export class Validator implements ValidatorInterface {
     // V2: texel density should ideally be calculated per material, rather than the min/max of all images in the file.
     // Computing density per material requires linking the canvas images to textures and linking those to materials
     // and linking the gltf material indices to the babylon meshes because NullEngine does not load images.
-    const maxResolutionSquared =
-      (this.model.texturesMaxWidth.value as number) * (this.model.texturesMaxHeight.value as number);
-    const minResolutionSquared =
-      (this.model.texturesMinWidth.value as number) * (this.model.texturesMinHeight.value as number);
-    const maxPixelDensity = (this.model.maxUvDensity.value as number) * maxResolutionSquared;
-    const minPixelDensity = (this.model.minUvDensity.value as number) * minResolutionSquared;
-    const maxPixelDensityMessage = maxPixelDensity.toLocaleString();
-    const minPixelDensityMessage = minPixelDensity.toLocaleString();
-    // Max ppm
-    if (this.schema.maxPixelsPerMeter.value === -1) {
-      this.report.pixelsPerMeterMax.skipTestWithMessage(maxPixelDensityMessage);
-    } else {
-      const maxUvDensityOK = maxPixelDensity <= this.schema.maxPixelsPerMeter.value;
-      this.report.pixelsPerMeterMax.test(
-        maxUvDensityOK,
-        maxPixelDensityMessage +
-          (maxUvDensityOK ? ' <= ' : ' > ') +
-          (this.schema.maxPixelsPerMeter.value as number).toLocaleString(),
-      );
-    }
-    // Min ppm
-    if (this.schema.minPixelsPerMeter.value === -1) {
-      this.report.pixelsPerMeterMin.skipTestWithMessage(minPixelDensityMessage);
-    } else {
-      const minUvDensityOK = minPixelDensity >= this.schema.minPixelsPerMeter.value;
-      this.report.pixelsPerMeterMin.test(
-        minUvDensityOK,
-        minPixelDensityMessage +
-          (minUvDensityOK ? ' >= ' : ' < ') +
-          (this.schema.minPixelsPerMeter.value as number).toLocaleString(),
-      );
+    if (this.model.images.length > 0) {
+      // Only necessary if there are images. A skip test message is set in testTextures().
+      const maxResolutionSquared =
+        (this.model.texturesMaxWidth.value as number) * (this.model.texturesMaxHeight.value as number);
+      const minResolutionSquared =
+        (this.model.texturesMinWidth.value as number) * (this.model.texturesMinHeight.value as number);
+      const maxPixelDensity = (this.model.maxUvDensity.value as number) * maxResolutionSquared;
+      const minPixelDensity = (this.model.minUvDensity.value as number) * minResolutionSquared;
+      const maxPixelDensityMessage = maxPixelDensity.toLocaleString();
+      const minPixelDensityMessage = minPixelDensity.toLocaleString();
+      // Max ppm
+      if (this.schema.maxPixelsPerMeter.value === -1) {
+        this.report.pixelsPerMeterMax.skipTestWithMessage(maxPixelDensityMessage);
+      } else {
+        const maxUvDensityOK = maxPixelDensity <= this.schema.maxPixelsPerMeter.value;
+        this.report.pixelsPerMeterMax.test(
+          maxUvDensityOK,
+          maxPixelDensityMessage +
+            (maxUvDensityOK ? ' <= ' : ' > ') +
+            (this.schema.maxPixelsPerMeter.value as number).toLocaleString(),
+        );
+      }
+      // Min ppm
+      if (this.schema.minPixelsPerMeter.value === -1) {
+        this.report.pixelsPerMeterMin.skipTestWithMessage(minPixelDensityMessage);
+      } else {
+        const minUvDensityOK = minPixelDensity >= this.schema.minPixelsPerMeter.value;
+        this.report.pixelsPerMeterMin.test(
+          minUvDensityOK,
+          minPixelDensityMessage +
+            (minUvDensityOK ? ' >= ' : ' < ') +
+            (this.schema.minPixelsPerMeter.value as number).toLocaleString(),
+        );
+      }
     }
 
     // Island Margin
     // For each primitive, see if there is enough margin at the specified resolution
     // This process rasterizes the island margins at the given resolution and if two or more
     // islands try to set the same pixel, it will return false.
-    if (this.schema.resolutionNeededForUvMargin.value === -1) {
+    if (this.schema.checksRequireUvIndices === false) {
+      this.report.uvGutterWideEnough.skipTestWithMessage('Not Computed (slow)');
+    } else if (this.schema.resolutionNeededForUvMargin.value === -1) {
       this.report.uvGutterWideEnough.skipTestWithMessage('');
     } else {
       let hasEnoughMargin = true;

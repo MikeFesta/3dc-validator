@@ -31,6 +31,7 @@ export interface ModelInterface {
   gltfValidatorReport: GltfValidatorReportInterface;
   hardEdgeCount: LoadableAttributeInterface;
   height: LoadableAttributeInterface;
+  images: ImageInterface[];
   invertedTriangleCount: LoadableAttributeInterface;
   json: GltfJsonInterface;
   length: LoadableAttributeInterface;
