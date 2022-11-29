@@ -2,6 +2,8 @@ import { LoadableAttribute, LoadableAttributeInterface } from './LoadableAttribu
 import { SchemaJSONInterface } from './SchemaJSON.js';
 
 export interface SchemaInterface {
+  checksRequireUvIndices: boolean; // UV Gutter Width, Overlapping UVs
+  checksRequireXyzIndices: boolean; // Manifold Edges, Beveled Edges
   loaded: boolean;
   maxFileSizeInKb: LoadableAttributeInterface;
   maxHeight: LoadableAttributeInterface;
@@ -13,7 +15,7 @@ export interface SchemaInterface {
   maxPrimitiveCount: LoadableAttributeInterface;
   maxTextureHeight: LoadableAttributeInterface;
   maxTextureWidth: LoadableAttributeInterface;
-  maxTriangleCount: LoadableAttributeInterface; // TODO: rename maxMin
+  maxTriangleCount: LoadableAttributeInterface;
   maxWidth: LoadableAttributeInterface;
   minFileSizeInKb: LoadableAttributeInterface;
   minHeight: LoadableAttributeInterface;
@@ -33,7 +35,9 @@ export interface SchemaInterface {
   percentToleranceHeight: LoadableAttributeInterface;
   percentToleranceLength: LoadableAttributeInterface;
   percentToleranceWidth: LoadableAttributeInterface;
+  requireBeveledEdges: LoadableAttributeInterface;
   requireCleanRootNodeTransform: LoadableAttributeInterface;
+  requireManifoldEdges: LoadableAttributeInterface;
   requireTextureDimensionsBePowersOfTwo: LoadableAttributeInterface;
   requireTextureDimensionsBeQuadratic: LoadableAttributeInterface;
   requireUVRangeZeroToOne: LoadableAttributeInterface;
@@ -46,6 +50,8 @@ export interface SchemaInterface {
 }
 
 export class Schema implements SchemaInterface {
+  checksRequireUvIndices = false;
+  checksRequireXyzIndices = false;
   // TODO: I should probably change all the defaults to not run the test
   loaded = false;
   maxFileSizeInKb = new LoadableAttribute('Max file size in Kb', 5120); //    5mb per Asset Creation Guidelines
@@ -179,12 +185,18 @@ export class Schema implements SchemaInterface {
         }
       }
       if (obj.model.requireBeveledEdges !== undefined) {
+        if (obj.model.requireBeveledEdges) {
+          this.checksRequireXyzIndices = true; // indices are required to generate edges
+        }
         this.requireBeveledEdges.loadValue(obj.model.requireBeveledEdges);
       }
       if (obj.model.requireCleanRootNodeTransform !== undefined) {
         this.requireCleanRootNodeTransform.loadValue(obj.model.requireCleanRootNodeTransform);
       }
       if (obj.model.requireManifoldEdges !== undefined) {
+        if (obj.model.requireManifoldEdges) {
+          this.checksRequireXyzIndices = true; // indices are required to generate edges
+        }
         this.requireManifoldEdges.loadValue(obj.model.requireManifoldEdges);
       }
       if (obj.model.triangles !== undefined) {
@@ -301,12 +313,18 @@ export class Schema implements SchemaInterface {
         if (minResolutionNeeded === undefined) {
           minResolutionNeeded = -1; // skip this test
         }
+        if (minResolutionNeeded > 0) {
+          this.checksRequireUvIndices = true; // indices are required for islands and overlap tests
+        }
         this.resolutionNeededForUvMargin.loadValue(minResolutionNeeded);
       }
       if (obj.uvs.notInverted !== undefined) {
         this.notInvertedUVs.loadValue(obj.uvs.notInverted);
       }
       if (obj.uvs.notOverlapping !== undefined) {
+        if (obj.uvs.notOverlapping) {
+          this.checksRequireUvIndices = true; // indices are required for islands and overlap tests
+        }
         this.notOverlappingUVs.loadValue(obj.uvs.notOverlapping);
       }
       if (obj.uvs.pixelsPerMeter !== undefined) {

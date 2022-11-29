@@ -16,12 +16,18 @@ export interface ValidatorInterface {
 
 export class Validator implements ValidatorInterface {
   decimalDisplayPrecision = 3; // Used for display only (not comparisons), can be changed before running generateReport()
-  model = new Model();
+  model = null as unknown as ModelInterface;
   productInfo = new ProductInfo(); // This is optional and can provide more specific per product validation
   report = new Report();
   reportReady = false;
   schema = new Schema();
   version = '1.0.0-rc.1';
+
+  constructor() {
+    // Model needs access to this.schema to know if indices need to be calculated or not
+    // The schema should be loaded before the model, or the model re-loaded when the schema changes to require indices
+    this.model = new Model(this);
+  }
 
   public generateReport() {
     if (!this.model.loaded) {
@@ -640,10 +646,7 @@ export class Validator implements ValidatorInterface {
         (this.model.texturesPowerOfTwo.value as boolean) ? 'true' : 'false',
       );
     } else {
-      this.report.texturesPowerOfTwo.test(
-        this.model.texturesPowerOfTwo.value as boolean,
-        '', // TODO: Optional - report which textures failed (if any)
-      );
+      this.report.texturesPowerOfTwo.test(this.model.texturesPowerOfTwo.value as boolean, '');
     }
 
     // Texture Size - Quadratic (width=height)
@@ -652,10 +655,7 @@ export class Validator implements ValidatorInterface {
         (this.model.texturesQuadratic.value as boolean) ? 'true' : 'false',
       );
     } else {
-      this.report.texturesQuadratic.test(
-        this.model.texturesQuadratic.value as boolean,
-        '', // TODO: Optional - report which textures failed (if any)
-      );
+      this.report.texturesQuadratic.test(this.model.texturesQuadratic.value as boolean, '');
     }
 
     // PBR safe colors
@@ -703,7 +703,6 @@ export class Validator implements ValidatorInterface {
     if (this.schema.notInvertedUVs.value === false) {
       this.report.uvsInverted.skipTestWithMessage(this.model.invertedTriangleCount.value.toLocaleString());
     } else {
-      // TODO: Optional - report which primitives have inverted normals
       this.report.uvsInverted.test(
         this.model.invertedTriangleCount.value === 0,
         this.model.invertedTriangleCount.value.toLocaleString(),
@@ -714,7 +713,6 @@ export class Validator implements ValidatorInterface {
     if (this.schema.notOverlappingUVs.value === false) {
       this.report.uvsOverlap.skipTestWithMessage(this.model.overlappingUvCount.value.toLocaleString());
     } else {
-      // TODO: Optional - report which primitives have overlapping uvs
       this.report.uvsOverlap.test(
         this.model.overlappingUvCount.value === 0,
         this.model.overlappingUvCount.value.toLocaleString(),

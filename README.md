@@ -6,32 +6,34 @@ This is a typescript package that contains classes for checking a 3D file, in gl
 
 This package can be used by both a command line interface (node), as well as a front-end web interface. See 3dc-validator-cli and 3dc-validator-web for integration examples.
 
+Some of the checks can be slow if there are a lot of triangles (marked **_SLOW_**). They will only be run if they are explicitly required by the schema. Beveled Edges and Non-Manifold edges both require the same XYZ edge computation. UV Gutter Width and UV Overlaps both require the same UV triangle computation. Each of those computations take about the same O(n log n) time, where n is the number of triangles. Typical run time without either of those computations is under 5 seconds, but if both types need to be run the test can take over a minute.
+
 ## Checks available
 
-- File Size (min/max)
-- Material Count (min/max)
-- Node Count (min/max)
-- Mesh Count (min/max)
-- Primitive Count (min/max)
-- Beveled Edges (no hard edges >= 90 degrees)
+- File Size
+- Triangle Count
+- Material Count
+- Node Count
+- Mesh Count
+- Primitive Count
 - Clean Origin for Root Node
-- Non-Manifold Edges
-- Triangle Count (min/max)
-- Dimensions (min/max)
+- Beveled Edges (no hard edges >= 90 degrees) **_SLOW_**
+- Non-Manifold Edges **_SLOW_**
+- Dimensions
 - Dimensions (product within tolerance)
-- Texture Map Resolution (min/max)
 - PBR Safe Colors
+- Texture Map Resolution
 - Texture Map Resolution Power of 2
 - Texture Map Resolution Quadratic
-- UV Gutter Width
-- Inverted UVs
-- UV Overlaps
 - Texel Density
 - 0-1 UV Texture Space
+- Inverted UVs
+- UV Overlaps **_SLOW_**
+- UV Gutter Width **_SLOW_**
 
 ## Product Info JSON file
 
-For testing dimensional tollerance, we need to know the dimensions of the product. The product info json file is used to provide that information. If not provided, those checks will not be available, but an overall size check can still be specied by the schema.
+For testing product dimensional tollerance, we need to know the dimensions of the product. The product info json file is used to provide that information. The product dimensions specified in the Scheam json file are different and more like a viewer bounding box check, but the percent tolerance value is used for both.
 
 # Schema JSON file
 

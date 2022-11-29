@@ -24,10 +24,10 @@ export interface TriangleUvInterface {
 
 export default class TriangleUv implements TriangleUvInterface {
   a = null as unknown as VertexUvInterface;
-  area = 0;
+  area = undefined as unknown as number;
   b = null as unknown as VertexUvInterface;
   c = null as unknown as VertexUvInterface;
-  id = 0;
+  id = undefined as unknown as number;
   inverted = false;
   islandIndex = undefined as unknown as number;
   maxU = undefined as unknown as number;

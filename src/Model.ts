@@ -21,6 +21,7 @@ import { Scene } from '@babylonjs/core/scene.js';
 import { GLTFFileLoader } from '@babylonjs/loaders';
 import '@babylonjs/loaders/glTF/2.0/glTFLoader.js';
 import { GLTFLoader } from '@babylonjs/loaders/glTF/2.0/glTFLoader.js'; // VS code marks this as not in use, but it is required
+import { ValidatorInterface } from './Validator.js';
 
 export interface ModelInterface {
   bin: GltfBinInterface;
@@ -59,6 +60,7 @@ export interface ModelInterface {
     max: LoadableAttributeInterface;
     min: LoadableAttributeInterface;
   };
+  validator: ValidatorInterface;
   width: LoadableAttributeInterface;
   getAttributes: () => LoadableAttributeInterface[];
   loadFromFileInput(file: File): Promise<void>;
@@ -104,7 +106,13 @@ export class Model implements ModelInterface {
     max: new LoadableAttribute('Max V value', 0),
     min: new LoadableAttribute('Min V value', 0),
   };
+  validator = null as unknown as ValidatorInterface;
   width = new LoadableAttribute('Width in Meters', 0);
+
+  constructor(validator: ValidatorInterface) {
+    // Link back to the parent for access to the schema
+    this.validator = validator;
+  }
 
   public getAttributes() {
     return [
@@ -460,10 +468,17 @@ export class Model implements ModelInterface {
   }
 
   private loadPrimitives(scene: Scene) {
+    // Note: the schema should already be loaded, before the model, to know if slow computations need to be run
     scene.meshes.forEach((mesh: AbstractMesh) => {
       // exclude the auto-generated __root__ node and anything else with no vertices
       if (mesh.isVerticesDataPresent(VertexBuffer.PositionKind)) {
-        this.primitives.push(new Primitive(mesh));
+        this.primitives.push(
+          new Primitive(
+            mesh,
+            this.validator.schema.checksRequireUvIndices,
+            this.validator.schema.checksRequireXyzIndices,
+          ),
+        );
       }
     });
   }

@@ -43,15 +43,17 @@ export class UV implements UVInterface {
   };
   vertices = [] as VertexUvInterface[];
 
-  constructor(name: string, triangles: TriangleUvInterface[]) {
+  constructor(name: string, triangles: TriangleUvInterface[], uvIndicesAvailable: boolean) {
     this.name = name;
     this.triangles = triangles;
 
-    // TODO: Cleanup - have these functions take in and return data instead of using this.
-    this.calculateUvIslands(this.triangles);
-    this.calculateInvertedTriangleCount(); // TODO: pass triangles to each of these as well. it make it more clear that they need to be initialized
+    this.calculateInvertedTriangleCount();
     this.calculateMaxMinExtents();
-    this.calculateOverlapCount();
+    if (uvIndicesAvailable) {
+      // These functions depend upon the UV vertices having pre-computed indices, which is slow and only available when required
+      this.calculateUvIslands(this.triangles);
+      this.calculateOverlapCount();
+    }
   }
 
   public isInRangeZeroToOne = () => {
@@ -100,8 +102,6 @@ export class UV implements UVInterface {
       // |/   |   \|
       // +   0.5   +
     }
-
-    let collisionFound = false; // TODO: Cleanup - can be removed
 
     // check each triangle for overlaps
     this.triangles.forEach((triangle: TriangleUvInterface) => {

@@ -16,7 +16,7 @@ export interface GltfJsonMeshInterface {
 }
 
 export interface GltfJsonPrimitiveInterface {
-  indicies: number;
+  indices: number;
   attributes: object;
   material: number;
 }
