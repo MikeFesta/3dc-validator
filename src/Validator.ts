@@ -716,7 +716,7 @@ export class Validator implements ValidatorInterface {
     }
 
     // Inverted UVs
-    if (this.schema.notInvertedUVs.value === false) {
+    if (this.schema.requireNotInvertedUVs.value === false) {
       this.report.uvsInverted.skipTestWithMessage(this.model.invertedTriangleCount.value.toLocaleString());
     } else {
       this.report.uvsInverted.test(
@@ -728,7 +728,7 @@ export class Validator implements ValidatorInterface {
     // Overlapping UVs
     if (this.schema.checksRequireUvIndices === false) {
       this.report.uvsOverlap.skipTestWithMessage('Not Computed (slow)');
-    } else if (this.schema.notOverlappingUVs.value === false) {
+    } else if (this.schema.requireNotOverlappingUVs.value === false) {
       this.report.uvsOverlap.skipTestWithMessage(this.model.overlappingUvCount.value.toLocaleString());
     } else {
       this.report.uvsOverlap.test(

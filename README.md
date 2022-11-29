@@ -17,8 +17,8 @@ Some of the checks can be slow if there are a lot of triangles (marked **_SLOW_*
 - Mesh Count
 - Primitive Count
 - Clean Origin for Root Node
-- Beveled Edges (no hard edges >= 90 degrees) **_SLOW_**
-- Non-Manifold Edges **_SLOW_**
+- Beveled Edges (no hard edges >= 90 degrees) (**_SLOW_**)
+- Non-Manifold Edges (**_SLOW_**)
 - Dimensions
 - Dimensions (product within tolerance)
 - PBR Safe Colors
@@ -28,8 +28,8 @@ Some of the checks can be slow if there are a lot of triangles (marked **_SLOW_*
 - Texel Density
 - 0-1 UV Texture Space
 - Inverted UVs
-- UV Overlaps **_SLOW_**
-- UV Gutter Width **_SLOW_**
+- UV Overlaps (**_SLOW_**)
+- UV Gutter Width (**_SLOW_**)
 
 ## Product Info JSON file
 
@@ -209,17 +209,13 @@ The number of pixels of padding required can be specified against various base r
 
 ### Not Inverted
 
-**_notInverted?: boolean_** (true)
-
-// TODO: rename to requireNotInverted
+**_requireNotInverted?: boolean_** (true)
 
 UV faces should face upwards (wind in a clockwise direction)
 
 ### Not Overlapping
 
-**_notOverlapping?: boolean_** (true)
-
-// TODO: rename to requireNotOverlapping
+**_requireNotOverlapping?: boolean_** (true)
 
 UV triangles should not overlap
 

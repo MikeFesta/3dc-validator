@@ -74,12 +74,12 @@ export interface SchemaJSONInterface {
       resolution2048?: number;
       resolution4096?: number;
     };
-    notInverted?: boolean;
-    notOverlapping?: boolean;
     pixelsPerMeter?: {
       maximum?: number;
       minimum?: number;
     };
+    requireNotInverted?: boolean;
+    requireNotOverlapping?: boolean;
     requireRangeZeroToOne?: boolean;
   };
 }

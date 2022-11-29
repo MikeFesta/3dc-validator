@@ -28,8 +28,6 @@ export interface SchemaInterface {
   minTextureHeight: LoadableAttributeInterface;
   minTextureWidth: LoadableAttributeInterface;
   minWidth: LoadableAttributeInterface;
-  notInvertedUVs: LoadableAttributeInterface;
-  notOverlappingUVs: LoadableAttributeInterface;
   pbrColorMax: LoadableAttributeInterface;
   pbrColorMin: LoadableAttributeInterface;
   percentToleranceHeight: LoadableAttributeInterface;
@@ -38,6 +36,8 @@ export interface SchemaInterface {
   requireBeveledEdges: LoadableAttributeInterface;
   requireCleanRootNodeTransform: LoadableAttributeInterface;
   requireManifoldEdges: LoadableAttributeInterface;
+  requireNotInvertedUVs: LoadableAttributeInterface;
+  requireNotOverlappingUVs: LoadableAttributeInterface;
   requireTextureDimensionsBePowersOfTwo: LoadableAttributeInterface;
   requireTextureDimensionsBeQuadratic: LoadableAttributeInterface;
   requireUVRangeZeroToOne: LoadableAttributeInterface;
@@ -78,8 +78,6 @@ export class Schema implements SchemaInterface {
   minTextureWidth = new LoadableAttribute('Min Texture Width', 512); //       512 is the smallest mentioned in the Asset Creation Guidelines
   minTriangleCount = new LoadableAttribute('Min Triangle Count', -1); //      Not specified in Asset Creation Guidelines. -1 to ignore
   minWidth = new LoadableAttribute('Min Width (x)', -1); //                   Not specified in Asset Creation Guidelines. -1 to ignore
-  notInvertedUVs = new LoadableAttribute('No Inverted UVs', true); //         Inverted UVs are not recommended, per the Asset Creation Guidelines
-  notOverlappingUVs = new LoadableAttribute('No Overlapping UVs', true); //   Overlapping UVs are not recommended, per the Asset Creation Guidelines
   pbrColorMax = new LoadableAttribute('Color max value is PBR safe', 243); // 243, per Asset Creation Guidelines
   pbrColorMin = new LoadableAttribute('Color min value is PBR safe', 30); //  30, per Asset Creation Guidelines
   percentToleranceHeight = new LoadableAttribute('Percent Tolerance Height (z)', 3); // 3% per RFP Specifications
@@ -87,6 +85,8 @@ export class Schema implements SchemaInterface {
   percentToleranceWidth = new LoadableAttribute('Percent Tolerance Width (x)', 3); //   3% per RFP Specifications
   requireBeveledEdges = new LoadableAttribute('Require Beveled Edges', false); //   Not required, edge computation is a little slow
   requireManifoldEdges = new LoadableAttribute('Require Manifold Edges', false); // Not required, edge computation is a little slow
+  requireNotInvertedUVs = new LoadableAttribute('No Inverted UVs', true); //  Inverted UVs are not recommended, per the Asset Creation Guidelines
+  requireNotOverlappingUVs = new LoadableAttribute('No Overlapping UVs', true); //   Overlapping UVs are not recommended, per the Asset Creation Guidelines
   requireTextureDimensionsBePowersOfTwo = new LoadableAttribute('Require Texture Dimensions be Powers of 2', true); // Recommended in the Asset Creation Guidelines
   requireTextureDimensionsBeQuadratic = new LoadableAttribute(
     'Require Texture Dimensions be Quadratic (height = width)',
@@ -130,8 +130,8 @@ export class Schema implements SchemaInterface {
       this.requireUVRangeZeroToOne,
       this.maxPixelsPerMeter,
       this.minPixelsPerMeter,
-      this.notInvertedUVs,
-      this.notOverlappingUVs,
+      this.requireNotInvertedUVs,
+      this.requireNotOverlappingUVs,
       this.resolutionNeededForUvMargin,
     ];
   }
@@ -318,14 +318,14 @@ export class Schema implements SchemaInterface {
         }
         this.resolutionNeededForUvMargin.loadValue(minResolutionNeeded);
       }
-      if (obj.uvs.notInverted !== undefined) {
-        this.notInvertedUVs.loadValue(obj.uvs.notInverted);
+      if (obj.uvs.requireNotInverted !== undefined) {
+        this.requireNotInvertedUVs.loadValue(obj.uvs.requireNotInverted);
       }
-      if (obj.uvs.notOverlapping !== undefined) {
-        if (obj.uvs.notOverlapping) {
+      if (obj.uvs.requireNotOverlapping !== undefined) {
+        if (obj.uvs.requireNotOverlapping) {
           this.checksRequireUvIndices = true; // indices are required for islands and overlap tests
         }
-        this.notOverlappingUVs.loadValue(obj.uvs.notOverlapping);
+        this.requireNotOverlappingUVs.loadValue(obj.uvs.requireNotOverlapping);
       }
       if (obj.uvs.pixelsPerMeter !== undefined) {
         if (obj.uvs.pixelsPerMeter?.maximum !== undefined) {
