@@ -1,13 +1,12 @@
 import { ReportItem, ReportItemInterface } from './ReportItem.js';
 
 export interface ReportInterface {
-  dimensionsMax: ReportItemInterface;
-  dimensionsMin: ReportItemInterface;
   fileSize: ReportItemInterface;
   gltfValidator: ReportItemInterface;
   materialCount: ReportItemInterface;
   meshCount: ReportItemInterface;
   nodeCount: ReportItemInterface;
+  overallDimensionsWithinTolerance: ReportItemInterface;
   pbrColorMax: ReportItemInterface;
   pbrColorMin: ReportItemInterface;
   pixelsPerMeterMax: ReportItemInterface;
@@ -32,14 +31,6 @@ export interface ReportInterface {
 }
 
 export class Report implements ReportInterface {
-  dimensionsMax = new ReportItem(
-    'Dimensions Not Too Big',
-    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec02_CoordinateSystemAndScaleUnit/CoordinateSystemAndScaleUnit.md',
-  );
-  dimensionsMin = new ReportItem(
-    'Dimensions Not Too Small',
-    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec02_CoordinateSystemAndScaleUnit/CoordinateSystemAndScaleUnit.md',
-  );
   fileSize = new ReportItem(
     'File Size',
     'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec01_FileFormatsAndAssetStructure/FileFormatsAndAssetStructure.md',
@@ -56,6 +47,10 @@ export class Report implements ReportInterface {
   nodeCount = new ReportItem(
     'Node Count',
     'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec99_PublishingTargets/PublishingTargets.md#maximum-number-of-draw-calls-and-triangles',
+  );
+  overallDimensionsWithinTolerance = new ReportItem(
+    'Overall Dimensions',
+    'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec02_CoordinateSystemAndScaleUnit/CoordinateSystemAndScaleUnit.md',
   );
   pbrColorMax = new ReportItem(
     'Maximum HSV color value for PBR safe colors',
@@ -150,8 +145,7 @@ export class Report implements ReportInterface {
       this.rootNodeCleanTransform,
       this.requireBeveledEdges,
       this.requireManifoldEdges,
-      this.dimensionsMax,
-      this.dimensionsMin,
+      this.overallDimensionsWithinTolerance,
       this.productDimensionsWithinTolerance,
       this.pbrColorMax,
       this.pbrColorMin,

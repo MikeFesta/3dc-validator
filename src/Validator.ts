@@ -2,6 +2,7 @@ import { Model, ModelInterface } from './Model.js';
 import { PrimitiveInterface } from './Primitive.js';
 import { ProductInfo, ProductInfoInterface } from './ProductInfo.js';
 import { Report, ReportInterface } from './Report.js';
+import { ReportJSON } from './ReportJSON.js';
 import { Schema, SchemaInterface } from './Schema.js';
 
 export interface ValidatorInterface {
@@ -58,6 +59,148 @@ export class Validator implements ValidatorInterface {
     this.reportReady = true;
   }
 
+  public getJson(): string {
+    let passing = true; // TODO: put this in the report
+    const reportJson = new ReportJSON(
+      this.version,
+      passing,
+      this.model.gltfValidatorReport.issues.numErrors,
+      this.model.gltfValidatorReport.issues.numWarnings,
+      this.model.gltfValidatorReport.issues.numHints,
+      this.model.gltfValidatorReport.issues.numInfos,
+    );
+    reportJson.fileSizeInKb = {
+      pass: this.report.fileSize.pass,
+      tested: this.report.fileSize.tested,
+      value: this.model.fileSizeInKb.value as number,
+    };
+    reportJson.materialCount = {
+      pass: this.report.materialCount.pass,
+      tested: this.report.materialCount.tested,
+      value: this.model.materialCount.value as number,
+    };
+    reportJson.model.objectCount.nodes = {
+      pass: this.report.nodeCount.pass,
+      tested: this.report.nodeCount.tested,
+      value: this.model.nodeCount.value as number,
+    };
+    reportJson.model.objectCount.meshes = {
+      pass: this.report.meshCount.pass,
+      tested: this.report.meshCount.tested,
+      value: this.model.meshCount.value as number,
+    };
+    reportJson.model.objectCount.primitives = {
+      pass: this.report.primitiveCount.pass,
+      tested: this.report.primitiveCount.tested,
+      value: this.model.primitiveCount.value as number,
+    };
+    reportJson.model.requireBeveledEdges = {
+      pass: this.report.requireBeveledEdges.pass,
+      tested: this.report.requireBeveledEdges.tested,
+    };
+    reportJson.model.requireCleanRootNodeTransform = {
+      pass: this.model.rootNodeTransform.isClean(),
+      tested: this.report.rootNodeCleanTransform.tested,
+    };
+    reportJson.model.requireManifoldEdges = {
+      pass: this.report.requireManifoldEdges.pass,
+      tested: this.report.requireManifoldEdges.tested,
+    };
+    reportJson.model.triangles = {
+      pass: this.report.triangleCount.pass,
+      tested: this.report.triangleCount.tested,
+      value: this.model.triangleCount.value as number,
+    };
+    reportJson.product.overallDimensions = {
+      pass: this.report.overallDimensionsWithinTolerance.pass,
+      tested: this.report.overallDimensionsWithinTolerance.tested,
+      height: { value: this.model.height.value as number },
+      length: { value: this.model.length.value as number },
+      width: { value: this.model.width.value as number },
+    };
+    reportJson.product.productDimensions = {
+      pass: this.report.productDimensionsWithinTolerance.pass,
+      tested: this.report.productDimensionsWithinTolerance.tested,
+      height: { value: this.model.height.value as number },
+      length: { value: this.model.length.value as number },
+      width: { value: this.model.width.value as number },
+    };
+    reportJson.textures.height = {
+      maximum: {
+        pass: this.report.textureDimensionsMaxHeight.pass,
+        tested: this.report.textureDimensionsMaxHeight.tested,
+        value: this.model.texturesMaxHeight.value as number,
+      },
+      minimum: {
+        pass: this.report.textureDimensionsMinHeight.pass,
+        tested: this.report.textureDimensionsMinHeight.tested,
+        value: this.model.texturesMinHeight.value as number,
+      },
+    };
+    reportJson.textures.pbrColorRange = {
+      maximum: {
+        pass: this.report.pbrColorMax.pass,
+        tested: this.report.pbrColorMax.tested,
+        value: this.model.colorValueMax.value as number,
+      },
+      minimum: {
+        pass: this.report.pbrColorMin.pass,
+        tested: this.report.pbrColorMin.tested,
+        value: this.model.colorValueMin.value as number,
+      },
+    };
+    reportJson.textures.requireDimensionsBePowersOfTwo = {
+      pass: this.report.texturesPowerOfTwo.pass,
+      tested: this.report.texturesPowerOfTwo.tested,
+    };
+    reportJson.textures.requireDimensionsBeQuadratic = {
+      pass: this.report.texturesQuadratic.pass,
+      tested: this.report.texturesQuadratic.tested,
+    };
+    reportJson.textures.width = {
+      maximum: {
+        pass: this.report.textureDimensionsMaxWidth.pass,
+        tested: this.report.textureDimensionsMaxWidth.tested,
+        value: this.model.texturesMaxWidth.value as number,
+      },
+      minimum: {
+        pass: this.report.textureDimensionsMinWidth.pass,
+        tested: this.report.textureDimensionsMinWidth.tested,
+        value: this.model.texturesMinWidth.value as number,
+      },
+    };
+    reportJson.uvs.gutterWidth = {
+      pass: this.report.uvGutterWideEnough.pass,
+      tested: this.report.uvGutterWideEnough.tested,
+    };
+    // TODO: confirm this number is in px/m
+    reportJson.uvs.pixelsPerMeter = {
+      maximum: {
+        pass: this.report.pixelsPerMeterMax.pass,
+        tested: this.report.pixelsPerMeterMax.tested,
+        value: this.model.maxUvDensity.value as number,
+      },
+      minimum: {
+        pass: this.report.pixelsPerMeterMin.pass,
+        tested: this.report.pixelsPerMeterMin.tested,
+        value: this.model.minUvDensity.value as number,
+      },
+    };
+    reportJson.uvs.requireNotInverted = {
+      pass: this.report.uvsInverted.pass,
+      tested: this.report.uvsInverted.tested,
+    };
+    reportJson.uvs.requireNotOverlapping = {
+      pass: this.report.uvsOverlap.pass,
+      tested: this.report.uvsOverlap.tested,
+    };
+    reportJson.uvs.requireRangeZeroToOne = {
+      pass: this.report.uvsInZeroToOneRange.pass,
+      tested: this.report.uvsInZeroToOneRange.tested,
+    };
+    return JSON.stringify(reportJson);
+  }
+
   // Check that the model fits within viewer/application min/max dimensions
   private testDimensions() {
     let dimensionsMessage =
@@ -68,70 +211,49 @@ export class Validator implements ValidatorInterface {
       ' x H:' +
       (this.model.height.value as number).toFixed(this.decimalDisplayPrecision) +
       ')';
-    // Dimensions (Max)
-    if (this.schema.maxHeight.value === -1 && this.schema.maxLength.value === -1 && this.schema.maxWidth.value === -1) {
-      this.report.dimensionsMax.skipTestWithMessage(dimensionsMessage);
+    // Dimensions
+    if (
+      this.schema.maxHeight.value === -1 &&
+      this.schema.maxLength.value === -1 &&
+      this.schema.maxWidth.value === -1 &&
+      this.schema.minHeight.value === -1 &&
+      this.schema.minLength.value === -1 &&
+      this.schema.minWidth.value === -1
+    ) {
+      this.report.overallDimensionsWithinTolerance.skipTestWithMessage(dimensionsMessage);
     } else {
-      let dimensionsMaxOK = true;
-      let dimensionsMaxMessage = dimensionsMessage + ' vs (L:';
-      // Length (max)
-      if (this.schema.maxLength.value === -1) {
-        dimensionsMaxMessage += 'n/a';
-      } else {
-        dimensionsMaxOK = dimensionsMaxOK && this.model.length.value <= this.schema.maxLength.value;
-        dimensionsMaxMessage += (this.schema.maxLength.value as number).toFixed(this.decimalDisplayPrecision);
+      let dimensionsOK = true;
+      if (this.schema.maxHeight.value !== -1) {
+        if (this.model.height.value > this.schema.maxHeight.value) {
+          dimensionsOK = false;
+        }
       }
-      dimensionsMaxMessage += ' x W:';
-      // Width (max)
-      if (this.schema.maxWidth.value === -1) {
-        dimensionsMaxMessage += 'n/a';
-      } else {
-        dimensionsMaxOK = dimensionsMaxOK && this.model.width.value <= this.schema.maxWidth.value;
-        dimensionsMaxMessage += (this.schema.maxWidth.value as number).toFixed(this.decimalDisplayPrecision);
+      if (this.schema.minHeight.value !== -1) {
+        if (this.model.height.value < this.schema.minHeight.value) {
+          dimensionsOK = false;
+        }
       }
-      dimensionsMaxMessage += ' x H:';
-      // Height (max)
-      if (this.schema.maxHeight.value === -1) {
-        dimensionsMaxMessage += 'n/a';
-      } else {
-        dimensionsMaxOK = dimensionsMaxOK && this.model.height.value <= this.schema.maxHeight.value;
-        dimensionsMaxMessage += (this.schema.maxHeight.value as number).toFixed(this.decimalDisplayPrecision);
+      if (this.schema.maxLength.value !== -1) {
+        if (this.model.length.value > this.schema.maxLength.value) {
+          dimensionsOK = false;
+        }
       }
-      dimensionsMaxMessage += ') Max';
-      this.report.dimensionsMax.test(dimensionsMaxOK, dimensionsMaxMessage);
-    }
-
-    // Dimensions (Min)
-    if (this.schema.minHeight.value === -1 && this.schema.minLength.value === -1 && this.schema.minWidth.value === -1) {
-      this.report.dimensionsMin.skipTestWithMessage(dimensionsMessage);
-    } else {
-      let dimensionsMinOK = true;
-      let dimensionsMinMessage = dimensionsMessage + ' vs (L:';
-      // Length (min)
-      if (this.schema.minLength.value === -1) {
-        dimensionsMinMessage += 'n/a';
-      } else {
-        dimensionsMinOK = dimensionsMinOK && this.model.length.value >= this.schema.minLength.value;
-        dimensionsMinMessage += (this.schema.minLength.value as number).toFixed(this.decimalDisplayPrecision);
+      if (this.schema.minLength.value !== -1) {
+        if (this.model.length.value < this.schema.minLength.value) {
+          dimensionsOK = false;
+        }
       }
-      dimensionsMinMessage += ' x W:';
-      // Width (min)
-      if (this.schema.minWidth.value === -1) {
-        dimensionsMinMessage += 'n/a';
-      } else {
-        dimensionsMinOK = dimensionsMinOK && this.model.width.value >= this.schema.minWidth.value;
-        dimensionsMinMessage += (this.schema.minWidth.value as number).toFixed(this.decimalDisplayPrecision);
+      if (this.schema.maxWidth.value !== -1) {
+        if (this.model.width.value > this.schema.maxWidth.value) {
+          dimensionsOK = false;
+        }
       }
-      dimensionsMinMessage += ' x H:';
-      // Height (min)
-      if (this.schema.minHeight.value === -1) {
-        dimensionsMinMessage += 'n/a';
-      } else {
-        dimensionsMinOK = dimensionsMinOK && this.model.height.value >= this.schema.minHeight.value;
-        dimensionsMinMessage += (this.schema.minHeight.value as number).toFixed(this.decimalDisplayPrecision);
+      if (this.schema.minWidth.value !== -1) {
+        if (this.model.width.value < this.schema.minWidth.value) {
+          dimensionsOK = false;
+        }
       }
-      dimensionsMinMessage += ') Min';
-      this.report.dimensionsMin.test(dimensionsMinOK, dimensionsMinMessage);
+      this.report.overallDimensionsWithinTolerance.test(dimensionsOK, dimensionsMessage);
     }
   }
 
