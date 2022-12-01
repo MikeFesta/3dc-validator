@@ -399,16 +399,22 @@ export class Model implements ModelInterface {
       for (let i = 0; i < json.images.length; i++) {
         try {
           const imageJson = json.images[i];
+          const image = new Image(imageJson);
           const bufferView = json.bufferViews[imageJson.bufferView];
           // Note: there can be multiple buffers when there are external files
           const arrayBuffer = await this.bin.readAsync(bufferView.byteOffset, bufferView.byteLength);
-          const buffer = Buffer.alloc(bufferView.byteLength, undefined, 'utf-8');
-          const binaryData = new Uint8Array(arrayBuffer);
-          for (let j = 0; j < buffer.length; j++) {
-            buffer[j] = binaryData[j];
+          if (typeof window === 'undefined') {
+            // Node (can use Buffer)
+            const buffer = Buffer.alloc(bufferView.byteLength, undefined, 'utf-8');
+            const binaryData = new Uint8Array(arrayBuffer);
+            for (let j = 0; j < buffer.length; j++) {
+              buffer[j] = binaryData[j];
+            }
+            await image.init(buffer);
+          } else {
+            // Browser (cannot use Buffer and needs to construct a data uri)
+            await image.initFromBrowser(arrayBuffer);
           }
-          const image = new Image(imageJson);
-          await image.init(buffer);
           this.images.push(image);
         } catch (err) {
           console.log('error creating image named: ' + json.images[i].name);

@@ -9,6 +9,7 @@ export interface ImageInterface {
   mimeType: string;
   name: string;
   width: number;
+  initFromBrowser(arrayBuffer: ArrayBuffer): Promise<void>;
   init(buffer: Buffer): Promise<void>;
 }
 
@@ -27,7 +28,7 @@ export class Image implements ImageInterface {
   }
 
   // constructor cannot be async, but we need to await loadImage
-  public init = async (buffer: Buffer): Promise<void> => {
+  public init = async (buffer: string | Buffer): Promise<void> => {
     try {
       // TODO: Verify - check ktx2 support
       this.canvasImage = await loadImage(buffer);
@@ -38,6 +39,12 @@ export class Image implements ImageInterface {
       console.log(err);
     }
     this.calculateColorValueMaxMin();
+  };
+
+  public initFromBrowser = async (arrayBuffer: ArrayBuffer): Promise<void> => {
+    // The browser does not have Buffer, so we need to get the image as a data uri
+    const dataUri = await this.getDataUriFromArrayBuffer(arrayBuffer);
+    await this.init(dataUri);
   };
 
   ///////////////////////
@@ -77,4 +84,22 @@ export class Image implements ImageInterface {
       console.log(err);
     }
   };
+
+  private async getDataUriFromArrayBuffer(arrayBuffer: ArrayBuffer): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+      try {
+        const reader = new FileReader();
+        reader.onload = function () {
+          if (reader.result) {
+            resolve(reader.result as string);
+          } else {
+            reject();
+          }
+        };
+        reader.readAsDataURL(new Blob([arrayBuffer]));
+      } catch (err) {
+        reject();
+      }
+    });
+  }
 }
