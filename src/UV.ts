@@ -72,6 +72,10 @@ export class UV implements UVInterface {
     // [+][+][+][+]
     // [+][+][+][+]
     // [+][+][+][+]
+    if (resolution < 0) {
+      // safety check that resolution is not negative
+      return false;
+    }
     this.pixelGrid = new Array(resolution * resolution);
     const pixelSize = 1 / resolution;
     for (let i = 0; i < this.pixelGrid.length; i++) {

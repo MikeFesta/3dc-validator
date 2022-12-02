@@ -13,3 +13,6 @@ sed -i '' "${packageJson}" package.json
 
 validator="s/version = '[a-z0-9.-]*';/version = '${version}';/g"
 sed -i '' "${validator}" src/Validator.ts
+
+schema="s/LoadableAttribute('Version', '[a-z0-9.-]*');/LoadableAttribute('Version', '${version}');/g"
+sed -i '' "${schema}" src/Schema.ts

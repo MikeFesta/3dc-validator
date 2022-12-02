@@ -42,11 +42,18 @@ export interface SchemaInterface {
   requireTextureDimensionsBeQuadratic: LoadableAttributeInterface;
   requireUVRangeZeroToOne: LoadableAttributeInterface;
   resolutionNeededForUvMargin: LoadableAttributeInterface;
+  uvGutterWidth256: LoadableAttributeInterface;
+  uvGutterWidth512: LoadableAttributeInterface;
+  uvGutterWidth1024: LoadableAttributeInterface;
+  uvGutterWidth2048: LoadableAttributeInterface;
+  uvGutterWidth4096: LoadableAttributeInterface;
   version: LoadableAttributeInterface;
 
-  getAttributes: () => LoadableAttributeInterface[];
+  getAttributes(): LoadableAttributeInterface[];
+  getJsonObject(): SchemaJSONInterface;
   loadFromFileInput(file: File): Promise<void>;
   loadFromFileSystem(filepath: string): Promise<void>;
+  loadFromSchemaObject(obj: SchemaJSONInterface): void;
 }
 
 export class Schema implements SchemaInterface {
@@ -86,7 +93,7 @@ export class Schema implements SchemaInterface {
   requireBeveledEdges = new LoadableAttribute('Require Beveled Edges', false); //   Not required, edge computation is a little slow
   requireManifoldEdges = new LoadableAttribute('Require Manifold Edges', false); // Not required, edge computation is a little slow
   requireNotInvertedUVs = new LoadableAttribute('No Inverted UVs', true); //  Inverted UVs are not recommended, per the Asset Creation Guidelines
-  requireNotOverlappingUVs = new LoadableAttribute('No Overlapping UVs', true); //   Overlapping UVs are not recommended, per the Asset Creation Guidelines
+  requireNotOverlappingUVs = new LoadableAttribute('No Overlapping UVs', false); // Slow test, so not enabled by default, although it is discouraged in the Asset Creation Guidelines
   requireTextureDimensionsBePowersOfTwo = new LoadableAttribute('Require Texture Dimensions be Powers of 2', true); // Recommended in the Asset Creation Guidelines
   requireTextureDimensionsBeQuadratic = new LoadableAttribute(
     'Require Texture Dimensions be Quadratic (height = width)',
@@ -95,48 +102,238 @@ export class Schema implements SchemaInterface {
   requireCleanRootNodeTransform = new LoadableAttribute('Require Root Node Have a Clean Transform', false); // Not specified in Asset Creation Guidelines
   requireUVRangeZeroToOne = new LoadableAttribute('Require UV range 0 to 1', false); // Not specified in Asset Creation Guidelines
   resolutionNeededForUvMargin = new LoadableAttribute('UV Gutter Wide Enough', -1); // Not specified in Asset Creation Guidelines. -1 to ignore
-  version = new LoadableAttribute('Version', '1.0.0');
+  uvGutterWidth256 = new LoadableAttribute('UV Gutter Width at 256', -1);
+  uvGutterWidth512 = new LoadableAttribute('UV Gutter Width at 512', -1);
+  uvGutterWidth1024 = new LoadableAttribute('UV Gutter Width at 1024', -1);
+  uvGutterWidth2048 = new LoadableAttribute('UV Gutter Width at 2048', -1);
+  uvGutterWidth4096 = new LoadableAttribute('UV Gutter Width at 4096', -1);
+  version = new LoadableAttribute('Version', '1.0.0-rc.3');
 
   getAttributes() {
     return [
       this.version,
       this.minFileSizeInKb,
       this.maxFileSizeInKb,
-      this.maxTriangleCount,
       this.maxMaterialCount,
       this.minMaterialCount,
       this.maxMeshCount,
       this.minMeshCount,
       this.maxNodeCount,
       this.maxPrimitiveCount,
-      this.minTextureWidth,
-      this.maxTextureWidth,
-      this.minTextureHeight,
-      this.maxTextureHeight,
-      this.requireTextureDimensionsBePowersOfTwo,
-      this.requireTextureDimensionsBeQuadratic,
-      this.pbrColorMax,
-      this.pbrColorMin,
+      this.requireBeveledEdges,
+      this.requireCleanRootNodeTransform,
+      this.requireManifoldEdges,
+      this.maxTriangleCount,
+      this.minHeight,
+      this.maxHeight,
       this.minLength,
       this.maxLength,
       this.minWidth,
       this.maxWidth,
-      this.minHeight,
-      this.maxHeight,
+      this.minTextureHeight,
+      this.maxTextureHeight,
+      this.minTextureWidth,
+      this.maxTextureWidth,
+      this.requireTextureDimensionsBePowersOfTwo,
+      this.requireTextureDimensionsBeQuadratic,
+      this.pbrColorMax,
+      this.pbrColorMin,
       this.percentToleranceLength,
       this.percentToleranceWidth,
       this.percentToleranceHeight,
-      this.requireCleanRootNodeTransform,
       this.requireUVRangeZeroToOne,
       this.maxPixelsPerMeter,
       this.minPixelsPerMeter,
       this.requireNotInvertedUVs,
       this.requireNotOverlappingUVs,
       this.resolutionNeededForUvMargin,
+      this.uvGutterWidth256,
+      this.uvGutterWidth512,
+      this.uvGutterWidth1024,
+      this.uvGutterWidth2048,
+      this.uvGutterWidth4096,
     ];
   }
 
-  private loadFromSchemaObject(obj: SchemaJSONInterface) {
+  public getJsonObject(): SchemaJSONInterface {
+    let schema = {
+      version: this.version.value as string,
+      fileSizeInKb: {
+        maximum: this.maxFileSizeInKb.value as number,
+        minimum: this.minFileSizeInKb.value as number,
+      },
+      materials: {
+        maximum: this.maxMaterialCount.value as number,
+        minimum: this.minMaterialCount.value as number,
+      },
+      model: {
+        objectCount: {
+          nodes: {
+            maximum: this.maxNodeCount.value as number,
+            minimum: this.minNodeCount.value as number,
+          },
+          meshes: {
+            maximum: this.maxMeshCount.value as number,
+            minimum: this.minMeshCount.value as number,
+          },
+          primitives: {
+            maximum: this.maxPrimitiveCount.value as number,
+            minimum: this.minPrimitiveCount.value as number,
+          },
+        },
+        requireBeveledEdges: this.requireBeveledEdges.value as boolean,
+        requireCleanRootNodeTransform: this.requireCleanRootNodeTransform.value as boolean,
+        requireManifoldEdges: this.requireManifoldEdges.value as boolean,
+        triangles: {
+          maximum: this.maxTriangleCount.value as number,
+          minimum: this.minTriangleCount.value as number,
+        },
+      },
+      product: {
+        dimensions: {
+          height: {
+            maximum: this.maxHeight.value as number,
+            minimum: this.minHeight.value as number,
+            percentTolerance: this.percentToleranceHeight.value as number,
+          },
+          length: {
+            maximum: this.maxLength.value as number,
+            minimum: this.minLength.value as number,
+            percentTolerance: this.percentToleranceLength.value as number,
+          },
+          width: {
+            maximum: this.maxWidth.value as number,
+            minimum: this.minWidth.value as number,
+            percentTolerance: this.percentToleranceWidth.value as number,
+          },
+        },
+      },
+      textures: {
+        height: {
+          maximum: this.maxTextureHeight.value as number,
+          minimum: this.minTextureHeight.value as number,
+        },
+        pbrColorRange: {
+          maximum: this.pbrColorMax.value as number,
+          minimum: this.pbrColorMin.value as number,
+        },
+        requireDimensionsBePowersOfTwo: this.requireTextureDimensionsBePowersOfTwo.value as boolean,
+        requireDimensionsBeQuadratic: this.requireTextureDimensionsBeQuadratic.value as boolean,
+        width: {
+          maximum: this.maxTextureWidth.value as number,
+          minimum: this.minTextureWidth.value as number,
+        },
+      },
+      uvs: {
+        gutterWidth: {
+          resolution256: this.uvGutterWidth256.value as number,
+          resolution512: this.uvGutterWidth512.value as number,
+          resolution1024: this.uvGutterWidth1024.value as number,
+          resolution2048: this.uvGutterWidth2048.value as number,
+          resolution4096: this.uvGutterWidth4096.value as number,
+        },
+        pixelsPerMeter: {
+          maximum: this.maxPixelsPerMeter.value as number,
+          minimum: this.minPixelsPerMeter.value as number,
+        },
+        requireNotInverted: this.requireNotInvertedUVs.value as boolean,
+        requireNotOverlapping: this.requireNotOverlappingUVs.value as boolean,
+        requireRangeZeroToOne: this.requireUVRangeZeroToOne.value as boolean,
+      },
+    } as SchemaJSONInterface;
+    return schema;
+  }
+
+  // TODO: use this for initialization so it can be the single source of truth
+  public getRecommended(): SchemaJSONInterface {
+    return {
+      version: this.version.value as string,
+      fileSizeInKb: {
+        maximum: 5120,
+        minimum: 1,
+      },
+      materials: {
+        maximum: 5,
+        minimum: -1,
+      },
+      model: {
+        objectCount: {
+          nodes: {
+            maximum: -1,
+            minimum: -1,
+          },
+          meshes: {
+            maximum: -1,
+            minimum: -1,
+          },
+          primitives: {
+            maximum: -1,
+            minimum: -1,
+          },
+        },
+        requireBeveledEdges: false,
+        requireCleanRootNodeTransform: false,
+        requireManifoldEdges: false,
+        triangles: {
+          maximum: 100000,
+          minimum: -1,
+        },
+      },
+      product: {
+        dimensions: {
+          height: {
+            maximum: -1,
+            minimum: -1,
+            percentTolerance: 3,
+          },
+          length: {
+            maximum: -1,
+            minimum: -1,
+            percentTolerance: 3,
+          },
+          width: {
+            maximum: -1,
+            minimum: -1,
+            percentTolerance: 3,
+          },
+        },
+      },
+      textures: {
+        height: {
+          maximum: 2048,
+          minimum: 512,
+        },
+        pbrColorRange: {
+          maximum: 243,
+          minimum: 30,
+        },
+        requireDimensionsBePowersOfTwo: true,
+        requireDimensionsBeQuadratic: false,
+        width: {
+          maximum: 2048,
+          minimum: 512,
+        },
+      },
+      uvs: {
+        gutterWidth: {
+          resolution256: -1,
+          resolution512: -1,
+          resolution1024: -1,
+          resolution2048: -1,
+          resolution4096: -1,
+        },
+        pixelsPerMeter: {
+          maximum: -1,
+          minimum: -1,
+        },
+        requireNotInverted: true,
+        requireNotOverlapping: false,
+        requireRangeZeroToOne: false,
+      },
+    } as SchemaJSONInterface;
+  }
+
+  public loadFromSchemaObject(obj: SchemaJSONInterface) {
     // Required Attributes
     this.version.loadValue(obj.version);
 
@@ -221,11 +418,8 @@ export class Schema implements SchemaInterface {
             this.percentToleranceHeight.loadValue(obj.product.dimensions.height.percentTolerance);
           }
         }
-        console.log('object product dimensions provided');
         if (obj.product.dimensions.length !== undefined) {
-          console.log('object product length dimensions provided');
           if (obj.product.dimensions.length.maximum !== undefined) {
-            console.log('object product MAX length dimensions provided');
             this.maxLength.loadValue(obj.product.dimensions.length.maximum);
           }
           if (obj.product.dimensions.length.minimum !== undefined) {
@@ -284,30 +478,45 @@ export class Schema implements SchemaInterface {
       if (obj.uvs.gutterWidth !== undefined) {
         let minResolutionNeeded = undefined as unknown as number;
         if (obj.uvs.gutterWidth.resolution256 !== undefined) {
-          minResolutionNeeded = 256 / obj.uvs.gutterWidth.resolution256;
+          this.uvGutterWidth256.loadValue(obj.uvs.gutterWidth.resolution256);
+          if (obj.uvs.gutterWidth.resolution256 > 0) {
+            minResolutionNeeded = 256 / obj.uvs.gutterWidth.resolution256;
+          }
         }
         if (obj.uvs.gutterWidth.resolution512 !== undefined) {
-          const resolution = 512 / obj.uvs.gutterWidth.resolution512;
-          if (minResolutionNeeded === undefined || resolution < minResolutionNeeded) {
-            minResolutionNeeded = resolution;
+          this.uvGutterWidth512.loadValue(obj.uvs.gutterWidth.resolution512);
+          if (obj.uvs.gutterWidth.resolution512 > 0) {
+            const resolution = 512 / obj.uvs.gutterWidth.resolution512;
+            if (minResolutionNeeded === undefined || resolution < minResolutionNeeded) {
+              minResolutionNeeded = resolution;
+            }
           }
         }
         if (obj.uvs.gutterWidth.resolution1024 !== undefined) {
-          const resolution = 1024 / obj.uvs.gutterWidth.resolution1024;
-          if (minResolutionNeeded === undefined || resolution < minResolutionNeeded) {
-            minResolutionNeeded = resolution;
+          this.uvGutterWidth1024.loadValue(obj.uvs.gutterWidth.resolution1024);
+          if (obj.uvs.gutterWidth.resolution1024 > 0) {
+            const resolution = 1024 / obj.uvs.gutterWidth.resolution1024;
+            if (minResolutionNeeded === undefined || resolution < minResolutionNeeded) {
+              minResolutionNeeded = resolution;
+            }
           }
         }
         if (obj.uvs.gutterWidth.resolution2048 !== undefined) {
-          const resolution = 2048 / obj.uvs.gutterWidth.resolution2048;
-          if (minResolutionNeeded === undefined || resolution < minResolutionNeeded) {
-            minResolutionNeeded = resolution;
+          this.uvGutterWidth2048.loadValue(obj.uvs.gutterWidth.resolution2048);
+          if (obj.uvs.gutterWidth.resolution2048 > 0) {
+            const resolution = 2048 / obj.uvs.gutterWidth.resolution2048;
+            if (minResolutionNeeded === undefined || resolution < minResolutionNeeded) {
+              minResolutionNeeded = resolution;
+            }
           }
         }
         if (obj.uvs.gutterWidth.resolution4096 !== undefined) {
-          const resolution = 4096 / obj.uvs.gutterWidth.resolution4096;
-          if (minResolutionNeeded === undefined || resolution < minResolutionNeeded) {
-            minResolutionNeeded = resolution;
+          this.uvGutterWidth4096.loadValue(obj.uvs.gutterWidth.resolution4096);
+          if (obj.uvs.gutterWidth.resolution4096 > 0) {
+            const resolution = 4096 / obj.uvs.gutterWidth.resolution4096;
+            if (minResolutionNeeded === undefined || resolution < minResolutionNeeded) {
+              minResolutionNeeded = resolution;
+            }
           }
         }
         if (minResolutionNeeded === undefined) {

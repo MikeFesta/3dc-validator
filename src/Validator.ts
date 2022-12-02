@@ -13,6 +13,9 @@ export interface ValidatorInterface {
   reportReady: boolean;
   schema: SchemaInterface;
   version: string;
+
+  generateReport: () => void;
+  getReportJson: () => string;
 }
 
 export class Validator implements ValidatorInterface {
@@ -22,7 +25,7 @@ export class Validator implements ValidatorInterface {
   report = new Report();
   reportReady = false;
   schema = new Schema();
-  version = '1.0.0-rc.2';
+  version = '1.0.0-rc.3';
 
   constructor() {
     // Model needs access to this.schema to know if indices need to be calculated or not
@@ -59,7 +62,7 @@ export class Validator implements ValidatorInterface {
     this.reportReady = true;
   }
 
-  public getJson(): string {
+  public getReportJson(): string {
     let passing = true; // TODO: put this in the report
     const reportJson = new ReportJSON(
       this.version,
@@ -905,7 +908,7 @@ export class Validator implements ValidatorInterface {
     // islands try to set the same pixel, it will return false.
     if (this.schema.checksRequireUvIndices === false) {
       this.report.uvGutterWideEnough.skipTestWithMessage('Not Computed (slow)');
-    } else if (this.schema.resolutionNeededForUvMargin.value === -1) {
+    } else if (this.schema.resolutionNeededForUvMargin.value < 0) {
       this.report.uvGutterWideEnough.skipTestWithMessage('');
     } else {
       let hasEnoughMargin = true;
@@ -916,7 +919,7 @@ export class Validator implements ValidatorInterface {
       });
       this.report.uvGutterWideEnough.test(
         hasEnoughMargin,
-        'Checking for pixel collision at ' + resolution + 'x' + resolution,
+        'Checked for pixel collision at ' + resolution + 'x' + resolution,
       );
     }
   }
