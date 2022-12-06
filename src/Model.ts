@@ -263,11 +263,15 @@ export class Model implements ModelInterface {
     let max = undefined as unknown as number;
     let min = undefined as unknown as number;
     images.forEach((image: ImageInterface) => {
-      if (max === undefined || image.maxValue > max) {
-        max = image.maxValue;
-      }
-      if (min === undefined || image.minValue < min) {
-        min = image.minValue;
+      // Only test base color texture images
+      // other types, such as metallic, do not apply
+      if (image.usedForBaseColor) {
+        if (max === undefined || image.maxValue > max) {
+          max = image.maxValue;
+        }
+        if (min === undefined || image.minValue < min) {
+          min = image.minValue;
+        }
       }
     });
     if (max !== undefined) {
@@ -394,12 +398,29 @@ export class Model implements ModelInterface {
 
   // Loads the binary data into Image objects using node-canvas. NullEngine does not load images.
   private async loadImages(json: GltfJsonInterface, data: GltfBinInterface) {
+    // Identify the baseColorTexture index mapping for the PBR color range test
+    let baseColorTextureIndices = [] as number[];
+    json.materials.forEach(material => {
+      if (material.pbrMetallicRoughness) {
+        if (material.pbrMetallicRoughness.baseColorTexture) {
+          baseColorTextureIndices.push(material.pbrMetallicRoughness.baseColorTexture.index);
+        }
+      }
+    });
+    // Look up the image source index from the texture array
+    // Material -> TextureInfo (index) -> Texture (source) -> Image
+    let baseColorTextureImageIndices = [] as number[];
+    baseColorTextureIndices.forEach(index => {
+      baseColorTextureImageIndices.push(json.textures[index].source);
+    });
     if (json.images !== undefined) {
       // Note: can't use forEach because we need to await
       for (let i = 0; i < json.images.length; i++) {
         try {
           const imageJson = json.images[i];
           const image = new Image(imageJson);
+          // If this index is in the list, flag it as a base color for the PBR color check
+          image.usedForBaseColor = baseColorTextureImageIndices.includes(i);
           const bufferView = json.bufferViews[imageJson.bufferView];
           // Note: there can be multiple buffers when there are external files
           const arrayBuffer = await this.bin.readAsync(bufferView.byteOffset, bufferView.byteLength);

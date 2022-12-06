@@ -8,6 +8,7 @@ export interface ImageInterface {
   minValue: number;
   mimeType: string;
   name: string;
+  usedForBaseColor: boolean; // Needed to limit PBR range test
   width: number;
   initFromBrowser(arrayBuffer: ArrayBuffer): Promise<void>;
   init(buffer: Buffer): Promise<void>;
@@ -20,6 +21,7 @@ export class Image implements ImageInterface {
   minValue = undefined as unknown as number;
   mimeType = '';
   name = '';
+  usedForBaseColor = false;
   width = undefined as unknown as number;
 
   constructor(imageJson: GltfJsonImageInterface) {

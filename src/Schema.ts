@@ -107,7 +107,7 @@ export class Schema implements SchemaInterface {
   uvGutterWidth1024 = new LoadableAttribute('UV Gutter Width at 1024', -1);
   uvGutterWidth2048 = new LoadableAttribute('UV Gutter Width at 2048', -1);
   uvGutterWidth4096 = new LoadableAttribute('UV Gutter Width at 4096', -1);
-  version = new LoadableAttribute('Version', '1.0.0-rc.3');
+  version = new LoadableAttribute('Version', '1.0.0-rc.4');
 
   getAttributes() {
     return [

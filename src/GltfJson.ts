@@ -1,3 +1,7 @@
+// Note: these interfaces are not exhaustive and generally only cover the
+// attributes that are needed by the asset validator
+// Full Schema: https://github.com/KhronosGroup/glTF/tree/main/specification/2.0/schema
+
 export interface GltfJsonBufferViewInterface {
   buffer: number;
   byteLength: number;
@@ -21,6 +25,43 @@ export interface GltfJsonPrimitiveInterface {
   material: number;
 }
 
+export interface GltfJsonPbrMetallicRoughnessInterface {
+  baseColorFactor: [number, number, number, number];
+  baseColorTexture: GltfJsonTextureInfoInterface;
+  metallicFactor: number;
+  roughnessFactor: number;
+  metallicRoughnessTexture: GltfJsonTextureInfoInterface;
+}
+
+export interface GltfJsonMaterialInterface {
+  alphaCutoff: number;
+  alphaMode: string;
+  doubleSided: boolean;
+  emissiveFactor: [number, number, number];
+  emissiveTexture: GltfJsonTextureInfoInterface;
+  extensions: object;
+  extras: object;
+  name: string;
+  normalTexture: object;
+  occlusionTexture: object;
+  pbrMetallicRoughness: GltfJsonPbrMetallicRoughnessInterface;
+}
+
+export interface GltfJsonTextureInfoInterface {
+  extensions: object;
+  extras: object;
+  index: number;
+  texCoord: number;
+}
+
+export interface GltfJsonTextureInterface {
+  extensions: object;
+  extras: object;
+  name: string;
+  sampler: number;
+  source: number;
+}
+
 export interface GltfJsonInterface {
   accessors: object[];
   asset: {
@@ -32,11 +73,11 @@ export interface GltfJsonInterface {
   buffers: object[];
   extensionsUsed: string[];
   images: GltfJsonImageInterface[];
-  materials: object[];
+  materials: GltfJsonMaterialInterface[];
   meshes: GltfJsonMeshInterface[];
   nodes: object[];
   samplers: object[];
   scene: number;
   scenes: object[];
-  textures: object[];
+  textures: GltfJsonTextureInterface[];
 }
