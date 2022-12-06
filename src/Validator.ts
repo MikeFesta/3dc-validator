@@ -25,7 +25,7 @@ export class Validator implements ValidatorInterface {
   report = new Report();
   reportReady = false;
   schema = new Schema();
-  version = '1.0.0-rc.4';
+  version = '1.0.0-rc.5';
 
   constructor() {
     // Model needs access to this.schema to know if indices need to be calculated or not
@@ -63,7 +63,9 @@ export class Validator implements ValidatorInterface {
   }
 
   public getReportJson(): string {
-    let passing = true; // TODO: put this in the report
+    let passing = this.report.getItems().every(item => {
+      return item.tested === false || (item.tested === true && item.pass);
+    });
     const reportJson = new ReportJSON(
       this.version,
       passing,
