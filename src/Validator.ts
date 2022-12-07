@@ -15,6 +15,7 @@ export interface ValidatorInterface {
   version: string;
 
   generateReport: () => void;
+  getReportCsv: () => string;
   getReportJson: () => string;
 }
 
@@ -25,7 +26,7 @@ export class Validator implements ValidatorInterface {
   report = new Report();
   reportReady = false;
   schema = new Schema();
-  version = '1.0.0-rc.5';
+  version = '1.0.0-rc.6';
 
   constructor() {
     // Model needs access to this.schema to know if indices need to be calculated or not
@@ -60,6 +61,26 @@ export class Validator implements ValidatorInterface {
     }
 
     this.reportReady = true;
+  }
+
+  public getReportCsv(): string {
+    return (
+      '"Test Name","Result","Notes"\r\n' +
+      this.report
+        .getItems()
+        .map(item => {
+          return [
+            item.name,
+            item.tested ? (item.pass ? 'PASS' : 'FAIL') : 'NOT TESTED',
+            item.message,
+            item.componentMessage,
+          ]
+            .map(v => v.replaceAll('"', '""'))
+            .map(v => `"${v}"`)
+            .join(',');
+        })
+        .join('\r\n')
+    );
   }
 
   public getReportJson(): string {
@@ -228,43 +249,54 @@ export class Validator implements ValidatorInterface {
       this.report.overallDimensionsWithinTolerance.skipTestWithMessage(dimensionsMessage);
     } else {
       let dimensionsOK = true;
+      let failingDimensions = [];
       if (this.schema.maxHeight.value !== -1) {
         if (this.model.height.value > this.schema.maxHeight.value) {
           dimensionsOK = false;
+          failingDimensions.push('Height too big');
         }
       }
       if (this.schema.minHeight.value !== -1) {
         if (this.model.height.value < this.schema.minHeight.value) {
           dimensionsOK = false;
+          failingDimensions.push('Height too small');
         }
       }
       if (this.schema.maxLength.value !== -1) {
         if (this.model.length.value > this.schema.maxLength.value) {
           dimensionsOK = false;
+          failingDimensions.push('Length too big');
         }
       }
       if (this.schema.minLength.value !== -1) {
         if (this.model.length.value < this.schema.minLength.value) {
           dimensionsOK = false;
+          failingDimensions.push('Length too small');
         }
       }
       if (this.schema.maxWidth.value !== -1) {
         if (this.model.width.value > this.schema.maxWidth.value) {
           dimensionsOK = false;
+          failingDimensions.push('Width too big');
         }
       }
       if (this.schema.minWidth.value !== -1) {
         if (this.model.width.value < this.schema.minWidth.value) {
           dimensionsOK = false;
+          failingDimensions.push('Width too small');
         }
       }
-      this.report.overallDimensionsWithinTolerance.test(dimensionsOK, dimensionsMessage);
+      this.report.overallDimensionsWithinTolerance.test(
+        dimensionsOK,
+        dimensionsMessage,
+        dimensionsOK ? '' : failingDimensions.join('; '),
+      );
     }
   }
 
   private testEdges() {
     if (this.schema.requireBeveledEdges.value === false) {
-      this.report.requireBeveledEdges.skipTestWithMessage('Not Required');
+      this.report.requireBeveledEdges.skipTestWithMessage('Not Computed (slow)');
     } else {
       this.report.requireBeveledEdges.test(
         this.model.hardEdgeCount.value === 0,
@@ -272,7 +304,7 @@ export class Validator implements ValidatorInterface {
       );
     }
     if (this.schema.requireManifoldEdges.value === false) {
-      this.report.requireManifoldEdges.skipTestWithMessage('Not Required');
+      this.report.requireManifoldEdges.skipTestWithMessage('Not Computed (slow)');
     } else {
       this.report.requireManifoldEdges.test(
         this.model.nonManifoldEdgeCount.value === 0,
@@ -289,31 +321,39 @@ export class Validator implements ValidatorInterface {
     } else if (this.schema.maxFileSizeInKb.value === -1) {
       // Check only the min filesize
       const filesizeOK = (this.model.fileSizeInKb.value as number) >= (this.schema.minFileSizeInKb.value as number);
-      let filesizeMessage = filesizeOK
-        ? this.model.fileSizeInKb.value.toLocaleString() +
-          'kb >= ' +
-          this.schema.minFileSizeInKb.value.toLocaleString() +
-          'kb'
-        : 'File too small: ' +
+      let filesizeComponentMessage = '';
+      let filesizeMessage =
+        this.model.fileSizeInKb.value.toLocaleString() +
+        'kb >= ' +
+        this.schema.minFileSizeInKb.value.toLocaleString() +
+        'kb';
+      if (!filesizeOK) {
+        filesizeComponentMessage = 'File too small';
+        filesizeMessage =
           this.model.fileSizeInKb.value.toLocaleString() +
           'kb < ' +
           this.schema.minFileSizeInKb.value.toLocaleString() +
           'kb';
-      this.report.fileSize.test(filesizeOK, filesizeMessage);
+      }
+      this.report.fileSize.test(filesizeOK, filesizeMessage, filesizeComponentMessage);
     } else if (this.schema.minFileSizeInKb.value === -1) {
       // Check only the max filesize
       const filesizeOK = (this.model.fileSizeInKb.value as number) <= (this.schema.maxFileSizeInKb.value as number);
-      let filesizeMessage = filesizeOK
-        ? this.model.fileSizeInKb.value.toLocaleString() +
-          'kb <= ' +
-          this.schema.maxFileSizeInKb.value.toLocaleString() +
-          'kb'
-        : 'File too large: ' +
+      let filesizeComponentMessage = '';
+      let filesizeMessage =
+        this.model.fileSizeInKb.value.toLocaleString() +
+        'kb <= ' +
+        this.schema.maxFileSizeInKb.value.toLocaleString() +
+        'kb';
+      if (!filesizeOK) {
+        filesizeComponentMessage = 'File too large';
+        filesizeMessage =
           this.model.fileSizeInKb.value.toLocaleString() +
           'kb > ' +
           this.schema.maxFileSizeInKb.value.toLocaleString() +
           'kb';
-      this.report.fileSize.test(filesizeOK, filesizeMessage);
+      }
+      this.report.fileSize.test(filesizeOK, filesizeMessage, filesizeComponentMessage);
     } else {
       // Check that filesize is within range (min-max)
       const filesizeOK =
@@ -321,6 +361,7 @@ export class Validator implements ValidatorInterface {
         (this.model.fileSizeInKb.value as number) >= (this.schema.minFileSizeInKb.value as number) &&
         // Less than Max
         (this.model.fileSizeInKb.value as number) <= (this.schema.maxFileSizeInKb.value as number);
+      let filesizeComponentMessage = '';
       let filesizeMessage =
         this.schema.minFileSizeInKb.value.toLocaleString() +
         'kb <= ' +
@@ -330,22 +371,22 @@ export class Validator implements ValidatorInterface {
         'kb';
       if (!filesizeOK) {
         if ((this.model.fileSizeInKb.value as number) < (this.schema.minFileSizeInKb.value as number)) {
+          filesizeComponentMessage = 'File too small';
           filesizeMessage =
-            'File too small: ' +
             this.model.fileSizeInKb.value.toLocaleString() +
             'kb < ' +
             this.schema.minFileSizeInKb.value.toLocaleString() +
             'kb';
         } else if ((this.model.fileSizeInKb.value as number) > (this.schema.maxFileSizeInKb.value as number)) {
+          filesizeComponentMessage = 'File too large';
           filesizeMessage =
-            'File too large: ' +
             this.model.fileSizeInKb.value.toLocaleString() +
             'kb > ' +
             this.schema.maxFileSizeInKb.value.toLocaleString() +
             'kb';
         }
       }
-      this.report.fileSize.test(filesizeOK, filesizeMessage);
+      this.report.fileSize.test(filesizeOK, filesizeMessage, filesizeComponentMessage);
     }
   }
 
@@ -520,6 +561,7 @@ export class Validator implements ValidatorInterface {
     let lengthWithinTolerance = true;
     let widthWithinTolerance = true;
     let productToleranceMessage = '';
+    let componentMessages = [];
 
     if (this.productInfo.height.loaded) {
       const heightMarginOfError =
@@ -528,8 +570,8 @@ export class Validator implements ValidatorInterface {
       const heightTooLarge = this.model.height.value > (this.productInfo.height.value as number) + heightMarginOfError;
       heightWithinTolerance = !heightTooSmall && !heightTooLarge;
       if (heightTooSmall) {
+        componentMessages.push('Height too small');
         productToleranceMessage +=
-          'Height too small: ' +
           (this.model.height.value as number).toFixed(this.decimalDisplayPrecision) +
           ' < (' +
           (this.productInfo.height.value as number).toFixed(this.decimalDisplayPrecision) +
@@ -538,8 +580,8 @@ export class Validator implements ValidatorInterface {
           '); ';
       }
       if (heightTooLarge) {
+        componentMessages.push('Height too large');
         productToleranceMessage +=
-          'Height too large: ' +
           (this.model.height.value as number).toFixed(this.decimalDisplayPrecision) +
           ' > (' +
           (this.productInfo.height.value as number).toFixed(this.decimalDisplayPrecision) +
@@ -555,8 +597,8 @@ export class Validator implements ValidatorInterface {
       const lengthTooLarge = this.model.length.value > (this.productInfo.length.value as number) + lengthMarginOfError;
       lengthWithinTolerance = !lengthTooSmall && !lengthTooLarge;
       if (lengthTooSmall) {
+        componentMessages.push('Length too small');
         productToleranceMessage +=
-          'Length too small: ' +
           (this.model.length.value as number).toFixed(this.decimalDisplayPrecision) +
           ' < (' +
           (this.productInfo.length.value as number).toFixed(this.decimalDisplayPrecision) +
@@ -565,8 +607,8 @@ export class Validator implements ValidatorInterface {
           '); ';
       }
       if (lengthTooLarge) {
+        componentMessages.push('Length too large');
         productToleranceMessage +=
-          'Length too large: ' +
           (this.model.length.value as number).toFixed(this.decimalDisplayPrecision) +
           ' > (' +
           (this.productInfo.length.value as number).toFixed(this.decimalDisplayPrecision) +
@@ -582,8 +624,8 @@ export class Validator implements ValidatorInterface {
       const widthTooLarge = this.model.width.value > (this.productInfo.width.value as number) + widthMarginOfError;
       widthWithinTolerance = !widthTooSmall && !widthTooLarge;
       if (widthTooSmall) {
+        componentMessages.push('Width too small');
         productToleranceMessage +=
-          'Width too small: ' +
           (this.model.width.value as number).toFixed(this.decimalDisplayPrecision) +
           ' < (' +
           (this.productInfo.width.value as number).toFixed(this.decimalDisplayPrecision) +
@@ -592,8 +634,8 @@ export class Validator implements ValidatorInterface {
           '); ';
       }
       if (widthTooLarge) {
+        componentMessages.push('Width too large');
         productToleranceMessage +=
-          'Width too large: ' +
           (this.model.width.value as number).toFixed(this.decimalDisplayPrecision) +
           ' > (' +
           (this.productInfo.width.value as number).toFixed(this.decimalDisplayPrecision) +
@@ -633,6 +675,7 @@ export class Validator implements ValidatorInterface {
     this.report.productDimensionsWithinTolerance.test(
       widthWithinTolerance && heightWithinTolerance && lengthWithinTolerance,
       productToleranceMessage,
+      componentMessages.join('; '),
     );
   }
 
@@ -743,9 +786,18 @@ export class Validator implements ValidatorInterface {
         this.report.textureDimensionsMaxHeight.skipTestWithMessage(this.model.texturesMaxHeight.value.toLocaleString());
       } else {
         const maxHeightPasses = this.model.texturesMaxHeight.value <= this.schema.maxTextureHeight.value;
+        let failingTextureList = [] as string[];
+        if (!maxHeightPasses) {
+          this.model.images.forEach(image => {
+            if (image.height > this.schema.maxTextureHeight.value) {
+              failingTextureList.push(image.name);
+            }
+          });
+        }
         this.report.textureDimensionsMaxHeight.test(
           maxHeightPasses,
           this.model.texturesMaxHeight.value + (maxHeightPasses ? ' <= ' : ' > ') + this.schema.maxTextureHeight.value,
+          failingTextureList.length > 0 ? 'Failing images: ' + failingTextureList.join('; ') : '',
         );
       }
 
@@ -754,9 +806,18 @@ export class Validator implements ValidatorInterface {
         this.report.textureDimensionsMinHeight.skipTestWithMessage(this.model.texturesMinHeight.value.toLocaleString());
       } else {
         const minHeightPasses = this.model.texturesMinHeight.value >= this.schema.minTextureHeight.value;
+        let failingTextureList = [] as string[];
+        if (!minHeightPasses) {
+          this.model.images.forEach(image => {
+            if (image.height < this.schema.minTextureHeight.value) {
+              failingTextureList.push(image.name);
+            }
+          });
+        }
         this.report.textureDimensionsMinHeight.test(
           minHeightPasses,
           this.model.texturesMinHeight.value + (minHeightPasses ? ' >= ' : ' < ') + this.schema.minTextureHeight.value,
+          failingTextureList.length > 0 ? 'Failing images: ' + failingTextureList.join('; ') : '',
         );
       }
 
@@ -765,9 +826,18 @@ export class Validator implements ValidatorInterface {
         this.report.textureDimensionsMaxWidth.skipTestWithMessage(this.model.texturesMaxWidth.value.toLocaleString());
       } else {
         const maxWidthPasses = this.model.texturesMaxWidth.value <= this.schema.maxTextureWidth.value;
+        let failingTextureList = [] as string[];
+        if (!maxWidthPasses) {
+          this.model.images.forEach(image => {
+            if (image.width > this.schema.maxTextureWidth.value) {
+              failingTextureList.push(image.name);
+            }
+          });
+        }
         this.report.textureDimensionsMaxWidth.test(
           maxWidthPasses,
           this.model.texturesMaxWidth.value + (maxWidthPasses ? ' <= ' : ' > ') + this.schema.maxTextureWidth.value,
+          failingTextureList.length > 0 ? 'Failing images: ' + failingTextureList.join('; ') : '',
         );
       }
 
@@ -776,49 +846,108 @@ export class Validator implements ValidatorInterface {
         this.report.textureDimensionsMinWidth.skipTestWithMessage(this.model.texturesMinWidth.value.toLocaleString());
       } else {
         const minWidthPasses = this.model.texturesMinWidth.value >= this.schema.minTextureWidth.value;
+        let failingTextureList = [] as string[];
+        if (!minWidthPasses) {
+          this.model.images.forEach(image => {
+            if (image.width < this.schema.minTextureWidth.value) {
+              failingTextureList.push(image.name);
+            }
+          });
+        }
         this.report.textureDimensionsMinWidth.test(
           minWidthPasses,
           this.model.texturesMinWidth.value + (minWidthPasses ? ' >= ' : ' < ') + this.schema.minTextureWidth.value,
+          failingTextureList.length > 0 ? 'Failing images: ' + failingTextureList.join('; ') : '',
         );
       }
 
       // Texture Size - Power of 2
+      const allTexturesArePowerOfTwo = this.model.images.every(v => v.isPowerOfTwo());
       if (this.schema.requireTextureDimensionsBePowersOfTwo.value === false) {
-        this.report.texturesPowerOfTwo.skipTestWithMessage(
-          (this.model.texturesPowerOfTwo.value as boolean) ? 'true' : 'false',
-        );
+        this.report.texturesPowerOfTwo.skipTestWithMessage(allTexturesArePowerOfTwo ? 'true' : 'false');
       } else {
-        this.report.texturesPowerOfTwo.test(this.model.texturesPowerOfTwo.value as boolean, '');
+        let failingTextureList = [] as string[];
+        let failingResolutions = [] as string[];
+        if (!allTexturesArePowerOfTwo) {
+          this.model.images.forEach(image => {
+            if (!image.isPowerOfTwo()) {
+              failingTextureList.push(image.name);
+              failingResolutions.push(image.width + ' x ' + image.height);
+            }
+          });
+        }
+        this.report.texturesPowerOfTwo.test(
+          allTexturesArePowerOfTwo,
+          failingResolutions.join('; '),
+          failingTextureList.length > 0 ? 'Failing images: ' + failingTextureList.join('; ') : '',
+        );
       }
 
       // Texture Size - Quadratic (width=height)
+      const allTexturesAreQuadratic = this.model.images.every(v => v.isQuadratic());
       if (this.schema.requireTextureDimensionsBeQuadratic.value === false) {
-        this.report.texturesQuadratic.skipTestWithMessage(
-          (this.model.texturesQuadratic.value as boolean) ? 'true' : 'false',
-        );
+        this.report.texturesQuadratic.skipTestWithMessage(allTexturesAreQuadratic ? 'true' : 'false');
       } else {
-        this.report.texturesQuadratic.test(this.model.texturesQuadratic.value as boolean, '');
+        let failingTextureList = [] as string[];
+        let failingResolutions = [] as string[];
+        if (!allTexturesAreQuadratic) {
+          this.model.images.forEach(image => {
+            if (!image.isQuadratic()) {
+              failingTextureList.push(image.name);
+              failingResolutions.push(image.width + ' x ' + image.height);
+            }
+          });
+        }
+        this.report.texturesQuadratic.test(
+          allTexturesAreQuadratic,
+          failingResolutions.join('; '),
+          failingTextureList.length > 0 ? 'Failing images: ' + failingTextureList.join('; ') : '',
+        );
       }
 
       // PBR safe colors
       if (this.schema.pbrColorMax.value === -1) {
         this.report.pbrColorMax.skipTestWithMessage((this.model.colorValueMax.value as number).toLocaleString());
       } else {
-        this.report.pbrColorMax.test(
-          this.model.colorValueMax.value <= this.schema.pbrColorMax.value,
+        const pbrMaxOK = this.model.colorValueMax.value <= this.schema.pbrColorMax.value;
+        const message =
           (this.model.colorValueMax.value as number).toLocaleString() +
-            (this.model.colorValueMax.value <= this.schema.pbrColorMax.value ? ' <= ' : ' > ') +
-            (this.schema.pbrColorMax.value as number).toLocaleString(),
+          (pbrMaxOK ? ' <= ' : ' > ') +
+          (this.schema.pbrColorMax.value as number).toLocaleString();
+        let failingImageList = [] as string[];
+        if (!pbrMaxOK) {
+          this.model.images.forEach(image => {
+            if (image.maxValue > this.schema.pbrColorMax.value) {
+              failingImageList.push(image.name);
+            }
+          });
+        }
+        this.report.pbrColorMax.test(
+          pbrMaxOK,
+          message,
+          failingImageList.length > 0 ? 'Failing images: ' + failingImageList.join('; ') : '',
         );
       }
       if (this.schema.pbrColorMin.value === -1) {
         this.report.pbrColorMin.skipTestWithMessage((this.model.colorValueMin.value as number).toLocaleString());
       } else {
-        this.report.pbrColorMin.test(
-          this.model.colorValueMin.value >= this.schema.pbrColorMin.value,
+        const pbrMinOK = this.model.colorValueMin.value >= this.schema.pbrColorMin.value;
+        const message =
           (this.model.colorValueMin.value as number).toLocaleString() +
-            (this.model.colorValueMin.value >= this.schema.pbrColorMin.value ? ' >= ' : ' < ') +
-            (this.schema.pbrColorMin.value as number).toLocaleString(),
+          (this.model.colorValueMin.value >= this.schema.pbrColorMin.value ? ' >= ' : ' < ') +
+          (this.schema.pbrColorMin.value as number).toLocaleString();
+        let failingImageList = [] as string[];
+        if (!pbrMinOK) {
+          this.model.images.forEach(image => {
+            if (image.minValue < this.schema.pbrColorMin.value) {
+              failingImageList.push(image.name);
+            }
+          });
+        }
+        this.report.pbrColorMin.test(
+          pbrMinOK,
+          message,
+          failingImageList.length > 0 ? 'Failing images: ' + failingImageList.join('; ') : '',
         );
       }
     }

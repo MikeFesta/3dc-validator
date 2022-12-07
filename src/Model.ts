@@ -27,6 +27,8 @@ export interface ModelInterface {
   bin: GltfBinInterface;
   colorValueMax: LoadableAttributeInterface;
   colorValueMin: LoadableAttributeInterface;
+  dataUrl: string;
+  filename: string;
   fileSizeInKb: LoadableAttributeInterface;
   gltfValidatorReport: GltfValidatorReportInterface;
   hardEdgeCount: LoadableAttributeInterface;
@@ -50,8 +52,6 @@ export interface ModelInterface {
   texturesMaxWidth: LoadableAttributeInterface;
   texturesMinHeight: LoadableAttributeInterface;
   texturesMinWidth: LoadableAttributeInterface;
-  texturesPowerOfTwo: LoadableAttributeInterface;
-  texturesQuadratic: LoadableAttributeInterface;
   triangleCount: LoadableAttributeInterface;
   u: {
     max: LoadableAttributeInterface;
@@ -73,6 +73,8 @@ export class Model implements ModelInterface {
   bin = undefined as unknown as GltfBinInterface;
   colorValueMax = new LoadableAttribute('Max HSV color value', 0);
   colorValueMin = new LoadableAttribute('Min HSV color value', 0);
+  dataUrl = '';
+  filename = '';
   fileSizeInKb = new LoadableAttribute('File size in Kb', 0);
   gltfValidatorReport = null as unknown as GltfValidatorReportInterface;
   hardEdgeCount = new LoadableAttribute('Hard Edges (angle > 90)', 0);
@@ -96,8 +98,6 @@ export class Model implements ModelInterface {
   texturesMaxWidth = new LoadableAttribute('Max Texture Width', 0);
   texturesMinHeight = new LoadableAttribute('Min Texture Height', 0);
   texturesMinWidth = new LoadableAttribute('Min Texture Width', 0);
-  texturesPowerOfTwo = new LoadableAttribute('Texture Dimensions are Powers of 2', false);
-  texturesQuadratic = new LoadableAttribute('Textures Have the Same Width and Height', false);
   triangleCount = new LoadableAttribute('Triangle Count', 0);
   u = {
     max: new LoadableAttribute('Max U value', 0),
@@ -129,8 +129,6 @@ export class Model implements ModelInterface {
       this.texturesMinHeight,
       this.texturesMaxWidth,
       this.texturesMinWidth,
-      this.texturesPowerOfTwo,
-      this.texturesQuadratic,
       this.colorValueMax,
       this.colorValueMin,
       this.length,
@@ -180,6 +178,8 @@ export class Model implements ModelInterface {
     try {
       this.fileSizeInKb.loadValue(Math.round(file.size / 1024)); // bytes to Kb
       const fileDataBuffer = await this.getBufferFromFileInput(file);
+      this.filename = file.name;
+      this.dataUrl = 'data:;base64,' + EncodeArrayBufferToBase64(fileDataBuffer);
       await this.loadWithGltfValidator(fileDataBuffer);
       await this.loadWithBabylon(file);
       this.loaded = true;
@@ -199,8 +199,8 @@ export class Model implements ModelInterface {
       }
       const fileDataBuffer = await promises.readFile(filepath);
       await this.loadWithGltfValidator(fileDataBuffer);
-      const data = 'data:;base64,' + EncodeArrayBufferToBase64(fileDataBuffer);
-      await this.loadWithBabylon(data);
+      this.dataUrl = 'data:;base64,' + EncodeArrayBufferToBase64(fileDataBuffer);
+      await this.loadWithBabylon(this.dataUrl);
       this.loaded = true;
     } catch (err) {
       throw new Error('Unable to load file: ' + filepath);
@@ -219,34 +219,6 @@ export class Model implements ModelInterface {
   ///////////////////////
   // PRIVATE FUNCTIONS //
   ///////////////////////
-
-  private allTexturesArePowersOfTwo(reportInfo: GltfValidatorReportInfoInterface) {
-    let nonPowerOfTwoTextureFound = false;
-    if (reportInfo.resources) {
-      reportInfo.resources.forEach((resource: GltfValidatorReportInfoResourceInterface) => {
-        if (resource.image) {
-          if (!this.numberIsPowerOfTwo(resource.image.height) || !this.numberIsPowerOfTwo(resource.image.width)) {
-            nonPowerOfTwoTextureFound = true;
-          }
-        }
-      });
-    }
-    return !nonPowerOfTwoTextureFound;
-  }
-
-  private allTexturesAreQuadratic(reportInfo: GltfValidatorReportInfoInterface) {
-    let nonQuadraticTextureFound = false;
-    if (reportInfo.resources) {
-      reportInfo.resources.forEach((resource: GltfValidatorReportInfoResourceInterface) => {
-        if (resource.image) {
-          if (resource.image.height != resource.image.width) {
-            nonQuadraticTextureFound = true;
-          }
-        }
-      });
-    }
-    return !nonQuadraticTextureFound;
-  }
 
   private calculateDimensions(scene: Scene) {
     // Dimensions - from the __root__ node, get bounds of all child meshes
@@ -400,13 +372,15 @@ export class Model implements ModelInterface {
   private async loadImages(json: GltfJsonInterface, data: GltfBinInterface) {
     // Identify the baseColorTexture index mapping for the PBR color range test
     let baseColorTextureIndices = [] as number[];
-    json.materials.forEach(material => {
-      if (material.pbrMetallicRoughness) {
-        if (material.pbrMetallicRoughness.baseColorTexture) {
-          baseColorTextureIndices.push(material.pbrMetallicRoughness.baseColorTexture.index);
+    if (json.materials) {
+      json.materials.forEach(material => {
+        if (material.pbrMetallicRoughness) {
+          if (material.pbrMetallicRoughness.baseColorTexture) {
+            baseColorTextureIndices.push(material.pbrMetallicRoughness.baseColorTexture.index);
+          }
         }
-      }
-    });
+      });
+    }
     // Look up the image source index from the texture array
     // Material -> TextureInfo (index) -> Texture (source) -> Image
     let baseColorTextureImageIndices = [] as number[];
@@ -444,6 +418,8 @@ export class Model implements ModelInterface {
       }
     }
   }
+
+  // TODO: add a function that takes multiple files
 
   private async loadGltfJsonBin(scene: Scene, data: string | File): Promise<void> {
     return await new Promise((resolve, reject) => {
@@ -559,14 +535,11 @@ export class Model implements ModelInterface {
           // These values are available in the glTF validator, so we might as well use them
           this.triangleCount.loadValue(report.info.totalTriangleCount);
           this.materialCount.loadValue(report.info.materialCount);
-          this.texturesPowerOfTwo.loadValue(this.allTexturesArePowersOfTwo(report.info));
-          this.texturesQuadratic.loadValue(this.allTexturesAreQuadratic(report.info));
           const textureSizes = this.getTextureSizes(report.info);
           this.texturesMaxHeight.loadValue(textureSizes.maxHeight);
           this.texturesMaxWidth.loadValue(textureSizes.maxWidth);
           this.texturesMinHeight.loadValue(textureSizes.minHeight);
           this.texturesMinWidth.loadValue(textureSizes.minWidth);
-          this.texturesQuadratic.loadValue(this.allTexturesAreQuadratic(report.info));
           resolve();
         })
         .catch((error: any) => {

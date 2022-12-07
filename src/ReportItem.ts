@@ -1,4 +1,5 @@
 export interface ReportItemInterface {
+  componentMessage: string;
   guidelinesUrl: string;
   message: string;
   name: string;
@@ -8,6 +9,7 @@ export interface ReportItemInterface {
 }
 
 export class ReportItem implements ReportItemInterface {
+  componentMessage = '';
   guidelinesUrl = '';
   message = '';
   name = '';
@@ -21,7 +23,8 @@ export class ReportItem implements ReportItemInterface {
     this.name = name;
   }
 
-  public test(passCondition: boolean, message?: string) {
+  public test(passCondition: boolean, message?: string, componentMessage?: string) {
+    this.componentMessage = componentMessage ?? '';
     this.message = message ?? '';
     this.pass = passCondition;
     this.tested = true;

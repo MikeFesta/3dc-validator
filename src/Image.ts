@@ -12,6 +12,8 @@ export interface ImageInterface {
   width: number;
   initFromBrowser(arrayBuffer: ArrayBuffer): Promise<void>;
   init(buffer: Buffer): Promise<void>;
+  isPowerOfTwo(): boolean;
+  isQuadratic(): boolean;
 }
 
 export class Image implements ImageInterface {
@@ -48,6 +50,14 @@ export class Image implements ImageInterface {
     const dataUri = await this.getDataUriFromArrayBuffer(arrayBuffer);
     await this.init(dataUri);
   };
+
+  public isPowerOfTwo(): boolean {
+    return this.numberIsPowerOfTwo(this.height) && this.numberIsPowerOfTwo(this.width);
+  }
+
+  public isQuadratic(): boolean {
+    return this.height === this.width;
+  }
 
   ///////////////////////
   // PRIVATE FUNCTIONS //
@@ -103,5 +113,11 @@ export class Image implements ImageInterface {
         reject();
       }
     });
+  }
+
+  // bitwise check that all trailing bits are 0
+  private numberIsPowerOfTwo(n: number): boolean {
+    // Power of two numbers are 0x100...00
+    return n > 0 && (n & (n - 1)) === 0;
   }
 }

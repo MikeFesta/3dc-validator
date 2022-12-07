@@ -35,7 +35,7 @@ export class Report implements ReportInterface {
     'File Size',
     'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec01_FileFormatsAndAssetStructure/FileFormatsAndAssetStructure.md',
   );
-  gltfValidator = new ReportItem('glTF Validator', 'https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html');
+  gltfValidator = new ReportItem('glTF Validator', 'http://github.khronos.org/glTF-Validator/');
   materialCount = new ReportItem(
     'Material Count',
     'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec05_MaterialsAndTextures/MaterialsAndTextures.md#multiple-materials-per-model',
