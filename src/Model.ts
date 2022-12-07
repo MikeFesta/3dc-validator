@@ -24,6 +24,7 @@ import { GLTFLoader } from '@babylonjs/loaders/glTF/2.0/glTFLoader.js'; // VS co
 import { ValidatorInterface } from './Validator.js';
 
 export interface ModelInterface {
+  arrayBuffer: ArrayBuffer;
   bin: GltfBinInterface;
   colorValueMax: LoadableAttributeInterface;
   colorValueMin: LoadableAttributeInterface;
@@ -70,6 +71,7 @@ export interface ModelInterface {
 }
 
 export class Model implements ModelInterface {
+  arrayBuffer = null as unknown as ArrayBuffer;
   bin = undefined as unknown as GltfBinInterface;
   colorValueMax = new LoadableAttribute('Max HSV color value', 0);
   colorValueMin = new LoadableAttribute('Min HSV color value', 0);
@@ -179,6 +181,7 @@ export class Model implements ModelInterface {
       this.fileSizeInKb.loadValue(Math.round(file.size / 1024)); // bytes to Kb
       const fileDataBuffer = await this.getBufferFromFileInput(file);
       this.filename = file.name;
+      this.arrayBuffer = fileDataBuffer;
       this.dataUrl = 'data:;base64,' + EncodeArrayBufferToBase64(fileDataBuffer);
       await this.loadWithGltfValidator(fileDataBuffer);
       await this.loadWithBabylon(file);
