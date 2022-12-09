@@ -9,9 +9,10 @@ export interface GltfJsonBufferViewInterface {
 }
 
 export interface GltfJsonImageInterface {
-  bufferView: number;
+  bufferView?: number;
   mimeType: string;
   name: string;
+  uri?: string;
 }
 
 export interface GltfJsonMeshInterface {

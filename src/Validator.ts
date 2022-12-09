@@ -26,7 +26,7 @@ export class Validator implements ValidatorInterface {
   report = new Report();
   reportReady = false;
   schema = new Schema();
-  version = '1.0.0-rc.6';
+  version = '1.0.0-rc.7';
 
   constructor() {
     // Model needs access to this.schema to know if indices need to be calculated or not
@@ -790,7 +790,7 @@ export class Validator implements ValidatorInterface {
         if (!maxHeightPasses) {
           this.model.images.forEach(image => {
             if (image.height > this.schema.maxTextureHeight.value) {
-              failingTextureList.push(image.name);
+              failingTextureList.push(image.name ?? 'unnamed');
             }
           });
         }
@@ -810,7 +810,7 @@ export class Validator implements ValidatorInterface {
         if (!minHeightPasses) {
           this.model.images.forEach(image => {
             if (image.height < this.schema.minTextureHeight.value) {
-              failingTextureList.push(image.name);
+              failingTextureList.push(image.name ?? 'unnamed');
             }
           });
         }
@@ -830,7 +830,7 @@ export class Validator implements ValidatorInterface {
         if (!maxWidthPasses) {
           this.model.images.forEach(image => {
             if (image.width > this.schema.maxTextureWidth.value) {
-              failingTextureList.push(image.name);
+              failingTextureList.push(image.name ?? 'unnamed');
             }
           });
         }
@@ -850,7 +850,7 @@ export class Validator implements ValidatorInterface {
         if (!minWidthPasses) {
           this.model.images.forEach(image => {
             if (image.width < this.schema.minTextureWidth.value) {
-              failingTextureList.push(image.name);
+              failingTextureList.push(image.name ?? 'unnamed');
             }
           });
         }
@@ -871,7 +871,7 @@ export class Validator implements ValidatorInterface {
         if (!allTexturesArePowerOfTwo) {
           this.model.images.forEach(image => {
             if (!image.isPowerOfTwo()) {
-              failingTextureList.push(image.name);
+              failingTextureList.push(image.name ?? 'unnamed');
               failingResolutions.push(image.width + ' x ' + image.height);
             }
           });
@@ -893,7 +893,7 @@ export class Validator implements ValidatorInterface {
         if (!allTexturesAreQuadratic) {
           this.model.images.forEach(image => {
             if (!image.isQuadratic()) {
-              failingTextureList.push(image.name);
+              failingTextureList.push(image.name ?? 'unnamed');
               failingResolutions.push(image.width + ' x ' + image.height);
             }
           });
@@ -918,7 +918,7 @@ export class Validator implements ValidatorInterface {
         if (!pbrMaxOK) {
           this.model.images.forEach(image => {
             if (image.maxValue > this.schema.pbrColorMax.value) {
-              failingImageList.push(image.name);
+              failingImageList.push(image.name ?? 'unnamed');
             }
           });
         }
@@ -940,7 +940,7 @@ export class Validator implements ValidatorInterface {
         if (!pbrMinOK) {
           this.model.images.forEach(image => {
             if (image.minValue < this.schema.pbrColorMin.value) {
-              failingImageList.push(image.name);
+              failingImageList.push(image.name ?? 'unnamed');
             }
           });
         }

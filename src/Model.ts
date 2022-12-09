@@ -10,8 +10,8 @@ import { LoadableAttribute, LoadableAttributeInterface } from './LoadableAttribu
 import { NodeTransform, NodeTransformInterface } from './NodeTransform.js';
 import { Primitive, PrimitiveInterface } from './Primitive.js';
 //@ts-ignore
-import { validateBytes } from 'gltf-validator';
-import { AbstractMesh } from '@babylonjs/core';
+import { validateBytes, validateString } from 'gltf-validator';
+import { AbstractMesh, FilesInputStore } from '@babylonjs/core';
 import { VertexBuffer } from '@babylonjs/core/Buffers/buffer.js';
 import { NullEngine } from '@babylonjs/core/Engines/nullEngine.js';
 import { Logger } from '@babylonjs/core/Misc/logger.js';
@@ -25,10 +25,8 @@ import { ValidatorInterface } from './Validator.js';
 
 export interface ModelInterface {
   arrayBuffer: ArrayBuffer;
-  bin: GltfBinInterface;
   colorValueMax: LoadableAttributeInterface;
   colorValueMin: LoadableAttributeInterface;
-  dataUrl: string;
   filename: string;
   fileSizeInKb: LoadableAttributeInterface;
   gltfValidatorReport: GltfValidatorReportInterface;
@@ -65,17 +63,16 @@ export interface ModelInterface {
   validator: ValidatorInterface;
   width: LoadableAttributeInterface;
   getAttributes: () => LoadableAttributeInterface[];
-  loadFromFileInput(file: File): Promise<void>;
+  loadFromGlbFile(file: File): Promise<void>;
+  loadFromGltfFiles(files: File[]): Promise<void>;
   loadFromFileSystem(filepath: string): Promise<void>;
   uvIsInRangeZeroToOne: () => boolean;
 }
 
 export class Model implements ModelInterface {
   arrayBuffer = null as unknown as ArrayBuffer;
-  bin = undefined as unknown as GltfBinInterface;
   colorValueMax = new LoadableAttribute('Max HSV color value', 0);
   colorValueMin = new LoadableAttribute('Min HSV color value', 0);
-  dataUrl = '';
   filename = '';
   fileSizeInKb = new LoadableAttribute('File size in Kb', 0);
   gltfValidatorReport = null as unknown as GltfValidatorReportInterface;
@@ -176,14 +173,13 @@ export class Model implements ModelInterface {
   }
 
   // This version is for the browser and the file comes from an <input type='file'> element
-  public async loadFromFileInput(file: File): Promise<void> {
+  public async loadFromGlbFile(file: File): Promise<void> {
     try {
       this.fileSizeInKb.loadValue(Math.round(file.size / 1024)); // bytes to Kb
       const fileDataBuffer = await this.getBufferFromFileInput(file);
       this.filename = file.name;
-      this.arrayBuffer = fileDataBuffer;
-      this.dataUrl = 'data:;base64,' + EncodeArrayBufferToBase64(fileDataBuffer);
-      await this.loadWithGltfValidator(fileDataBuffer);
+      this.arrayBuffer = fileDataBuffer; // makes the data available to the frontend for loading
+      await this.loadGlbWithGltfValidator(fileDataBuffer);
       await this.loadWithBabylon(file);
       this.loaded = true;
     } catch (err) {
@@ -191,7 +187,52 @@ export class Model implements ModelInterface {
     }
   }
 
+  public async loadFromGltfFiles(files: File[]): Promise<void> {
+    try {
+      let filesize = 0;
+      for (let i = 0; i < files.length; i++) {
+        filesize += files[i].size;
+      }
+      this.fileSizeInKb.loadValue(Math.round(filesize / 1024)); // bytes to Kb
+      let gltfFile = null as unknown as File;
+      files.forEach(file => {
+        FilesInputStore.FilesToLoad[file.name] = file;
+        if (file.name.endsWith('gltf')) {
+          gltfFile = file;
+        }
+      });
+      if (gltfFile) {
+        this.filename = gltfFile.name;
+
+        // TODO: Merge with loadFromBabylon
+        const engine = new NullEngine();
+        const scene = new Scene(engine);
+
+        await SceneLoader.AppendAsync('file:', gltfFile, scene);
+        const fileDataBuffer = await this.getBufferFromFileInput(gltfFile);
+
+        await this.loadGltfJson(scene, 'data:;base64,' + EncodeArrayBufferToBase64(fileDataBuffer));
+        await this.loadGltfWithGltfValidator(JSON.stringify(this.json), files);
+        await this.loadImagesFromFiles(this.json, files);
+        this.calculateDimensions(scene);
+        this.calculateColorValues(this.images); // after images are loaded
+        this.loadObjectCountsFromJson(this.json);
+        this.loadRootNodeTransform(scene);
+        this.loadPrimitives(scene);
+        this.calculateEdgeValues(this.primitives);
+        this.calculateUvValues(this.primitives);
+
+        this.loaded = true;
+      } else {
+        throw new Error('No gltf file found');
+      }
+    } catch (err) {
+      console.log('unable to load files: ' + (err as Error).message);
+    }
+  }
+
   // This version is for node.js and the file comes from the file system
+  // TODO: Add multi-file support to the CLI implementation
   public async loadFromFileSystem(filepath: string): Promise<void> {
     try {
       const { promises } = await import('fs');
@@ -201,9 +242,8 @@ export class Model implements ModelInterface {
         throw new Error('File size is zero');
       }
       const fileDataBuffer = await promises.readFile(filepath);
-      await this.loadWithGltfValidator(fileDataBuffer);
-      this.dataUrl = 'data:;base64,' + EncodeArrayBufferToBase64(fileDataBuffer);
-      await this.loadWithBabylon(this.dataUrl);
+      await this.loadGlbWithGltfValidator(fileDataBuffer);
+      await this.loadWithBabylon('data:;base64,' + EncodeArrayBufferToBase64(fileDataBuffer));
       this.loaded = true;
     } catch (err) {
       throw new Error('Unable to load file: ' + filepath);
@@ -372,7 +412,7 @@ export class Model implements ModelInterface {
   }
 
   // Loads the binary data into Image objects using node-canvas. NullEngine does not load images.
-  private async loadImages(json: GltfJsonInterface, data: GltfBinInterface) {
+  private async loadImagesFromBin(json: GltfJsonInterface, data: GltfBinInterface) {
     // Identify the baseColorTexture index mapping for the PBR color range test
     let baseColorTextureIndices = [] as number[];
     if (json.materials) {
@@ -398,22 +438,25 @@ export class Model implements ModelInterface {
           const image = new Image(imageJson);
           // If this index is in the list, flag it as a base color for the PBR color check
           image.usedForBaseColor = baseColorTextureImageIndices.includes(i);
-          const bufferView = json.bufferViews[imageJson.bufferView];
-          // Note: there can be multiple buffers when there are external files
-          const arrayBuffer = await this.bin.readAsync(bufferView.byteOffset, bufferView.byteLength);
-          if (typeof window === 'undefined') {
-            // Node (can use Buffer)
-            const buffer = Buffer.alloc(bufferView.byteLength, undefined, 'utf-8');
-            const binaryData = new Uint8Array(arrayBuffer);
-            for (let j = 0; j < buffer.length; j++) {
-              buffer[j] = binaryData[j];
+          if (imageJson.bufferView) {
+            // TODO: this is where the code differs with loadImagesFromFiles
+            const bufferView = json.bufferViews[imageJson.bufferView];
+            // Note: there can be multiple buffers when there are external files
+            const arrayBuffer = await data.readAsync(bufferView.byteOffset, bufferView.byteLength);
+            if (typeof window === 'undefined') {
+              // Node (can use Buffer)
+              const buffer = Buffer.alloc(bufferView.byteLength, undefined, 'utf-8');
+              const binaryData = new Uint8Array(arrayBuffer);
+              for (let j = 0; j < buffer.length; j++) {
+                buffer[j] = binaryData[j];
+              }
+              await image.init(buffer);
+            } else {
+              // Browser (cannot use Buffer and needs to construct a data uri)
+              await image.initFromBrowser(arrayBuffer);
             }
-            await image.init(buffer);
-          } else {
-            // Browser (cannot use Buffer and needs to construct a data uri)
-            await image.initFromBrowser(arrayBuffer);
+            this.images.push(image);
           }
-          this.images.push(image);
         } catch (err) {
           console.log('error creating image named: ' + json.images[i].name);
           console.log(err);
@@ -422,9 +465,63 @@ export class Model implements ModelInterface {
     }
   }
 
-  // TODO: add a function that takes multiple files
+  // TODO: merge with loadImagesFromBin
+  private async loadImagesFromFiles(json: GltfJsonInterface, files: File[]) {
+    // Identify the baseColorTexture index mapping for the PBR color range test
+    let baseColorTextureIndices = [] as number[];
+    if (json.materials) {
+      json.materials.forEach(material => {
+        if (material.pbrMetallicRoughness) {
+          if (material.pbrMetallicRoughness.baseColorTexture) {
+            baseColorTextureIndices.push(material.pbrMetallicRoughness.baseColorTexture.index);
+          }
+        }
+      });
+    }
+    // Look up the image source index from the texture array
+    // Material -> TextureInfo (index) -> Texture (source) -> Image
+    let baseColorTextureImageIndices = [] as number[];
+    baseColorTextureIndices.forEach(index => {
+      baseColorTextureImageIndices.push(json.textures[index].source);
+    });
+    if (json.images !== undefined) {
+      // Note: can't use forEach because we need to await
+      for (let i = 0; i < json.images.length; i++) {
+        try {
+          const imageJson = json.images[i];
+          const image = new Image(imageJson);
+          // If this index is in the list, flag it as a base color for the PBR color check
+          image.usedForBaseColor = baseColorTextureImageIndices.includes(i);
+          if (imageJson.uri) {
+            for (let j = 0; j < files.length; j++) {
+              if (files[j].name == imageJson.uri) {
+                const imageFile = files[j];
+                const arrayBuffer = await this.getBufferFromFileInput(imageFile);
+                if (typeof window === 'undefined') {
+                  // Node (can use Buffer)
+                  const buffer = Buffer.alloc(arrayBuffer.byteLength, undefined, 'utf-8'); // TODO: test that arrayBuffer.byteLength is the same as bufferView.bytelength
+                  const binaryData = new Uint8Array(arrayBuffer);
+                  for (let j = 0; j < buffer.length; j++) {
+                    buffer[j] = binaryData[j];
+                  }
+                  await image.init(buffer);
+                } else {
+                  // Browser (cannot use Buffer and needs to construct a data uri)
+                  await image.initFromBrowser(arrayBuffer);
+                }
+                this.images.push(image);
+              }
+            }
+          }
+        } catch (err) {
+          console.log('error creating image named: ' + json.images[i].name);
+          console.log(err);
+        }
+      }
+    }
+  }
 
-  private async loadGltfJsonBin(scene: Scene, data: string | File): Promise<void> {
+  private async loadGltfJson(scene: Scene, data: string | File): Promise<void> {
     return await new Promise((resolve, reject) => {
       const fileLoader = new GLTFFileLoader();
       fileLoader.loadFile(
@@ -432,8 +529,28 @@ export class Model implements ModelInterface {
         data,
         data => {
           this.json = data.json;
-          this.bin = data.bin;
           resolve();
+        },
+        ev => {
+          // progress. nothing to do
+        },
+        false, // not using the array buffer
+        err => {
+          reject();
+        },
+      );
+    });
+  }
+
+  private async loadGltfJsonBin(scene: Scene, data: string | File): Promise<GltfBinInterface> {
+    return await new Promise((resolve, reject) => {
+      const fileLoader = new GLTFFileLoader();
+      fileLoader.loadFile(
+        scene,
+        data,
+        data => {
+          this.json = data.json;
+          resolve(data.bin);
         },
         ev => {
           // progress. nothing to do
@@ -452,8 +569,7 @@ export class Model implements ModelInterface {
       const engine = new NullEngine();
       const scene = new Scene(engine);
 
-      // populates this.json and this.bin
-      await this.loadGltfJsonBin(scene, data);
+      const bin = await this.loadGltfJsonBin(scene, data);
 
       // Note: the file was already loaded to extract the JSON, but now
       // gets loaded a 2nd time by SceneLoader. There might be a more
@@ -461,7 +577,7 @@ export class Model implements ModelInterface {
       await SceneLoader.AppendAsync('', data, scene);
 
       this.calculateDimensions(scene);
-      await this.loadImages(this.json, this.bin);
+      await this.loadImagesFromBin(this.json, bin);
       this.calculateColorValues(this.images); // after images are loaded
       this.loadObjectCountsFromJson(this.json);
       this.loadRootNodeTransform(scene);
@@ -528,10 +644,47 @@ export class Model implements ModelInterface {
   }
 
   // Generate a report from the glTF Validator
-  private async loadWithGltfValidator(data: ArrayBuffer) {
+  private async loadGlbWithGltfValidator(data: ArrayBuffer) {
     return new Promise<void>((resolve, reject) => {
       const binaryData = new Uint8Array(data);
       validateBytes(binaryData)
+        .then((report: GltfValidatorReportInterface) => {
+          // Keep a copy of the report
+          this.gltfValidatorReport = report;
+          // These values are available in the glTF validator, so we might as well use them
+          this.triangleCount.loadValue(report.info.totalTriangleCount);
+          this.materialCount.loadValue(report.info.materialCount);
+          const textureSizes = this.getTextureSizes(report.info);
+          this.texturesMaxHeight.loadValue(textureSizes.maxHeight);
+          this.texturesMaxWidth.loadValue(textureSizes.maxWidth);
+          this.texturesMinHeight.loadValue(textureSizes.minHeight);
+          this.texturesMinWidth.loadValue(textureSizes.minWidth);
+          resolve();
+        })
+        .catch((error: any) => {
+          console.error('Validation failed: ', error);
+          reject();
+        });
+    });
+  }
+  // TODO: Merge this and the above function
+  private async loadGltfWithGltfValidator(jsonString: string, files: File[]) {
+    return new Promise<void>((resolve, reject) => {
+      validateString(jsonString, {
+        externalResourceFunction: (uri: string) => {
+          return new Promise(async (resolve, reject) => {
+            for (let i = 0; i < files.length; i++) {
+              const file = files[i];
+              if (file.name == uri) {
+                // TODO: will probably need a different version for cli
+                const fileDataBuffer = await this.getBufferFromFileInput(file);
+                resolve(new Uint8Array(fileDataBuffer));
+              }
+            }
+            reject('file ' + uri + ' not found');
+          });
+        },
+      })
         .then((report: GltfValidatorReportInterface) => {
           // Keep a copy of the report
           this.gltfValidatorReport = report;
