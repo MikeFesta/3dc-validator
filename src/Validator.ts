@@ -26,7 +26,7 @@ export class Validator implements ValidatorInterface {
   report = new Report();
   reportReady = false;
   schema = new Schema();
-  version = '1.0.0-rc.7';
+  version = '1.0.0-rc.8';
 
   constructor() {
     // Model needs access to this.schema to know if indices need to be calculated or not
