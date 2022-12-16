@@ -1,3 +1,4 @@
+import Glb, { GlbInterface } from './Glb.js';
 import { GltfBinInterface } from './GltfBin.js';
 import { GltfJsonInterface, GltfJsonMeshInterface } from './GltfJson.js';
 import {
@@ -10,25 +11,20 @@ import { LoadableAttribute, LoadableAttributeInterface } from './LoadableAttribu
 import { NodeTransform, NodeTransformInterface } from './NodeTransform.js';
 import { Primitive, PrimitiveInterface } from './Primitive.js';
 //@ts-ignore
-import { validateBytes, validateString } from 'gltf-validator';
-import { AbstractMesh, FilesInputStore } from '@babylonjs/core';
+import { validateBytes } from 'gltf-validator';
+import { AbstractMesh } from '@babylonjs/core';
 import { VertexBuffer } from '@babylonjs/core/Buffers/buffer.js';
 import { NullEngine } from '@babylonjs/core/Engines/nullEngine.js';
 import { Logger } from '@babylonjs/core/Misc/logger.js';
 import { SceneLoader } from '@babylonjs/core/Loading/sceneLoader.js';
-import { EncodeArrayBufferToBase64 } from '@babylonjs/core/Misc/stringTools.js';
 import { Scene } from '@babylonjs/core/scene.js';
-import { GLTFFileLoader } from '@babylonjs/loaders';
-import '@babylonjs/loaders/glTF/2.0/glTFLoader.js';
-import { GLTFLoader } from '@babylonjs/loaders/glTF/2.0/glTFLoader.js'; // VS code marks this as not in use, but it is required
 import { ValidatorInterface } from './Validator.js';
 
 export interface ModelInterface {
-  arrayBuffer: ArrayBuffer;
   colorValueMax: LoadableAttributeInterface;
   colorValueMin: LoadableAttributeInterface;
-  filename: string;
   fileSizeInKb: LoadableAttributeInterface;
+  glb: GlbInterface;
   gltfValidatorReport: GltfValidatorReportInterface;
   hardEdgeCount: LoadableAttributeInterface;
   height: LoadableAttributeInterface;
@@ -52,6 +48,7 @@ export interface ModelInterface {
   texturesMinHeight: LoadableAttributeInterface;
   texturesMinWidth: LoadableAttributeInterface;
   triangleCount: LoadableAttributeInterface;
+  scene: Scene;
   u: {
     max: LoadableAttributeInterface;
     min: LoadableAttributeInterface;
@@ -63,18 +60,16 @@ export interface ModelInterface {
   validator: ValidatorInterface;
   width: LoadableAttributeInterface;
   getAttributes: () => LoadableAttributeInterface[];
-  loadFromGlbFile(file: File): Promise<void>;
-  loadFromGltfFiles(files: File[]): Promise<void>;
-  loadFromFileSystem(filepath: string): Promise<void>;
+  loadFromFileInput(files: File[]): Promise<void>;
+  loadFromFileSystem(filepaths: string[]): Promise<void>;
   uvIsInRangeZeroToOne: () => boolean;
 }
 
 export class Model implements ModelInterface {
-  arrayBuffer = null as unknown as ArrayBuffer;
   colorValueMax = new LoadableAttribute('Max HSV color value', 0);
   colorValueMin = new LoadableAttribute('Min HSV color value', 0);
-  filename = '';
   fileSizeInKb = new LoadableAttribute('File size in Kb', 0);
+  glb = null as unknown as GlbInterface;
   gltfValidatorReport = null as unknown as GltfValidatorReportInterface;
   hardEdgeCount = new LoadableAttribute('Hard Edges (angle > 90)', 0);
   height = new LoadableAttribute('Height in Meters', 0);
@@ -98,6 +93,7 @@ export class Model implements ModelInterface {
   texturesMinHeight = new LoadableAttribute('Min Texture Height', 0);
   texturesMinWidth = new LoadableAttribute('Min Texture Width', 0);
   triangleCount = new LoadableAttribute('Triangle Count', 0);
+  scene = null as unknown as Scene;
   u = {
     max: new LoadableAttribute('Max U value', 0),
     min: new LoadableAttribute('Min U value', 0),
@@ -112,6 +108,14 @@ export class Model implements ModelInterface {
   constructor(validator: ValidatorInterface) {
     // Link back to the parent for access to the schema
     this.validator = validator;
+
+    // suppress NullEngine welcome message
+    Logger.LogLevels = Logger.WarningLogLevel;
+    // Initialize a Babylon scene with the Null Engine
+    const engine = new NullEngine();
+    this.scene = new Scene(engine);
+
+    this.glb = new Glb();
   }
 
   public getAttributes() {
@@ -153,100 +157,69 @@ export class Model implements ModelInterface {
     ];
   }
 
-  public async getBufferFromFileInput(file: File): Promise<ArrayBuffer> {
-    return new Promise<ArrayBuffer>((resolve, reject) => {
-      try {
-        const reader = new FileReader();
-        reader.onload = function () {
-          if (reader.result) {
-            const buffer = reader.result as ArrayBuffer;
-            resolve(buffer);
-          } else {
-            reject();
-          }
-        };
-        reader.readAsArrayBuffer(file);
-      } catch (err) {
-        reject();
-      }
-    });
-  }
-
-  // This version is for the browser and the file comes from an <input type='file'> element
-  public async loadFromGlbFile(file: File): Promise<void> {
+  // (Browser) - Single glb file or multi-part gltf files that come from an <input type='file'> element
+  public async loadFromFileInput(files: File[]): Promise<void> {
     try {
-      this.fileSizeInKb.loadValue(Math.round(file.size / 1024)); // bytes to Kb
-      const fileDataBuffer = await this.getBufferFromFileInput(file);
-      this.filename = file.name;
-      this.arrayBuffer = fileDataBuffer; // makes the data available to the frontend for loading
-      await this.loadGlbWithGltfValidator(fileDataBuffer);
-      await this.loadWithBabylon(file);
-      this.loaded = true;
-    } catch (err) {
-      throw new Error('Unable to load file: ' + file.name);
-    }
-  }
-
-  public async loadFromGltfFiles(files: File[]): Promise<void> {
-    try {
-      let filesize = 0;
-      for (let i = 0; i < files.length; i++) {
-        filesize += files[i].size;
-      }
-      this.fileSizeInKb.loadValue(Math.round(filesize / 1024)); // bytes to Kb
-      let gltfFile = null as unknown as File;
+      let fileSize = 0;
       files.forEach(file => {
-        FilesInputStore.FilesToLoad[file.name] = file;
-        if (file.name.endsWith('gltf')) {
-          gltfFile = file;
-        }
+        fileSize += file.size;
       });
-      if (gltfFile) {
-        this.filename = gltfFile.name;
-
-        // TODO: Merge with loadFromBabylon
-        const engine = new NullEngine();
-        const scene = new Scene(engine);
-
-        await SceneLoader.AppendAsync('file:', gltfFile, scene);
-        const fileDataBuffer = await this.getBufferFromFileInput(gltfFile);
-
-        await this.loadGltfJson(scene, 'data:;base64,' + EncodeArrayBufferToBase64(fileDataBuffer));
-        await this.loadGltfWithGltfValidator(JSON.stringify(this.json), files);
-        await this.loadImagesFromFiles(this.json, files);
-        this.calculateDimensions(scene);
-        this.calculateColorValues(this.images); // after images are loaded
-        this.loadObjectCountsFromJson(this.json);
-        this.loadRootNodeTransform(scene);
-        this.loadPrimitives(scene);
-        this.calculateEdgeValues(this.primitives);
-        this.calculateUvValues(this.primitives);
-
-        this.loaded = true;
-      } else {
-        throw new Error('No gltf file found');
-      }
-    } catch (err) {
-      console.log('unable to load files: ' + (err as Error).message);
-    }
-  }
-
-  // This version is for node.js and the file comes from the file system
-  // TODO: Add multi-file support to the CLI implementation
-  public async loadFromFileSystem(filepath: string): Promise<void> {
-    try {
-      const { promises } = await import('fs');
-      const fileStats = await promises.stat(filepath);
-      this.fileSizeInKb.loadValue(Number((fileStats.size / 1024).toFixed(0)));
-      if (this.fileSizeInKb.value === 0) {
+      if (fileSize === 0) {
         throw new Error('File size is zero');
       }
-      const fileDataBuffer = await promises.readFile(filepath);
-      await this.loadGlbWithGltfValidator(fileDataBuffer);
-      await this.loadWithBabylon('data:;base64,' + EncodeArrayBufferToBase64(fileDataBuffer));
-      this.loaded = true;
+      this.fileSizeInKb.loadValue(Math.round(fileSize / 1024)); // bytes to Kb
+
+      if (files.length === 1) {
+        // Single .glb file
+        await this.glb.initFromGlbFile(files[0]);
+      } else {
+        // gltf + bin + textures
+        let gltfFile = null as unknown as File;
+        files.forEach(file => {
+          if (file.name.endsWith('gltf')) {
+            gltfFile = file;
+          }
+        });
+        if (!gltfFile) {
+          throw new Error('One of the files needs to be a .gltf');
+        }
+        await this.glb.initFromGltfFiles(files);
+      }
+      await this.loadFromGlb(this.glb);
     } catch (err) {
-      throw new Error('Unable to load file: ' + filepath);
+      throw new Error('Error loading model: ' + (err as Error).message);
+    }
+  }
+
+  // (Node.js) - Single glb file or multi-part gltf files paths that are loaded from the file system
+  public async loadFromFileSystem(filePaths: string[]): Promise<void> {
+    try {
+      // Need to import promises this way to compile webpack
+      // webpack.config.js also needs config.resolve.fallback.fs = false
+      const { promises } = await import('fs');
+
+      // Total up the size of all files
+      let fileSize = 0;
+      for (let i = 0; i < filePaths.length; i++) {
+        const supportingFileStats = await promises.stat(filePaths[i]);
+        fileSize += supportingFileStats.size;
+      }
+      if (fileSize === 0) {
+        throw new Error('File size is zero');
+      }
+      this.fileSizeInKb.loadValue(Math.round(fileSize / 1024)); // bytes to Kb
+
+      // Read the data
+      if (filePaths.length === 1) {
+        // Single file, .glb
+        await this.glb.initFromGlbFilePath(filePaths[0]);
+      } else {
+        // Multi-file .gltf
+        await this.glb.initFromGltfFilePaths(filePaths);
+      }
+      await this.loadFromGlb(this.glb);
+    } catch (err) {
+      throw new Error('Unable to load model from file system: ' + (err as Error).message);
     }
   }
 
@@ -262,17 +235,6 @@ export class Model implements ModelInterface {
   ///////////////////////
   // PRIVATE FUNCTIONS //
   ///////////////////////
-
-  private calculateDimensions(scene: Scene) {
-    // Dimensions - from the __root__ node, get bounds of all child meshes
-    if (scene.meshes.length > 0) {
-      const { min, max } = scene.meshes[0].getHierarchyBoundingVectors();
-      // Round to precision of 6
-      this.height.loadValue(+(max.y - min.y).toFixed(6) as number);
-      this.length.loadValue(+(max.x - min.x).toFixed(6) as number);
-      this.width.loadValue(+(max.z - min.z).toFixed(6) as number);
-    }
-  }
 
   private calculateColorValues(images: ImageInterface[]) {
     let max = undefined as unknown as number;
@@ -294,6 +256,17 @@ export class Model implements ModelInterface {
     }
     if (min !== undefined) {
       this.colorValueMin.loadValue(min);
+    }
+  }
+
+  private calculateDimensions(scene: Scene) {
+    // Dimensions - from the __root__ node, get bounds of all child meshes
+    if (scene.meshes.length > 0) {
+      const { min, max } = scene.meshes[0].getHierarchyBoundingVectors();
+      // Round to precision of 6
+      this.height.loadValue(+(max.y - min.y).toFixed(6) as number);
+      this.length.loadValue(+(max.x - min.x).toFixed(6) as number);
+      this.width.loadValue(+(max.z - min.z).toFixed(6) as number);
     }
   }
 
@@ -439,9 +412,7 @@ export class Model implements ModelInterface {
           // If this index is in the list, flag it as a base color for the PBR color check
           image.usedForBaseColor = baseColorTextureImageIndices.includes(i);
           if (imageJson.bufferView) {
-            // TODO: this is where the code differs with loadImagesFromFiles
             const bufferView = json.bufferViews[imageJson.bufferView];
-            // Note: there can be multiple buffers when there are external files
             const arrayBuffer = await data.readAsync(bufferView.byteOffset, bufferView.byteLength);
             if (typeof window === 'undefined') {
               // Node (can use Buffer)
@@ -465,129 +436,28 @@ export class Model implements ModelInterface {
     }
   }
 
-  // TODO: merge with loadImagesFromBin
-  private async loadImagesFromFiles(json: GltfJsonInterface, files: File[]) {
-    // Identify the baseColorTexture index mapping for the PBR color range test
-    let baseColorTextureIndices = [] as number[];
-    if (json.materials) {
-      json.materials.forEach(material => {
-        if (material.pbrMetallicRoughness) {
-          if (material.pbrMetallicRoughness.baseColorTexture) {
-            baseColorTextureIndices.push(material.pbrMetallicRoughness.baseColorTexture.index);
-          }
-        }
-      });
+  private async loadFromGlb(glb: GlbInterface) {
+    if (!glb.loaded) {
+      throw new Error('The model was not loaded properly');
     }
-    // Look up the image source index from the texture array
-    // Material -> TextureInfo (index) -> Texture (source) -> Image
-    let baseColorTextureImageIndices = [] as number[];
-    baseColorTextureIndices.forEach(index => {
-      baseColorTextureImageIndices.push(json.textures[index].source);
-    });
-    if (json.images !== undefined) {
-      // Note: can't use forEach because we need to await
-      for (let i = 0; i < json.images.length; i++) {
-        try {
-          const imageJson = json.images[i];
-          const image = new Image(imageJson);
-          // If this index is in the list, flag it as a base color for the PBR color check
-          image.usedForBaseColor = baseColorTextureImageIndices.includes(i);
-          if (imageJson.uri) {
-            for (let j = 0; j < files.length; j++) {
-              if (files[j].name == imageJson.uri) {
-                const imageFile = files[j];
-                const arrayBuffer = await this.getBufferFromFileInput(imageFile);
-                if (typeof window === 'undefined') {
-                  // Node (can use Buffer)
-                  const buffer = Buffer.alloc(arrayBuffer.byteLength, undefined, 'utf-8'); // TODO: test that arrayBuffer.byteLength is the same as bufferView.bytelength
-                  const binaryData = new Uint8Array(arrayBuffer);
-                  for (let j = 0; j < buffer.length; j++) {
-                    buffer[j] = binaryData[j];
-                  }
-                  await image.init(buffer);
-                } else {
-                  // Browser (cannot use Buffer and needs to construct a data uri)
-                  await image.initFromBrowser(arrayBuffer);
-                }
-                this.images.push(image);
-              }
-            }
-          }
-        } catch (err) {
-          console.log('error creating image named: ' + json.images[i].name);
-          console.log(err);
-        }
-      }
-    }
-  }
 
-  private async loadGltfJson(scene: Scene, data: string | File): Promise<void> {
-    return await new Promise((resolve, reject) => {
-      const fileLoader = new GLTFFileLoader();
-      fileLoader.loadFile(
-        scene,
-        data,
-        data => {
-          this.json = data.json;
-          resolve();
-        },
-        ev => {
-          // progress. nothing to do
-        },
-        false, // not using the array buffer
-        err => {
-          reject();
-        },
-      );
-    });
-  }
+    await this.runGltfValidatorWithBytes(glb.getBytes());
 
-  private async loadGltfJsonBin(scene: Scene, data: string | File): Promise<GltfBinInterface> {
-    return await new Promise((resolve, reject) => {
-      const fileLoader = new GLTFFileLoader();
-      fileLoader.loadFile(
-        scene,
-        data,
-        data => {
-          this.json = data.json;
-          resolve(data.bin);
-        },
-        ev => {
-          // progress. nothing to do
-        },
-        true,
-        err => {
-          reject();
-        },
-      );
-    });
-  }
+    // Note: the file was previously loaded with GltfFileLoader to extract the JSON/bin
+    // Here it is loaded a 2nd time by SceneLoader. There might be a more
+    // efficient way to use what's already been loaded.
+    await SceneLoader.AppendAsync('', glb.getBase64String(), this.scene);
 
-  private async loadWithBabylon(data: string | File) {
-    Logger.LogLevels = Logger.WarningLogLevel; // supress NullEngine welcome message in CLI / unit tests
-    try {
-      const engine = new NullEngine();
-      const scene = new Scene(engine);
+    await this.loadImagesFromBin(glb.json, glb.bin);
 
-      const bin = await this.loadGltfJsonBin(scene, data);
-
-      // Note: the file was already loaded to extract the JSON, but now
-      // gets loaded a 2nd time by SceneLoader. There might be a more
-      // efficient way to import what's already loaded into the scene.
-      await SceneLoader.AppendAsync('', data, scene);
-
-      this.calculateDimensions(scene);
-      await this.loadImagesFromBin(this.json, bin);
-      this.calculateColorValues(this.images); // after images are loaded
-      this.loadObjectCountsFromJson(this.json);
-      this.loadRootNodeTransform(scene);
-      this.loadPrimitives(scene);
-      this.calculateEdgeValues(this.primitives);
-      this.calculateUvValues(this.primitives);
-    } catch (err) {
-      console.log('error loading model / creating engine');
-      console.log(err);
-    }
+    this.calculateDimensions(this.scene);
+    this.calculateColorValues(this.images); // after images are loaded
+    this.loadObjectCountsFromJson(glb.json);
+    this.loadRootNodeTransform(this.scene);
+    this.loadPrimitives(this.scene);
+    this.calculateEdgeValues(this.primitives);
+    this.calculateUvValues(this.primitives);
+    this.loaded = true;
   }
 
   private loadPrimitives(scene: Scene) {
@@ -643,71 +513,34 @@ export class Model implements ModelInterface {
     this.primitiveCount.loadValue(primitiveCount);
   }
 
-  // Generate a report from the glTF Validator
-  private async loadGlbWithGltfValidator(data: ArrayBuffer) {
-    return new Promise<void>((resolve, reject) => {
-      const binaryData = new Uint8Array(data);
-      validateBytes(binaryData)
-        .then((report: GltfValidatorReportInterface) => {
-          // Keep a copy of the report
-          this.gltfValidatorReport = report;
-          // These values are available in the glTF validator, so we might as well use them
-          this.triangleCount.loadValue(report.info.totalTriangleCount);
-          this.materialCount.loadValue(report.info.materialCount);
-          const textureSizes = this.getTextureSizes(report.info);
-          this.texturesMaxHeight.loadValue(textureSizes.maxHeight);
-          this.texturesMaxWidth.loadValue(textureSizes.maxWidth);
-          this.texturesMinHeight.loadValue(textureSizes.minHeight);
-          this.texturesMinWidth.loadValue(textureSizes.minWidth);
-          resolve();
-        })
-        .catch((error: any) => {
-          console.error('Validation failed: ', error);
-          reject();
-        });
-    });
-  }
-  // TODO: Merge this and the above function
-  private async loadGltfWithGltfValidator(jsonString: string, files: File[]) {
-    return new Promise<void>((resolve, reject) => {
-      validateString(jsonString, {
-        externalResourceFunction: (uri: string) => {
-          return new Promise(async (resolve, reject) => {
-            for (let i = 0; i < files.length; i++) {
-              const file = files[i];
-              if (file.name == uri) {
-                // TODO: will probably need a different version for cli
-                const fileDataBuffer = await this.getBufferFromFileInput(file);
-                resolve(new Uint8Array(fileDataBuffer));
-              }
-            }
-            reject('file ' + uri + ' not found');
-          });
-        },
-      })
-        .then((report: GltfValidatorReportInterface) => {
-          // Keep a copy of the report
-          this.gltfValidatorReport = report;
-          // These values are available in the glTF validator, so we might as well use them
-          this.triangleCount.loadValue(report.info.totalTriangleCount);
-          this.materialCount.loadValue(report.info.materialCount);
-          const textureSizes = this.getTextureSizes(report.info);
-          this.texturesMaxHeight.loadValue(textureSizes.maxHeight);
-          this.texturesMaxWidth.loadValue(textureSizes.maxWidth);
-          this.texturesMinHeight.loadValue(textureSizes.minHeight);
-          this.texturesMinWidth.loadValue(textureSizes.minWidth);
-          resolve();
-        })
-        .catch((error: any) => {
-          console.error('Validation failed: ', error);
-          reject();
-        });
-    });
+  // Save a copy of the report and populate some values with the results
+  private loadReportFromGltfValidator(report: GltfValidatorReportInterface) {
+    // Keep a copy of the report
+    this.gltfValidatorReport = report;
+    // These values are available in the glTF validator,
+    // so we might as well use them, although they could also be
+    // pulled from the babylon scene and node-canvas
+    this.triangleCount.loadValue(report.info.totalTriangleCount);
+    this.materialCount.loadValue(report.info.materialCount);
+    const textureSizes = this.getTextureSizes(report.info);
+    this.texturesMaxHeight.loadValue(textureSizes.maxHeight);
+    this.texturesMaxWidth.loadValue(textureSizes.maxWidth);
+    this.texturesMinHeight.loadValue(textureSizes.minHeight);
+    this.texturesMinWidth.loadValue(textureSizes.minWidth);
   }
 
-  // bitwise check that all trailing bits are 0
-  private numberIsPowerOfTwo(n: number): boolean {
-    // Power of two numbers are 0x100...00
-    return n > 0 && (n & (n - 1)) === 0;
+  // Generate a report from the glTF Validator using bytes
+  private async runGltfValidatorWithBytes(bytes: Uint8Array) {
+    return new Promise<void>((resolve, reject) => {
+      validateBytes(bytes)
+        .then((report: GltfValidatorReportInterface) => {
+          this.loadReportFromGltfValidator(report);
+          resolve();
+        })
+        .catch((error: any) => {
+          console.error('Validation failed: ', error);
+          reject();
+        });
+    });
   }
 }

@@ -574,6 +574,8 @@ export class Schema implements SchemaInterface {
 
   // This version is for node.js and the file comes from the file system
   public async loadFromFileSystem(filepath: string): Promise<void> {
+    // Need to import promises this way to compile webpack
+    // webpack.config.js also needs config.resolve.fallback.fs = false
     const { promises } = await import('fs');
     const schemaText = await promises.readFile(filepath, 'utf-8');
     const schemaObj = JSON.parse(schemaText) as SchemaJSONInterface;

@@ -8,6 +8,11 @@ export interface GltfJsonBufferViewInterface {
   byteOffset: number;
 }
 
+export interface GltfJsonBufferInterface {
+  byteLength: number;
+  uri?: string;
+}
+
 export interface GltfJsonImageInterface {
   bufferView?: number;
   mimeType: string;
@@ -71,7 +76,7 @@ export interface GltfJsonInterface {
     version: string;
   };
   bufferViews: GltfJsonBufferViewInterface[];
-  buffers: object[];
+  buffers: GltfJsonBufferInterface[];
   extensionsUsed: string[];
   images: GltfJsonImageInterface[];
   materials: GltfJsonMaterialInterface[];
