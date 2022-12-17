@@ -34,7 +34,6 @@ export class Image implements ImageInterface {
   // constructor cannot be async, but we need to await loadImage
   public init = async (buffer: string | Buffer): Promise<void> => {
     try {
-      // TODO: Verify - check ktx2 support
       this.canvasImage = await loadImage(buffer);
       this.height = this.canvasImage.naturalHeight;
       this.width = this.canvasImage.naturalWidth;

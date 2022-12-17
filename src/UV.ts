@@ -189,15 +189,8 @@ export class UV implements UVInterface {
   };
 
   private calculateOverlapCount = () => {
-    // TODO: Optimize - see if this can be sped up
-    // Test each triangle against each other - O(n*n)
-    // This will be too slow for large models. tried testing a photogrammetry scan with 250k tris and had to cancel.
-    // would have been about 10 hours
-    // on the plus side, only took 10 seconds for the stained glass lamp
-    // how can I cut down on the number of checks? already pulling the ones marked overlapping
-    // could just report fail instead of the total count to stop as soon as one is found
-    // maybe force pass/fail without count if tri-count is > than some limit, perhaps 10k
-    // could also stop counting after 100 overlaps found
+    // Test each triangle against each other.
+    // This can be slow for large models. O(n*n)
     this.triangles.forEach((triangle: TriangleUvInterface) => {
       this.triangles.forEach((triangleToCompare: TriangleUvInterface) => {
         if (triangle.overlapsTriangle(triangleToCompare)) {

@@ -59,55 +59,55 @@ export interface SchemaInterface {
 export class Schema implements SchemaInterface {
   checksRequireUvIndices = false;
   checksRequireXyzIndices = false;
-  // TODO: I should probably change all the defaults to not run the test
+  // The initial values will all be -1 / false to disable all tests. The schema will then enable each with the desired settings.
   loaded = false;
-  maxFileSizeInKb = new LoadableAttribute('Max file size in Kb', 5120); //    5mb per Asset Creation Guidelines
-  maxHeight = new LoadableAttribute('Max Height (z)', -1); //                 Not specified in Asset Creation Guidelines. -1 to ignore
-  maxLength = new LoadableAttribute('Max Length (y)', -1); //                 Not specified in Asset Creation Guidelines. -1 to ignore
-  maxMaterialCount = new LoadableAttribute('Max Material Count', 5); //       5 per RFP Specifications
-  maxMeshCount = new LoadableAttribute('Max Mesh Count', -1); //              Not specified in Asset Creation Guidelines. -1 to ignore
-  maxNodeCount = new LoadableAttribute('Max Node Count', -1); //              Not specified in Asset Creation Guidelines. -1 to ignore
-  maxPixelsPerMeter = new LoadableAttribute('Max Pixels per Meter', -1); //   Not specified in Asset Creation Guidelines
-  maxPrimitiveCount = new LoadableAttribute('Max Primitive Count', -1); //    Not specified in Asset Creation Guidelines. -1 to ignore
-  maxTextureHeight = new LoadableAttribute('Max Texture Height', 2048); //    2048 per Asset Creation Guidelines
-  maxTextureWidth = new LoadableAttribute('Max Texture Width', 2048); //      2048 per Asset Creation Guidelines
-  maxTriangleCount = new LoadableAttribute('Max Triangle Count', 100000); //  100k per Asset Creation Guidelines
-  maxWidth = new LoadableAttribute('Max Width (x)', -1); //                   Not specified in Asset Creation Guidelines. -1 to ignore
-  minFileSizeInKb = new LoadableAttribute('Min file size in Kb', 1); //       1kb to check that the file is not empty
-  minHeight = new LoadableAttribute('Min Height (z)', -1); //                 Not specified in Asset Creation Guidelines. -1 to ignore
-  minLength = new LoadableAttribute('Min Length (y)', -1); //                 Not specified in Asset Creation Guidelines. -1 to ignore
-  minMaterialCount = new LoadableAttribute('Min Material Count', -1); //      Not specified in Asset Creation Guidelines. -1 to ignore
-  minMeshCount = new LoadableAttribute('Min Mesh Count', -1); //              Not specified in Asset Creation Guidelines. -1 to ignore
-  minNodeCount = new LoadableAttribute('Min Node Count', -1); //              Not specified in Asset Creation Guidelines. -1 to ignore
-  minPixelsPerMeter = new LoadableAttribute('Min Pixels per Meter', -1); //   Not specified in Asset Creation Guidelines. -1 to ignore
-  minPrimitiveCount = new LoadableAttribute('Min Primitive Count', -1); //    Not specified in Asset Creation Guidelines. -1 to ignore
-  minTextureHeight = new LoadableAttribute('Min Texture Height', 512); //     512 is the smallest mentioned in the Asset Creation Guidelines
-  minTextureWidth = new LoadableAttribute('Min Texture Width', 512); //       512 is the smallest mentioned in the Asset Creation Guidelines
-  minTriangleCount = new LoadableAttribute('Min Triangle Count', -1); //      Not specified in Asset Creation Guidelines. -1 to ignore
-  minWidth = new LoadableAttribute('Min Width (x)', -1); //                   Not specified in Asset Creation Guidelines. -1 to ignore
-  pbrColorMax = new LoadableAttribute('Color max value is PBR safe', 243); // 243, per Asset Creation Guidelines
-  pbrColorMin = new LoadableAttribute('Color min value is PBR safe', 30); //  30, per Asset Creation Guidelines
-  percentToleranceHeight = new LoadableAttribute('Percent Tolerance Height (z)', 3); // 3% per RFP Specifications
-  percentToleranceLength = new LoadableAttribute('Percent Tolerance Length (y)', 3); // 3% per RFP Specifications
-  percentToleranceWidth = new LoadableAttribute('Percent Tolerance Width (x)', 3); //   3% per RFP Specifications
-  requireBeveledEdges = new LoadableAttribute('Require Beveled Edges', false); //   Not required, edge computation is a little slow
-  requireManifoldEdges = new LoadableAttribute('Require Manifold Edges', false); // Not required, edge computation is a little slow
-  requireNotInvertedUVs = new LoadableAttribute('No Inverted UVs', true); //  Inverted UVs are not recommended, per the Asset Creation Guidelines
-  requireNotOverlappingUVs = new LoadableAttribute('No Overlapping UVs', false); // Slow test, so not enabled by default, although it is discouraged in the Asset Creation Guidelines
-  requireTextureDimensionsBePowersOfTwo = new LoadableAttribute('Require Texture Dimensions be Powers of 2', true); // Recommended in the Asset Creation Guidelines
+  maxFileSizeInKb = new LoadableAttribute('Max file size in Kb', -1);
+  maxHeight = new LoadableAttribute('Max Height (z)', -1);
+  maxLength = new LoadableAttribute('Max Length (y)', -1);
+  maxMaterialCount = new LoadableAttribute('Max Material Count', -1);
+  maxMeshCount = new LoadableAttribute('Max Mesh Count', -1);
+  maxNodeCount = new LoadableAttribute('Max Node Count', -1);
+  maxPixelsPerMeter = new LoadableAttribute('Max Pixels per Meter', -1);
+  maxPrimitiveCount = new LoadableAttribute('Max Primitive Count', -1);
+  maxTextureHeight = new LoadableAttribute('Max Texture Height', -1);
+  maxTextureWidth = new LoadableAttribute('Max Texture Width', -1);
+  maxTriangleCount = new LoadableAttribute('Max Triangle Count', -1);
+  maxWidth = new LoadableAttribute('Max Width (x)', -1);
+  minFileSizeInKb = new LoadableAttribute('Min file size in Kb', -1);
+  minHeight = new LoadableAttribute('Min Height (z)', -1);
+  minLength = new LoadableAttribute('Min Length (y)', -1);
+  minMaterialCount = new LoadableAttribute('Min Material Count', -1);
+  minMeshCount = new LoadableAttribute('Min Mesh Count', -1);
+  minNodeCount = new LoadableAttribute('Min Node Count', -1);
+  minPixelsPerMeter = new LoadableAttribute('Min Pixels per Meter', -1);
+  minPrimitiveCount = new LoadableAttribute('Min Primitive Count', -1);
+  minTextureHeight = new LoadableAttribute('Min Texture Height', -1);
+  minTextureWidth = new LoadableAttribute('Min Texture Width', -1);
+  minTriangleCount = new LoadableAttribute('Min Triangle Count', -1);
+  minWidth = new LoadableAttribute('Min Width (x)', -1);
+  pbrColorMax = new LoadableAttribute('Color max value is PBR safe', -1);
+  pbrColorMin = new LoadableAttribute('Color min value is PBR safe', -1);
+  percentToleranceHeight = new LoadableAttribute('Percent Tolerance Height (z)', 0);
+  percentToleranceLength = new LoadableAttribute('Percent Tolerance Length (y)', 0);
+  percentToleranceWidth = new LoadableAttribute('Percent Tolerance Width (x)', 0);
+  requireBeveledEdges = new LoadableAttribute('Require Beveled Edges', false);
+  requireManifoldEdges = new LoadableAttribute('Require Manifold Edges', false);
+  requireNotInvertedUVs = new LoadableAttribute('No Inverted UVs', false);
+  requireNotOverlappingUVs = new LoadableAttribute('No Overlapping UVs', false);
+  requireTextureDimensionsBePowersOfTwo = new LoadableAttribute('Require Texture Dimensions be Powers of 2', false);
   requireTextureDimensionsBeQuadratic = new LoadableAttribute(
     'Require Texture Dimensions be Quadratic (height = width)',
     false,
-  ); // Not specified in Asset Creation Guidelines
-  requireCleanRootNodeTransform = new LoadableAttribute('Require Root Node Have a Clean Transform', false); // Not specified in Asset Creation Guidelines
-  requireUVRangeZeroToOne = new LoadableAttribute('Require UV range 0 to 1', false); // Not specified in Asset Creation Guidelines
-  resolutionNeededForUvMargin = new LoadableAttribute('UV Gutter Wide Enough', -1); // Not specified in Asset Creation Guidelines. -1 to ignore
+  );
+  requireCleanRootNodeTransform = new LoadableAttribute('Require Root Node Have a Clean Transform', false);
+  requireUVRangeZeroToOne = new LoadableAttribute('Require UV range 0 to 1', false);
+  resolutionNeededForUvMargin = new LoadableAttribute('UV Gutter Wide Enough', -1);
   uvGutterWidth256 = new LoadableAttribute('UV Gutter Width at 256', -1);
   uvGutterWidth512 = new LoadableAttribute('UV Gutter Width at 512', -1);
   uvGutterWidth1024 = new LoadableAttribute('UV Gutter Width at 1024', -1);
   uvGutterWidth2048 = new LoadableAttribute('UV Gutter Width at 2048', -1);
   uvGutterWidth4096 = new LoadableAttribute('UV Gutter Width at 4096', -1);
-  version = new LoadableAttribute('Version', '1.0.0-rc.8');
+  version = new LoadableAttribute('Version', '1.0.0');
 
   getAttributes() {
     return [
@@ -244,7 +244,6 @@ export class Schema implements SchemaInterface {
     return schema;
   }
 
-  // TODO: use this for initialization so it can be the single source of truth
   public getRecommended(): SchemaJSONInterface {
     return {
       version: this.version.value as string,

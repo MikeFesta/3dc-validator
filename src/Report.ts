@@ -116,7 +116,7 @@ export class Report implements ReportInterface {
     'Triangle Count',
     'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec03_Geometry/Geometry.md#polygonal-count',
   );
-  // TODO: External - a section explaining gutter width needs to be added to the guidelines
+  // TODO: A section explaining gutter width needs to be added to the guidelines and this link can be more specific.
   uvGutterWideEnough = new ReportItem(
     'UV Gutter Wide Enough',
     'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec04_UVCoordinates/UVCoordinates.md',

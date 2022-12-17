@@ -48,37 +48,41 @@ export default class TriangleUv implements TriangleUvInterface {
   }
 
   public calculateIslandIndex(): void {
-    // TODO: Error Handling - ensure this does not exceed the stack size
-    if (this.a.islandIndex === this.b.islandIndex && this.b.islandIndex === this.c.islandIndex) {
-      this.islandIndex = this.a.islandIndex;
-      // End of recursive propagation when all 3 vertices are the same
-      return;
-    } else {
-      this.islandIndex = Math.min(this.a.islandIndex, this.b.islandIndex, this.c.islandIndex);
-      if (this.a.islandIndex != this.islandIndex) {
-        this.a.islandIndex = this.islandIndex;
-        if (this.b.islandIndex === this.islandIndex && this.c.islandIndex === this.islandIndex) {
+    try {
+      if (this.a.islandIndex === this.b.islandIndex && this.b.islandIndex === this.c.islandIndex) {
+        this.islandIndex = this.a.islandIndex;
+        // End of recursive propagation when all 3 vertices are the same
+        return;
+      } else {
+        this.islandIndex = Math.min(this.a.islandIndex, this.b.islandIndex, this.c.islandIndex);
+        if (this.a.islandIndex != this.islandIndex) {
+          this.a.islandIndex = this.islandIndex;
+          if (this.b.islandIndex === this.islandIndex && this.c.islandIndex === this.islandIndex) {
+            // "tail" return should reduce recursion depth issues
+            return this.a.computeIslandIndexForTriangles();
+          } else {
+            this.a.computeIslandIndexForTriangles();
+          }
+        }
+        if (this.b.islandIndex != this.islandIndex) {
+          this.b.islandIndex = this.islandIndex;
+          if (this.c.islandIndex === this.islandIndex) {
+            // "tail" return should reduce recursion depth issues
+            return this.b.computeIslandIndexForTriangles();
+          } else {
+            // c's triangles need to be checked too, so can't return here
+            this.b.computeIslandIndexForTriangles();
+          }
+        }
+        if (this.c.islandIndex != this.islandIndex) {
+          this.c.islandIndex = this.islandIndex;
           // "tail" return should reduce recursion depth issues
-          return this.a.computeIslandIndexForTriangles();
-        } else {
-          this.a.computeIslandIndexForTriangles();
+          return this.c.computeIslandIndexForTriangles();
         }
       }
-      if (this.b.islandIndex != this.islandIndex) {
-        this.b.islandIndex = this.islandIndex;
-        if (this.c.islandIndex === this.islandIndex) {
-          // "tail" return should reduce recursion depth issues
-          return this.b.computeIslandIndexForTriangles();
-        } else {
-          // c's triangles need to be checked too, so can't return here
-          this.b.computeIslandIndexForTriangles();
-        }
-      }
-      if (this.c.islandIndex != this.islandIndex) {
-        this.c.islandIndex = this.islandIndex;
-        // "tail" return should reduce recursion depth issues
-        return this.c.computeIslandIndexForTriangles();
-      }
+    } catch (err) {
+      // The recursive function may exceed the stack depth if there are too many triangles
+      throw new Error('Unable to merge UV triangles into islands. The model may be too complex');
     }
   }
 
