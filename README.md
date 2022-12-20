@@ -1,5 +1,15 @@
 # Khronos 3D Commerce Asset Validator
 
+## THIS PROJECT HAS BEEN PUBLISHED TO
+
+## https://github.com/KhronosGroup/3DC-Validator
+
+### Future development will continue in that repository.
+
+This repository was used for development of version 1.0.0 and will be kept around to preserve the commit history.
+
+---
+
 ## SPDX-License-Identifier: Apache-2.0
 
 This is a typescript package that contains classes for checking a 3D file, in glTF format (.glb or .gltf), against a requirements schema definition in JSON. The schema file determines which of the checks, listed below, get run and what the passing values are. The result of each test is Pass, Fail, or Not Tested and some additional information may be available in a message.
