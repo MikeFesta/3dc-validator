@@ -5,7 +5,8 @@ import { TriangleUvInterface } from './TriangleUv.js';
 import UvIsland, { UvIslandInterface } from './UvIsland.js';
 import { VertexUvInterface } from './VertexUv.js';
 
-export interface MaxMinLoadableAttributeInterface {
+// Group min/max into a single object. Only used in this file for now.
+interface MaxMinLoadableAttributeInterface {
   max: LoadableAttributeInterface;
   min: LoadableAttributeInterface;
 }
@@ -25,6 +26,7 @@ export interface UVInterface {
   hasEnoughMarginAtResolution: (resolution: number) => boolean;
 }
 
+// Data related to the UV map for a primitive
 export class UV implements UVInterface {
   edges = [] as EdgeUvInterface[];
   invertedTriangleCount = new LoadableAttribute('Number of inverted triangles', 0);
@@ -56,6 +58,7 @@ export class UV implements UVInterface {
     }
   }
 
+  // Check that UV values are in the 0-1 range, which is desired for atlas textures
   public isInRangeZeroToOne = () => {
     return (
       (this.u.max.value as number) <= 1 &&
@@ -65,6 +68,7 @@ export class UV implements UVInterface {
     );
   };
 
+  // Check the island margin for a given grid size
   public hasEnoughMarginAtResolution = (resolution: number): boolean => {
     // Quantize the UV area based on the given resolution in pixels.
     // If a pixel grid is overlapped more than once, there is a collision and therefore not enough margin
@@ -100,7 +104,7 @@ export class UV implements UVInterface {
       // [+c---d+][+]
       // [+][+][+][+]
 
-      // Without upscaling, close triangles separated at a grid line boundry (such as 0.5) wouldn't be caught
+      // Without up-scaling, close triangles separated at a grid line boundary (such as 0.5) wouldn't be caught
       // +--+ | +--+
       // | /  |  \ |
       // |/   |   \|
@@ -149,6 +153,7 @@ export class UV implements UVInterface {
   // PRIVATE FUNCTIONS //
   ///////////////////////
 
+  // Add up all triangles that are inverted
   private calculateInvertedTriangleCount = () => {
     let invertedTriangles = 0;
     this.triangles.forEach((triangle: TriangleUvInterface) => {
@@ -159,8 +164,8 @@ export class UV implements UVInterface {
     this.invertedTriangleCount.loadValue(invertedTriangles);
   };
 
+  // Find the min/max U and V values
   private calculateMaxMinExtents = () => {
-    // Find the min/max U and V values
     let maxU = undefined as unknown as number;
     let maxV = undefined as unknown as number;
     let minU = undefined as unknown as number;
@@ -188,8 +193,8 @@ export class UV implements UVInterface {
     this.v.min.loadValue(minV);
   };
 
+  // Test each triangle against each other looking for overlaps
   private calculateOverlapCount = () => {
-    // Test each triangle against each other.
     // This can be slow for large models. O(n*n)
     this.triangles.forEach((triangle: TriangleUvInterface) => {
       this.triangles.forEach((triangleToCompare: TriangleUvInterface) => {
@@ -208,6 +213,7 @@ export class UV implements UVInterface {
     this.overlapCount.loadValue(overlappingTrianglesCount);
   };
 
+  // Group triangles into UV islands (with the island indices already known)
   private calculateUvIslands = (triangles: TriangleUvInterface[]) => {
     triangles.forEach((triangle: TriangleUvInterface) => {
       let existingIsland = false;

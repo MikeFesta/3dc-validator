@@ -1,3 +1,4 @@
+// This is the format for specifying a requirements schema. All values except version are optional.
 export interface SchemaJSONInterface {
   version: string;
   fileSizeInKb?: {

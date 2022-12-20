@@ -5,6 +5,7 @@ import { NullEngine } from '@babylonjs/core/Engines/nullEngine.js';
 import { Scene } from '@babylonjs/core/scene.js';
 import { GLTFFileLoader } from '@babylonjs/loaders';
 import '@babylonjs/loaders/glTF/2.0/glTFLoader.js';
+import { buffer } from 'stream/consumers';
 
 export interface GlbInterface {
   arrayBuffer: ArrayBuffer;
@@ -20,6 +21,7 @@ export interface GlbInterface {
   initFromGltfFilePaths(filePaths: string[]): void;
 }
 
+// GLB is the binary version of glTF and this class is used to load and access that data
 export default class Glb implements GlbInterface {
   arrayBuffer = null as unknown as ArrayBuffer;
   bin = null as unknown as GltfBinInterface;
@@ -58,9 +60,10 @@ export default class Glb implements GlbInterface {
       throw new Error('When only a single file is provided, it must be a .glb');
     }
     try {
-      // Need to import promises this way to compile webpack
-      // webpack.config.js also needs config.resolve.fallback.fs = false
-      // and config.resolve.fallback.path = false
+      // Need to import this way to compile webpack
+      // webpack.config.js also needs:
+      // config.resolve.fallback.fs = false
+      // config.resolve.fallback.path = false
       const { promises } = await import('fs');
       const { sep } = await import('path');
       this.arrayBuffer = await promises.readFile(filePath);
@@ -133,9 +136,10 @@ export default class Glb implements GlbInterface {
 
   // Loads a multi-file .gltf that is on the filesystem (Node.js)
   public async initFromGltfFilePaths(filePaths: string[]) {
-    // Need to import promises this way to compile webpack
-    // webpack.config.js also needs config.resolve.fallback.fs = false
-    // and config.resolve.fallback.path = false
+    // Need to import this way to compile webpack
+    // webpack.config.js also needs:
+    // config.resolve.fallback.fs = false
+    // config.resolve.fallback.path = false
     const { promises } = await import('fs');
     const { sep } = await import('path');
 
@@ -255,13 +259,14 @@ export default class Glb implements GlbInterface {
     const enc = new TextEncoder();
     const jsonBuffer = enc.encode(JSON.stringify(gltfJson));
     const jsonAlignedLength = this.alignedLength(jsonBuffer.length);
-    let padding = jsonAlignedLength - jsonBuffer.length;
     const totalSize =
       12 + // file header: magic + version + length
       8 + // json chunk header: json length + type
       jsonAlignedLength +
       8 + // bin chunk header: chunk length + type
       binAndImagesBufferSize;
+
+    console.log('Total Size is ' + totalSize);
 
     const arrayBuffer = new ArrayBuffer(totalSize);
     const dataView = new DataView(arrayBuffer);
@@ -284,6 +289,7 @@ export default class Glb implements GlbInterface {
       dataView.setUint8(bufferIndex, jsonBuffer[i]);
       bufferIndex++;
     }
+    let padding = jsonAlignedLength - jsonBuffer.length;
     for (let i = 0; i < padding; i++) {
       dataView.setUint8(bufferIndex, 0x20); // space
       bufferIndex++;
@@ -294,18 +300,24 @@ export default class Glb implements GlbInterface {
     bufferIndex += 4;
     dataView.setUint32(bufferIndex, 0x004e4942, true);
     bufferIndex += 4;
+
     // .bin
     for (let i = 0; i < binBuffer.length; i++) {
       dataView.setUint8(bufferIndex, binBuffer[i]);
       bufferIndex++;
-      // Note: confirm that bin and images do not need padding to 32 bit length
     }
+    // The bufferViews have byte offsets that are 32-bit aligned
+    // The bin and images write 8 bits at a time and may not take up
+    // all of the allocated space, so extra space at the end can be skipped
+    bufferIndex = this.alignedLength(bufferIndex);
+
     // images
     imageBuffers.forEach(imageBuffer => {
       for (let i = 0; i < imageBuffer.length; i++) {
         dataView.setUint32(bufferIndex, imageBuffer[i], true);
         bufferIndex++;
       }
+      bufferIndex = this.alignedLength(bufferIndex);
     });
 
     return arrayBuffer;

@@ -1,4 +1,3 @@
-// This represents a 2D triangle of a UV map
 import VertexUv, { VertexUvInterface } from './VertexUv.js';
 import { Vector2 } from '@babylonjs/core';
 
@@ -17,11 +16,11 @@ export interface TriangleUvInterface {
   overlapping: boolean;
   calculateIslandIndex(): void;
   lineIntersects(p1: VertexUvInterface, p2: VertexUvInterface): boolean;
-  overlapsTriangle(triagle: TriangleUvInterface): boolean;
-  pointInside(u: number, v: number): boolean;
+  overlapsTriangle(triangle: TriangleUvInterface): boolean;
   vertexInside(point: VertexUvInterface): boolean;
 }
 
+// A 2D triangle of a UV map
 export default class TriangleUv implements TriangleUvInterface {
   a = null as unknown as VertexUvInterface;
   area = undefined as unknown as number;
@@ -47,6 +46,8 @@ export default class TriangleUv implements TriangleUvInterface {
     this.loadMinMax();
   }
 
+  // Recursively groups itself into an island with other triangles it is connected with
+  // The minimum vertex index is passed to all neighbors and the smallest one becomes the island index
   public calculateIslandIndex(): void {
     try {
       if (this.a.islandIndex === this.b.islandIndex && this.b.islandIndex === this.c.islandIndex) {
@@ -86,6 +87,7 @@ export default class TriangleUv implements TriangleUvInterface {
     }
   }
 
+  // Check if a line intersects this triangle (any of its 3 edges)
   public lineIntersects(p1: VertexUvInterface, p2: VertexUvInterface): boolean {
     return (
       TriangleUv.edgesIntersect(this.a, this.b, p1, p2) ||
@@ -94,19 +96,7 @@ export default class TriangleUv implements TriangleUvInterface {
     );
   }
 
-  public pointInside(u: number, v: number): boolean {
-    // https://stackoverflow.com/questions/2049582/how-to-determine-if-a-point-is-in-a-2d-triangle
-    // https://www.gamedev.net/forums/topic.asp?topic_id=295943
-    const b1 = TriangleUv.isCounterClockwise(u, v, this.a.u, this.a.v, this.b.u, this.b.v);
-    const b2 = TriangleUv.isCounterClockwise(u, v, this.b.u, this.b.v, this.c.u, this.c.v);
-    const b3 = TriangleUv.isCounterClockwise(u, v, this.c.u, this.c.v, this.a.u, this.a.v);
-    return b1 == b2 && b2 == b3;
-  }
-
-  public vertexInside(point: VertexUvInterface): boolean {
-    return this.pointInside(point.u, point.v);
-  }
-
+  // Check if another triangle overlaps this one
   public overlapsTriangle(otherTriangle: TriangleUvInterface): boolean {
     // Step 1 - skip if it is the same triangle (fastest)
     if (this.id === otherTriangle.id) {
@@ -240,13 +230,19 @@ export default class TriangleUv implements TriangleUvInterface {
     return false; // make it here without finding an overlap
   }
 
+  // Check if a vertex is inside this triangle
+  public vertexInside(point: VertexUvInterface): boolean {
+    return this.pointInside(point.u, point.v);
+  }
+
   ///////////////////////
   // PRIVATE FUNCTIONS //
   ///////////////////////
 
+  // Compute the UV area using Heron's formula
   private calculateArea() {
-    // Compute the UV area using Heron's formula
-    // Note: units are a percentage of the 0-1 UV area
+    // Note: units are a percentage of the 0-1 UV area. They get converted to pixels per meter later
+    // V2: if the image texture dimensions were available here, this could be pixels per UV space
     const uvA = new Vector2(this.a.u, this.a.v);
     const uvB = new Vector2(this.b.u, this.b.v);
     const uvC = new Vector2(this.c.u, this.c.v);
@@ -259,11 +255,13 @@ export default class TriangleUv implements TriangleUvInterface {
     );
   }
 
+  // Check inversion based on winding direction
   private calculateInverted() {
     // https://stackoverflow.com/questions/17592800/how-to-find-the-orientation-of-three-points-in-a-two-dimensional-space-given-coo
     this.inverted = TriangleUv.isCounterClockwise(this.a.u, this.a.v, this.b.u, this.b.v, this.c.u, this.c.v);
   }
 
+  // Check if two edges intersect, based on 2 points each
   private static edgesIntersect(
     p1: VertexUvInterface,
     p2: VertexUvInterface,
@@ -279,14 +277,26 @@ export default class TriangleUv implements TriangleUvInterface {
     );
   }
 
+  // Checks if the winding direction is counter clockwise
   private static isCounterClockwise(p1u: number, p1v: number, p2u: number, p2v: number, p3u: number, p3v: number) {
     return (p3v - p1v) * (p2u - p1u) > (p2v - p1v) * (p3u - p1u);
   }
 
+  // Get the min/max UV values, which is later used to check if all triangles are in the 0-1 range
   private loadMinMax() {
     this.maxU = Math.max(this.a.u, this.b.u, this.c.u);
     this.maxV = Math.max(this.a.v, this.b.v, this.c.v);
     this.minU = Math.min(this.a.u, this.b.u, this.c.u);
     this.minV = Math.min(this.a.v, this.b.v, this.c.v);
+  }
+
+  // Check if a point is inside this triangle
+  private pointInside(u: number, v: number): boolean {
+    // https://stackoverflow.com/questions/2049582/how-to-determine-if-a-point-is-in-a-2d-triangle
+    // https://www.gamedev.net/forums/topic.asp?topic_id=295943
+    const b1 = TriangleUv.isCounterClockwise(u, v, this.a.u, this.a.v, this.b.u, this.b.v);
+    const b2 = TriangleUv.isCounterClockwise(u, v, this.b.u, this.b.v, this.c.u, this.c.v);
+    const b3 = TriangleUv.isCounterClockwise(u, v, this.c.u, this.c.v, this.a.u, this.a.v);
+    return b1 == b2 && b2 == b3;
   }
 }

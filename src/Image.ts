@@ -8,7 +8,7 @@ export interface ImageInterface {
   minValue: number;
   mimeType: string;
   name: string;
-  usedForBaseColor: boolean; // Needed to limit PBR range test
+  usedForBaseColor: boolean; // Identifies if it should be used in the PBR range test
   width: number;
   initFromBrowser(arrayBuffer: ArrayBuffer): Promise<void>;
   init(buffer: Buffer): Promise<void>;
@@ -16,6 +16,8 @@ export interface ImageInterface {
   isQuadratic(): boolean;
 }
 
+// 2D Image used for a texture
+// Note that CanvasImage is used because Babylon's NullEngine does not load images
 export class Image implements ImageInterface {
   canvasImage = undefined as unknown as CanvasImage;
   height = undefined as unknown as number;
@@ -29,6 +31,7 @@ export class Image implements ImageInterface {
   constructor(imageJson: GltfJsonImageInterface) {
     this.name = imageJson.name;
     this.mimeType = imageJson.mimeType;
+    // await this.init should be called externally to load the data
   }
 
   // constructor cannot be async, but we need to await loadImage
@@ -66,7 +69,7 @@ export class Image implements ImageInterface {
       // create a canvas to write the pixels to
       const canvas = createCanvas(this.canvasImage.naturalWidth, this.canvasImage.naturalHeight);
 
-      // draw the image on the cavnas
+      // draw the image on the canvas
       const ctx = canvas.getContext('2d');
       ctx.drawImage(this.canvasImage, 0, 0, this.canvasImage.naturalWidth, this.canvasImage.naturalHeight);
 

@@ -160,6 +160,7 @@ export interface ReportJSONInterface {
   };
 }
 
+// Returns the report as a JSON object that can be ingested by other automated systems
 export class ReportJSON implements ReportJSONInterface {
   version = '';
   pass = false;

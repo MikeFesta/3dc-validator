@@ -2,15 +2,15 @@
 // attributes that are needed by the asset validator
 // Full Schema: https://github.com/KhronosGroup/glTF/tree/main/specification/2.0/schema
 
+export interface GltfJsonBufferInterface {
+  byteLength: number;
+  uri?: string;
+}
+
 export interface GltfJsonBufferViewInterface {
   buffer: number;
   byteLength: number;
   byteOffset: number;
-}
-
-export interface GltfJsonBufferInterface {
-  byteLength: number;
-  uri?: string;
 }
 
 export interface GltfJsonImageInterface {
@@ -18,6 +18,20 @@ export interface GltfJsonImageInterface {
   mimeType: string;
   name: string;
   uri?: string;
+}
+
+export interface GltfJsonMaterialInterface {
+  alphaCutoff: number;
+  alphaMode: string;
+  doubleSided: boolean;
+  emissiveFactor: [number, number, number];
+  emissiveTexture: GltfJsonTextureInfoInterface;
+  extensions: object;
+  extras: object;
+  name: string;
+  normalTexture: object;
+  occlusionTexture: object;
+  pbrMetallicRoughness: GltfJsonPbrMetallicRoughnessInterface;
 }
 
 export interface GltfJsonMeshInterface {
@@ -39,20 +53,6 @@ export interface GltfJsonPbrMetallicRoughnessInterface {
   metallicRoughnessTexture: GltfJsonTextureInfoInterface;
 }
 
-export interface GltfJsonMaterialInterface {
-  alphaCutoff: number;
-  alphaMode: string;
-  doubleSided: boolean;
-  emissiveFactor: [number, number, number];
-  emissiveTexture: GltfJsonTextureInfoInterface;
-  extensions: object;
-  extras: object;
-  name: string;
-  normalTexture: object;
-  occlusionTexture: object;
-  pbrMetallicRoughness: GltfJsonPbrMetallicRoughnessInterface;
-}
-
 export interface GltfJsonTextureInfoInterface {
   extensions: object;
   extras: object;
@@ -68,6 +68,7 @@ export interface GltfJsonTextureInterface {
   source: number;
 }
 
+// Top Level Interface
 export interface GltfJsonInterface {
   accessors: object[];
   asset: {

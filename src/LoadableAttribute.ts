@@ -5,6 +5,7 @@ export interface LoadableAttributeInterface {
   loadValue: (value: boolean | number | string) => void;
 }
 
+// Helper class to keep track of when values have been loaded
 export class LoadableAttribute implements LoadableAttributeInterface {
   loaded = false;
   name = '';

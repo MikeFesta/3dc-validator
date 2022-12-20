@@ -13,7 +13,6 @@ export interface ValidatorInterface {
   reportReady: boolean;
   schema: SchemaInterface;
   version: string;
-
   generateReport: () => void;
   getReportCsv: () => string;
   getReportJson: () => string;
@@ -26,7 +25,7 @@ export class Validator implements ValidatorInterface {
   report = new Report();
   reportReady = false;
   schema = new Schema();
-  version = '1.0.0-rc.8';
+  version = '1.0.0';
 
   constructor() {
     // Model needs access to this.schema to know if indices need to be calculated or not
@@ -34,6 +33,7 @@ export class Validator implements ValidatorInterface {
     this.model = new Model(this);
   }
 
+  // Run after loading the model and schema to create the report
   public generateReport() {
     if (!this.model.loaded) {
       throw new Error('Unable to generate report. No 3D model loaded.');
@@ -42,7 +42,9 @@ export class Validator implements ValidatorInterface {
       throw new Error('Unable to generate report. No schema loaded.');
     }
 
+    // Run the validator first
     this.testGltfValidator();
+    // Run the rest of the tests, grouped into separate functions for legibility
     this.testFileSize();
     this.testMaterialCount();
     this.testTriangleCount();
@@ -63,6 +65,7 @@ export class Validator implements ValidatorInterface {
     this.reportReady = true;
   }
 
+  // Return the report items as a comma separated values string
   public getReportCsv(): string {
     return (
       '"Test Name","Result","Notes"\r\n' +
@@ -83,7 +86,9 @@ export class Validator implements ValidatorInterface {
     );
   }
 
+  // Return the report as a stringified JSON object
   public getReportJson(): string {
+    // Check if the model passes overall by looking for any tests that failed
     let passing = this.report.getItems().every(item => {
       return item.tested === false || (item.tested === true && item.pass);
     });
@@ -199,7 +204,6 @@ export class Validator implements ValidatorInterface {
       pass: this.report.uvGutterWideEnough.pass,
       tested: this.report.uvGutterWideEnough.tested,
     };
-    // TODO: confirm this number is in px/m
     reportJson.uvs.pixelsPerMeter = {
       maximum: {
         pass: this.report.pixelsPerMeterMax.pass,
@@ -226,6 +230,10 @@ export class Validator implements ValidatorInterface {
     };
     return JSON.stringify(reportJson);
   }
+
+  ///////////////////////
+  // PRIVATE FUNCTIONS //
+  ///////////////////////
 
   // Check that the model fits within viewer/application min/max dimensions
   private testDimensions() {
@@ -294,6 +302,7 @@ export class Validator implements ValidatorInterface {
     }
   }
 
+  // Check if edges are Hard and/or non-manifold
   private testEdges() {
     if (this.schema.requireBeveledEdges.value === false) {
       this.report.requireBeveledEdges.skipTestWithMessage('Not Computed (slow)');
@@ -313,80 +322,80 @@ export class Validator implements ValidatorInterface {
     }
   }
 
-  // The filesize should be within the specified range. Min and/or Max size can be ignored with a value of -1
+  // The file size should be within the specified range. Min and/or Max size can be ignored with a value of -1
   private testFileSize() {
     if (this.schema.maxFileSizeInKb.value === -1 && this.schema.minFileSizeInKb.value === -1) {
       // Skip test, but still report the file size
       this.report.fileSize.skipTestWithMessage(this.model.fileSizeInKb.value.toLocaleString() + 'kb');
     } else if (this.schema.maxFileSizeInKb.value === -1) {
-      // Check only the min filesize
-      const filesizeOK = (this.model.fileSizeInKb.value as number) >= (this.schema.minFileSizeInKb.value as number);
-      let filesizeComponentMessage = '';
-      let filesizeMessage =
+      // Check only the min file size
+      const fileSizeOK = (this.model.fileSizeInKb.value as number) >= (this.schema.minFileSizeInKb.value as number);
+      let fileSizeComponentMessage = '';
+      let fileSizeMessage =
         this.model.fileSizeInKb.value.toLocaleString() +
         'kb >= ' +
         this.schema.minFileSizeInKb.value.toLocaleString() +
         'kb';
-      if (!filesizeOK) {
-        filesizeComponentMessage = 'File too small';
-        filesizeMessage =
+      if (!fileSizeOK) {
+        fileSizeComponentMessage = 'File too small';
+        fileSizeMessage =
           this.model.fileSizeInKb.value.toLocaleString() +
           'kb < ' +
           this.schema.minFileSizeInKb.value.toLocaleString() +
           'kb';
       }
-      this.report.fileSize.test(filesizeOK, filesizeMessage, filesizeComponentMessage);
+      this.report.fileSize.test(fileSizeOK, fileSizeMessage, fileSizeComponentMessage);
     } else if (this.schema.minFileSizeInKb.value === -1) {
-      // Check only the max filesize
-      const filesizeOK = (this.model.fileSizeInKb.value as number) <= (this.schema.maxFileSizeInKb.value as number);
-      let filesizeComponentMessage = '';
-      let filesizeMessage =
+      // Check only the max file size
+      const fileSizeOK = (this.model.fileSizeInKb.value as number) <= (this.schema.maxFileSizeInKb.value as number);
+      let fileSizeComponentMessage = '';
+      let fileSizeMessage =
         this.model.fileSizeInKb.value.toLocaleString() +
         'kb <= ' +
         this.schema.maxFileSizeInKb.value.toLocaleString() +
         'kb';
-      if (!filesizeOK) {
-        filesizeComponentMessage = 'File too large';
-        filesizeMessage =
+      if (!fileSizeOK) {
+        fileSizeComponentMessage = 'File too large';
+        fileSizeMessage =
           this.model.fileSizeInKb.value.toLocaleString() +
           'kb > ' +
           this.schema.maxFileSizeInKb.value.toLocaleString() +
           'kb';
       }
-      this.report.fileSize.test(filesizeOK, filesizeMessage, filesizeComponentMessage);
+      this.report.fileSize.test(fileSizeOK, fileSizeMessage, fileSizeComponentMessage);
     } else {
-      // Check that filesize is within range (min-max)
-      const filesizeOK =
+      // Check that file size is within range (min-max)
+      const fileSizeOK =
         // Greater than Min
         (this.model.fileSizeInKb.value as number) >= (this.schema.minFileSizeInKb.value as number) &&
         // Less than Max
         (this.model.fileSizeInKb.value as number) <= (this.schema.maxFileSizeInKb.value as number);
-      let filesizeComponentMessage = '';
-      let filesizeMessage =
+      let fileSizeComponentMessage = '';
+      let fileSizeMessage =
         this.schema.minFileSizeInKb.value.toLocaleString() +
         'kb <= ' +
         this.model.fileSizeInKb.value.toLocaleString() +
         'kb <= ' +
         this.schema.maxFileSizeInKb.value.toLocaleString() +
         'kb';
-      if (!filesizeOK) {
+      if (!fileSizeOK) {
         if ((this.model.fileSizeInKb.value as number) < (this.schema.minFileSizeInKb.value as number)) {
-          filesizeComponentMessage = 'File too small';
-          filesizeMessage =
+          fileSizeComponentMessage = 'File too small';
+          fileSizeMessage =
             this.model.fileSizeInKb.value.toLocaleString() +
             'kb < ' +
             this.schema.minFileSizeInKb.value.toLocaleString() +
             'kb';
         } else if ((this.model.fileSizeInKb.value as number) > (this.schema.maxFileSizeInKb.value as number)) {
-          filesizeComponentMessage = 'File too large';
-          filesizeMessage =
+          fileSizeComponentMessage = 'File too large';
+          fileSizeMessage =
             this.model.fileSizeInKb.value.toLocaleString() +
             'kb > ' +
             this.schema.maxFileSizeInKb.value.toLocaleString() +
             'kb';
         }
       }
-      this.report.fileSize.test(filesizeOK, filesizeMessage, filesizeComponentMessage);
+      this.report.fileSize.test(fileSizeOK, fileSizeMessage, fileSizeComponentMessage);
     }
   }
 
@@ -679,6 +688,7 @@ export class Validator implements ValidatorInterface {
     );
   }
 
+  // Check that the root node transform is clean
   private testRootNodeTransform() {
     if (this.schema.requireCleanRootNodeTransform.value === false) {
       this.report.rootNodeCleanTransform.skipTestWithMessage(this.model.rootNodeTransform.isClean() ? 'true' : 'false');
@@ -766,7 +776,7 @@ export class Validator implements ValidatorInterface {
     }
   }
 
-  // Texture dimensions should be within range, powers of 2, and (optionally) quadratic
+  // Check if texture dimensions are within range, powers of 2, quadratic, and PBR safe
   private testTextures() {
     if (this.model.images.length === 0) {
       // If there are no images, skip all of these tests

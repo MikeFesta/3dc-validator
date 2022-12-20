@@ -12,6 +12,7 @@ export interface TriangleXyzInterface {
   uv: TriangleUvInterface;
 }
 
+// A 3D triangle in the primitive mesh
 export default class TriangleXyz implements TriangleXyzInterface {
   a = null as unknown as VertexXyzInterface;
   area = 0;
@@ -32,8 +33,8 @@ export default class TriangleXyz implements TriangleXyzInterface {
   // PRIVATE FUNCTIONS //
   ///////////////////////
 
+  // Compute the area using Heron's formula
   private calculateArea() {
-    // Compute the UV area using Heron's formula
     const positionA = new Vector3(this.a.x, this.a.y, this.a.z);
     const positionB = new Vector3(this.b.x, this.b.y, this.b.z);
     const positionC = new Vector3(this.c.x, this.c.y, this.c.z);
@@ -49,6 +50,7 @@ export default class TriangleXyz implements TriangleXyzInterface {
     );
   }
 
+  // Calculate the normal vector, which is used to get edge angles for the Hard Edge check
   private calculateNormal() {
     const positionBminusA = new Vector3(this.b.x - this.a.x, this.b.y - this.a.y, this.b.z - this.a.z);
     const positionCminusA = new Vector3(this.c.x - this.a.x, this.c.y - this.a.y, this.c.z - this.a.z);

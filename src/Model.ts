@@ -10,7 +10,7 @@ import { Image, ImageInterface } from './Image.js';
 import { LoadableAttribute, LoadableAttributeInterface } from './LoadableAttribute.js';
 import { NodeTransform, NodeTransformInterface } from './NodeTransform.js';
 import { Primitive, PrimitiveInterface } from './Primitive.js';
-//@ts-ignore
+//@ts-ignore - there is no type info for gltf-validator, alternative is to create a .d.ts file with declare module 'gltf-validator';
 import { validateBytes } from 'gltf-validator';
 import { AbstractMesh } from '@babylonjs/core';
 import { VertexBuffer } from '@babylonjs/core/Buffers/buffer.js';
@@ -115,9 +115,11 @@ export class Model implements ModelInterface {
     const engine = new NullEngine();
     this.scene = new Scene(engine);
 
+    // The GLB gets populated either from Files[] in the browser or filePaths[] in Node.js
     this.glb = new Glb();
   }
 
+  // Helper function to return all of the loaded attributes for the model that can be looped through
   public getAttributes() {
     return [
       this.fileSizeInKb,
@@ -185,6 +187,8 @@ export class Model implements ModelInterface {
         }
         await this.glb.initFromGltfFiles(files);
       }
+
+      // once the glb data has been loaded, calculate the model info
       await this.loadFromGlb(this.glb);
     } catch (err) {
       throw new Error('Error loading model: ' + (err as Error).message);
@@ -217,12 +221,15 @@ export class Model implements ModelInterface {
         // Multi-file .gltf
         await this.glb.initFromGltfFilePaths(filePaths);
       }
+
+      // once the glb data has been loaded, calculate the model info
       await this.loadFromGlb(this.glb);
     } catch (err) {
       throw new Error('Unable to load model from file system: ' + (err as Error).message);
     }
   }
 
+  // Check that UV values are in the 0-1 range, which is desired for atlas textures
   public uvIsInRangeZeroToOne = () => {
     return (
       (this.u.max.value as number) <= 1 &&
@@ -236,6 +243,7 @@ export class Model implements ModelInterface {
   // PRIVATE FUNCTIONS //
   ///////////////////////
 
+  // Min/Max color values used to check the PBR range
   private calculateColorValues(images: ImageInterface[]) {
     let max = undefined as unknown as number;
     let min = undefined as unknown as number;
@@ -259,6 +267,7 @@ export class Model implements ModelInterface {
     }
   }
 
+  // The bounding box of the model
   private calculateDimensions(scene: Scene) {
     // Dimensions - from the __root__ node, get bounds of all child meshes
     if (scene.meshes.length > 0) {
@@ -270,6 +279,7 @@ export class Model implements ModelInterface {
     }
   }
 
+  // Hard and Manifold edge detection (sum of all primitive values)
   private calculateEdgeValues(primitives: PrimitiveInterface[]) {
     let hardEdges = 0;
     let nonManifoldEdges = 0;
@@ -281,6 +291,7 @@ export class Model implements ModelInterface {
     this.nonManifoldEdgeCount.loadValue(nonManifoldEdges);
   }
 
+  // Get the UV Range, Inverted, Overlapping, Texel Density (sum of all primitive values)
   private calculateUvValues(primitives: PrimitiveInterface[]) {
     // 1. Find the min/max U and V values
     let maxU = undefined as unknown as number;
@@ -357,6 +368,7 @@ export class Model implements ModelInterface {
     }
   }
 
+  // Get the min and max dimensions from all of the images
   private getTextureSizes(reportInfo: GltfValidatorReportInfoInterface) {
     let maxHeight = 0;
     let minHeight = 0;
@@ -384,7 +396,7 @@ export class Model implements ModelInterface {
     return { maxHeight, minHeight, maxWidth, minWidth };
   }
 
-  // Loads the binary data into Image objects using node-canvas. NullEngine does not load images.
+  // Loads the binary data into Image objects using node-canvas. Note: NullEngine cannot load images.
   private async loadImagesFromBin(json: GltfJsonInterface, data: GltfBinInterface) {
     // Identify the baseColorTexture index mapping for the PBR color range test
     let baseColorTextureIndices = [] as number[];
@@ -436,11 +448,13 @@ export class Model implements ModelInterface {
     }
   }
 
+  // All file inputs get converted into GLB format so this single function can handle extracting that data into the model
   private async loadFromGlb(glb: GlbInterface) {
     if (!glb.loaded) {
       throw new Error('The model was not loaded properly');
     }
 
+    // Running the glTF-Validator also populates some model information (triangle count, material count, texture sizes)
     await this.runGltfValidatorWithBytes(glb.getBytes());
 
     // Note: the file was previously loaded with GltfFileLoader to extract the JSON/bin
@@ -448,10 +462,10 @@ export class Model implements ModelInterface {
     // efficient way to use what's already been loaded.
     await SceneLoader.AppendAsync('', glb.getBase64String(), this.scene);
 
+    // Loading / calculating values in separate functions to keep loadFromGlb easier to read
     await this.loadImagesFromBin(glb.json, glb.bin);
-
     this.calculateDimensions(this.scene);
-    this.calculateColorValues(this.images); // after images are loaded
+    this.calculateColorValues(this.images); // needs to run after loadImagesFromBin
     this.loadObjectCountsFromJson(glb.json);
     this.loadRootNodeTransform(this.scene);
     this.loadPrimitives(this.scene);
@@ -460,6 +474,7 @@ export class Model implements ModelInterface {
     this.loaded = true;
   }
 
+  // Creates a primitive object for each mesh in the scene
   private loadPrimitives(scene: Scene) {
     // Note: the schema should already be loaded, before the model, to know if slow computations need to be run
     scene.meshes.forEach((mesh: AbstractMesh) => {
@@ -529,7 +544,7 @@ export class Model implements ModelInterface {
     this.texturesMinWidth.loadValue(textureSizes.minWidth);
   }
 
-  // Generate a report from the glTF Validator using bytes
+  // Run the glTF-Validator using bytes from the GLB
   private async runGltfValidatorWithBytes(bytes: Uint8Array) {
     return new Promise<void>((resolve, reject) => {
       validateBytes(bytes)

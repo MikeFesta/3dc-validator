@@ -13,6 +13,7 @@ export interface VertexUvInterface {
   setIndex(index: number): void;
 }
 
+// A 2D point for the UV map
 export default class VertexUv implements VertexUvInterface {
   edges = [] as EdgeUvInterface[];
   index = undefined as unknown as number;
@@ -23,12 +24,13 @@ export default class VertexUv implements VertexUvInterface {
 
   constructor(u: number, v: number) {
     // edges are set externally
-    // index and island index initiallized externally with setIndex
+    // index and island index initialized externally with setIndex
     // triangles are set externally
     this.u = u;
     this.v = v;
   }
 
+  // Check if this and another vertex are in the same location
   public checkForMatch(vertex: VertexUvInterface): boolean {
     // Note: I found that on a complex mesh, blender's UV unwrap created some vertices in the same location that were +/- 0.000001
     // This resulted in missed matches with precision = 6 using Math.round
@@ -48,13 +50,14 @@ export default class VertexUv implements VertexUvInterface {
     return false;
   }
 
+  // This recursive function sets triangle and vertex island indices to the smallest index of all connected vertices
   public computeIslandIndexForTriangles(): void {
-    // This is a recursive function to set triangle and vertex island indices (smallest index of all connected vertices)
     for (let i = 0; i < this.triangles.length; i++) {
       this.triangles[i].calculateIslandIndex();
     }
   }
 
+  // Set the initial index and make the island index the same
   public setIndex(index: number): void {
     this.index = index;
     // The island index starts initially the same as the vertex

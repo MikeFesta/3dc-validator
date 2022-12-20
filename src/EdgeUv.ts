@@ -3,18 +3,16 @@ import { VertexUvInterface } from './VertexUv';
 
 export interface EdgeUvInterface {
   index: number;
-  shared: boolean;
   triangles: TriangleUvInterface[];
   vertexA: VertexUvInterface;
   vertexB: VertexUvInterface;
   zeroLength: boolean;
-  calculateAttributes(): void;
   checkForMatch(edge: EdgeUvInterface): boolean;
 }
 
+// A 2D line connecting two UV vertices
 export default class EdgeUv implements EdgeUvInterface {
   index = undefined as unknown as number;
-  shared = undefined as unknown as boolean;
   triangles = [] as TriangleUvInterface[];
   vertexA = null as unknown as VertexUvInterface;
   vertexB = null as unknown as VertexUvInterface;
@@ -23,15 +21,12 @@ export default class EdgeUv implements EdgeUvInterface {
   constructor(a: VertexUvInterface, b: VertexUvInterface) {
     this.vertexA = a;
     this.vertexB = b;
-  }
-
-  public calculateAttributes(): void {
-    this.shared = this.triangles.length > 1;
     // if both vertices are in the same position, it has zero length
     // V2: Add zero length UV edges to the report
     this.zeroLength = this.vertexA.index === this.vertexB.index;
   }
 
+  // Check if this edge matches another one, which is true if they have the same vertices
   public checkForMatch(edge: EdgeUvInterface): boolean {
     // Treat AB and BA as equal by testing min/max of the index
     if (

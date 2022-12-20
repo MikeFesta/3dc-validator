@@ -6,6 +6,7 @@ export interface VertexXyzInterface {
   checkForMatch(vertex: VertexXyzInterface): boolean;
 }
 
+// 3D point for the mesh
 export default class VertexXyz implements VertexXyzInterface {
   index = undefined as unknown as number;
   x = undefined as unknown as number;
@@ -18,8 +19,9 @@ export default class VertexXyz implements VertexXyzInterface {
     this.z = z;
   }
 
+  // Check if this an another vertex are in the same location
   public checkForMatch(vertex: VertexXyzInterface): boolean {
-    // See VertexUv.checkForMatch for an explaination of why this value is 5
+    // See VertexUv.checkForMatch for an explanation of why this value is 5
     const precision = 5;
     const e = 10 ** precision; // don't use caret ^ because it's XOR
     if (

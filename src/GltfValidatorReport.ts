@@ -1,19 +1,5 @@
-export interface GltfValidatorReportInfoResourceImageInterface {
-  width: number;
-  height: number;
-  format: string;
-  primaries: string;
-  transfer: string;
-  bits: number;
-}
-
-export interface GltfValidatorReportInfoResourceInterface {
-  pointer: string;
-  mimeType: string;
-  storage: string;
-  byteLength?: number;
-  image?: GltfValidatorReportInfoResourceImageInterface;
-}
+// These interfaces map to the output of the glTF-Validator
+// https://github.com/KhronosGroup/glTF-Validator
 
 export interface GltfValidatorReportInfoInterface {
   version: string;
@@ -34,11 +20,21 @@ export interface GltfValidatorReportInfoInterface {
   maxAttributes: number;
 }
 
-export interface GltfValidatorReportIssuesMessageInterface {
-  code: string;
-  message: string;
+export interface GltfValidatorReportInfoResourceImageInterface {
+  width: number;
+  height: number;
+  format: string;
+  primaries: string;
+  transfer: string;
+  bits: number;
+}
+
+export interface GltfValidatorReportInfoResourceInterface {
   pointer: string;
-  severity: number;
+  mimeType: string;
+  storage: string;
+  byteLength?: number;
+  image?: GltfValidatorReportInfoResourceImageInterface;
 }
 
 export interface GltfValidatorReportIssuesInterface {
@@ -50,6 +46,14 @@ export interface GltfValidatorReportIssuesInterface {
   truncated: boolean;
 }
 
+export interface GltfValidatorReportIssuesMessageInterface {
+  code: string;
+  message: string;
+  pointer: string;
+  severity: number;
+}
+
+// Top Level Interface
 export interface GltfValidatorReportInterface {
   uri: string;
   mimeType: string;

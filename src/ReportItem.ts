@@ -8,6 +8,7 @@ export interface ReportItemInterface {
   test: (passCondition: boolean) => void;
 }
 
+// Each item in the report which provides the test status as well as messages and a reference link
 export class ReportItem implements ReportItemInterface {
   componentMessage = '';
   guidelinesUrl = '';
@@ -23,6 +24,7 @@ export class ReportItem implements ReportItemInterface {
     this.name = name;
   }
 
+  // Set the test results to PASS or FAIL with messages
   public test(passCondition: boolean, message?: string, componentMessage?: string) {
     this.componentMessage = componentMessage ?? '';
     this.message = message ?? '';
@@ -30,6 +32,7 @@ export class ReportItem implements ReportItemInterface {
     this.tested = true;
   }
 
+  // Do not run the test and leave the output as NOT TESTED
   public skipTestWithMessage(message: string) {
     this.message = message;
     this.tested = false;

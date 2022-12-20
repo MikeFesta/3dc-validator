@@ -48,7 +48,6 @@ export interface SchemaInterface {
   uvGutterWidth2048: LoadableAttributeInterface;
   uvGutterWidth4096: LoadableAttributeInterface;
   version: LoadableAttributeInterface;
-
   getAttributes(): LoadableAttributeInterface[];
   getJsonObject(): SchemaJSONInterface;
   loadFromFileInput(file: File): Promise<void>;
@@ -109,6 +108,7 @@ export class Schema implements SchemaInterface {
   uvGutterWidth4096 = new LoadableAttribute('UV Gutter Width at 4096', -1);
   version = new LoadableAttribute('Version', '1.0.0');
 
+  // Helper function to return all of the loaded attributes for the schema that can be looped through
   getAttributes() {
     return [
       this.version,

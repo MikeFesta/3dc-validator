@@ -1,5 +1,3 @@
-// This represents a 2D square for a UV map
-// Created for a 2D pixel grid for gutter width testing
 import { TriangleUvInterface } from './TriangleUv.js';
 import VertexUv, { VertexUvInterface } from './VertexUv.js';
 
@@ -16,11 +14,12 @@ export interface SquareUvInterface {
   vMax: number;
   vMin: number;
   size: number;
-  overlapsTriangle(triagle: TriangleUvInterface): boolean;
-  pointInside(u: number, v: number): boolean;
+  overlapsTriangle(triangle: TriangleUvInterface): boolean;
   vertexInside(point: VertexUvInterface): boolean;
 }
 
+// Represents a 2D square for a UV map
+// Created for a 2D pixel grid for gutter width testing
 export default class SquareUv implements SquareUvInterface {
   a = null as unknown as VertexUvInterface;
   b = null as unknown as VertexUvInterface;
@@ -50,6 +49,7 @@ export default class SquareUv implements SquareUvInterface {
     this.d = new VertexUv(this.uMax, this.vMax);
   }
 
+  // Checks if this square overlaps a given triangle
   public overlapsTriangle(triangle: TriangleUvInterface): boolean {
     // Step 1 - check triangle bounding box
     if (
@@ -76,11 +76,17 @@ export default class SquareUv implements SquareUvInterface {
     return false; // made it here without finding an overlap
   }
 
-  public pointInside(u: number, v: number): boolean {
-    return u < this.uMax && u > this.uMin && v < this.vMax && v > this.vMin;
-  }
-
+  // Checks if a UV vertex is inside this square
   public vertexInside(point: VertexUvInterface): boolean {
     return this.pointInside(point.u, point.v);
+  }
+
+  ///////////////////////
+  // PRIVATE FUNCTIONS //
+  ///////////////////////
+
+  // Checks if a point is inside this square
+  private pointInside(u: number, v: number): boolean {
+    return u < this.uMax && u > this.uMin && v < this.vMax && v > this.vMin;
   }
 }

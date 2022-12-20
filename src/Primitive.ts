@@ -27,6 +27,7 @@ export interface PrimitiveInterface {
   verticesXyz: VertexXyzInterface[];
 }
 
+// A primitive is a mesh with a single material and UV map
 export class Primitive implements PrimitiveInterface {
   checksRequireUvIndices = false;
   checksRequireXyzIndices = false;
@@ -63,6 +64,8 @@ export class Primitive implements PrimitiveInterface {
   ///////////////////////
   // PRIVATE FUNCTIONS //
   ///////////////////////
+
+  // Hard and Non-Manifold edge counts computed for each edge
   private calculateEdgeAttributes = () => {
     this.edgesXyz.forEach(edge => {
       edge.calculateAttributes();
@@ -75,6 +78,7 @@ export class Primitive implements PrimitiveInterface {
     });
   };
 
+  // Extracts the vertices (XYZ and UV) from a Babylon mesh. Matches them to indices if needed.
   private loadDataFromMesh = (mesh: AbstractMesh) => {
     const faceIndices = mesh.getIndices();
 
@@ -90,6 +94,7 @@ export class Primitive implements PrimitiveInterface {
         const indexB = faceIndices[i + 1];
         const indexC = faceIndices[i + 2];
 
+        // 3D Points (very similar to 2D uv point loading, below)
         if (xyzData) {
           let vertexA = new VertexXyz(xyzData[indexA * 3], xyzData[indexA * 3 + 1], xyzData[indexA * 3 + 2]);
           let vertexB = new VertexXyz(xyzData[indexB * 3], xyzData[indexB * 3 + 1], xyzData[indexB * 3 + 2]);
@@ -103,6 +108,7 @@ export class Primitive implements PrimitiveInterface {
           // WARNING: This can get really slow with a lot of vertices, which is why it is only runs if checksRequireXyzIndices
           if (this.checksRequireXyzIndices) {
             if (this.verticesXyz.length === 0) {
+              // first set of vertices to add
               let index = 0;
               vertexA.index = index; // 0
               this.verticesXyz.push(vertexA);
@@ -125,7 +131,7 @@ export class Primitive implements PrimitiveInterface {
               vertexC.index = index;
               this.verticesXyz.push(vertexC);
             } else {
-              // search all existing points for duplicates O(n * log(n))
+              // search all existing vertices for duplicates O(n * log(n))
               for (let i = 0; i < this.verticesXyz.length; i++) {
                 if (vertexA.index === undefined && this.verticesXyz[i].checkForMatch(vertexA)) {
                   vertexA = this.verticesXyz[i];
@@ -155,7 +161,7 @@ export class Primitive implements PrimitiveInterface {
             }
           }
 
-          // Triangle does not always need the vertices to have indices
+          // Create a 3D triangle object (vertices may or may not have indices)
           const triangle = new TriangleXyz(vertexA, vertexB, vertexC);
           this.trianglesXyz.push(triangle);
 
@@ -168,6 +174,7 @@ export class Primitive implements PrimitiveInterface {
 
             // Only record edges once
             if (this.edgesXyz.length === 0) {
+              // The first set of edges
               let index = 0;
               edgeAB.index = index; // 0
               this.edgesXyz.push(edgeAB);
@@ -190,6 +197,7 @@ export class Primitive implements PrimitiveInterface {
               edgeCA.index = index;
               this.edgesXyz.push(edgeCA);
             } else {
+              // search all existing edges for duplicates O(n * log(n))
               for (let i = 0; i < this.edgesXyz.length; i++) {
                 if (edgeAB.index === undefined && this.edgesXyz[i].checkForMatch(edgeAB)) {
                   edgeAB = this.edgesXyz[i];
@@ -219,12 +227,14 @@ export class Primitive implements PrimitiveInterface {
               }
             }
 
-            // Add the triangle to the edges
+            // Link the triangle to the edges (used to compute angle and if manifold)
             edgeAB.triangles.push(triangle);
             edgeBC.triangles.push(triangle);
             edgeCA.triangles.push(triangle);
           }
         }
+
+        // 2D Points (very similar to 3D xyz point loading, above)
         if (uvData) {
           let vertexA = new VertexUv(uvData[indexA * 2], uvData[indexA * 2 + 1]);
           let vertexB = new VertexUv(uvData[indexB * 2], uvData[indexB * 2 + 1]);
@@ -239,6 +249,7 @@ export class Primitive implements PrimitiveInterface {
 
           if (this.checksRequireUvIndices) {
             if (this.verticesUv.length === 0) {
+              // Add the first set of vertices
               let index = 0;
               vertexA.setIndex(index);
               this.verticesUv.push(vertexA);
@@ -261,7 +272,7 @@ export class Primitive implements PrimitiveInterface {
               vertexC.setIndex(index);
               this.verticesUv.push(vertexC);
             } else {
-              // search all existing points for duplicates O(n * log(n))
+              // search all existing vertices for duplicates O(n * log(n))
               for (let i = 0; i < this.verticesUv.length; i++) {
                 if (vertexA.index === undefined && this.verticesUv[i].checkForMatch(vertexA)) {
                   vertexA = this.verticesUv[i];
@@ -292,11 +303,11 @@ export class Primitive implements PrimitiveInterface {
             }
           }
 
-          // Triangle does not always need the vertices to have indices
+          // Create a 2D triangle object (vertices may or may not have indices)
           const triangle = new TriangleUv(i / 3, vertexA, vertexB, vertexC);
           this.trianglesUv.push(triangle);
 
-          // Link the triange to the vertices (used for island computation)
+          // Link the triangle to the vertices (used for island computation)
           vertexA.triangles.push(triangle);
           vertexB.triangles.push(triangle);
           vertexC.triangles.push(triangle);
@@ -332,6 +343,7 @@ export class Primitive implements PrimitiveInterface {
               edgeCA.triangles.push(triangle);
               this.edgesUv.push(edgeCA);
             } else {
+              // search all existing edges for duplicates O(n * log(n))
               for (let i = 0; i < this.edgesUv.length; i++) {
                 if (edgeAB.index === undefined && this.edgesUv[i].checkForMatch(edgeAB)) {
                   edgeAB = this.edgesUv[i];
@@ -396,7 +408,7 @@ export class Primitive implements PrimitiveInterface {
 
       // Group UVs into islands for the purpose of margin testing
       // An island is a group of triangles that are connected by one or more vertices
-      // A recursive process propogates the smallest vertex index across the entire island
+      // A recursive process propagates the smallest vertex index across the entire island
       this.trianglesUv.forEach((triangle: TriangleUvInterface) => {
         triangle.calculateIslandIndex();
       });

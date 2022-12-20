@@ -30,6 +30,8 @@ export interface ReportInterface {
   getItems: () => ReportItemInterface[];
 }
 
+// All of the checks that are available. Will either be PASS, FAIL, or NOT TESTED
+// Specifies a link to the Asset Validator for more information about what the test is checking and why it is important.
 export class Report implements ReportInterface {
   fileSize = new ReportItem(
     'File Size',
@@ -133,6 +135,8 @@ export class Report implements ReportInterface {
     'Overlapping UVs',
     'https://github.com/KhronosGroup/3DC-Asset-Creation/blob/main/asset-creation-guidelines/full-version/sec04_UVCoordinates/UVCoordinates.md#overlapping-uvs-considerations-in-an-atlas-layout',
   );
+
+  // Return an iterable list of all the items
   getItems() {
     return [
       this.gltfValidator,
