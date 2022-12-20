@@ -266,8 +266,6 @@ export default class Glb implements GlbInterface {
       8 + // bin chunk header: chunk length + type
       binAndImagesBufferSize;
 
-    console.log('Total Size is ' + totalSize);
-
     const arrayBuffer = new ArrayBuffer(totalSize);
     const dataView = new DataView(arrayBuffer);
     let bufferIndex = 0;
